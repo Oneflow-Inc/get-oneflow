@@ -25,6 +25,10 @@ inputs:
   conda-env-file:
     description: ""
     required: true
+  conda-prefix:
+    description: "Miniconda prefix, if it fails to run 'conda --version', will install one there"
+    required: false
+    default: "~/ci-miniconda-prefix"
   # Other args
   force-rebuild:
     description: "rebuild even package with same key found"

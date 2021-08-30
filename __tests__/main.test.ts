@@ -9,17 +9,18 @@ test('throws invalid number', async () => {
   await expect(wait(input)).rejects.toThrow('milliseconds not a number')
 })
 
-test('wait 500 ms', async () => {
+test('wait 100 ms', async () => {
   const start = new Date()
-  await wait(500)
+  await wait(100)
   const end = new Date()
   var delta = Math.abs(end.getTime() - start.getTime())
-  expect(delta).toBeGreaterThan(450)
+  expect(delta).toBeGreaterThan(0)
 })
 
 // shows how the runner will run a javascript action with env / stdout protocol
 test('test runs', () => {
-  process.env['INPUT_MILLISECONDS'] = '500'
+  process.env['INPUT_ONEFLOW-BUILD-ENV'] = 'conda'
+  process.env['INPUT_DRY-RUN'] = 'true'
   const np = process.execPath
   const ip = path.join(__dirname, '..', 'lib', 'main.js')
   const options: cp.ExecFileSyncOptions = {

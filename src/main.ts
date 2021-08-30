@@ -1,21 +1,30 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
+import * as exec from '@actions/exec'
+import * as io from '@actions/io'
 
-import {wait} from './wait'
+async function installConda(): Promise<number> {
+  try {
+    await io.which('conda')
+  } catch (error) {
+    core.setFailed('conda not found')
+  }
+  return exec.exec('conda', ['--version'], {ignoreReturnCode: true})
+}
 
 async function run(): Promise<void> {
   try {
-    const actionName = github.context.action
     core.debug(`github.context: ${JSON.stringify(github.context, null, 2)}`)
-    core.debug(`github.context.action: ${actionName}`)
-    const ms: string = core.getInput('milliseconds')
-    core.debug(`Waiting ${ms} milliseconds ...`) // debug is only output if you set the secret `ACTIONS_RUNNER_DEBUG` to true
-
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
-
-    core.setOutput('time', new Date().toTimeString())
+    const buildEnv: string = core.getInput('oneflow-build-env')
+    const isDryRun: boolean = core.getBooleanInput('dry-run')
+    if (isDryRun) {
+      core.debug(`isDryRun: ${isDryRun}`)
+    } else {
+      await installConda()
+    }
+    if (['conda', 'manylinux'].includes(buildEnv) === false) {
+      core.setFailed('oneflow-build-env must be conda or manylinux')
+    }
   } catch (error) {
     core.setFailed(error.message)
   }
