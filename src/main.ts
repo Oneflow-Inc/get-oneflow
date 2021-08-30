@@ -17,6 +17,10 @@ async function installConda(): Promise<number> {
 
 async function buildWithConda(): Promise<void> {
   let envFile: string = core.getInput('conda-env-file', {required: true})
+  const oneflowSrc: string = core.getInput('oneflow-src', {required: true})
+  const cmakeInitCache: string = core.getInput('cmake-init-cache', {
+    required: true
+  })
   const isDryRun: boolean = core.getBooleanInput('dry-run')
   const isEnvFileExist = await fs.promises
     .access(envFile, fs.constants.F_OK)
@@ -29,6 +33,11 @@ async function buildWithConda(): Promise<void> {
   }
   if (isDryRun === false) {
     await exec.exec('conda', ['env', 'update', '-f', envFile, '--prune'])
+    const buildDir = 'build'
+    await io.mkdirP(buildDir)
+    await exec.exec('cmake', ['-S', oneflowSrc, '-C', cmakeInitCache], {
+      cwd: buildDir
+    })
   }
 }
 

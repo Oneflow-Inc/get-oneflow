@@ -59,6 +59,10 @@ function installConda() {
 function buildWithConda() {
     return __awaiter(this, void 0, void 0, function* () {
         let envFile = core.getInput('conda-env-file', { required: true });
+        const oneflowSrc = core.getInput('oneflow-src', { required: true });
+        const cmakeInitCache = core.getInput('cmake-init-cache', {
+            required: true
+        });
         const isDryRun = core.getBooleanInput('dry-run');
         const isEnvFileExist = yield fs_1.default.promises
             .access(envFile, fs_1.default.constants.F_OK)
@@ -71,6 +75,11 @@ function buildWithConda() {
         }
         if (isDryRun === false) {
             yield exec.exec('conda', ['env', 'update', '-f', envFile, '--prune']);
+            const buildDir = 'build';
+            yield io.mkdirP(buildDir);
+            yield exec.exec('cmake', ['-S', oneflowSrc, '-C', cmakeInitCache], {
+                cwd: buildDir
+            });
         }
     });
 }
