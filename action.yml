@@ -1,38 +1,39 @@
 name: "Build/Get OneFlow"
 description: ""
 inputs:
-  env:
-    description: "environments to build OneFlow: conda, manylinux"
-    required: true
-  cmake-init-cache:
-    description: "path to CMake initial cache file to build OneFlow"
+  # OneFlow args
+  oneflow-build-env:
+    description: "environment to build OneFlow: conda, manylinux"
     required: true
   oneflow-src:
     description: "path to OneFlow source code"
     required: true
+  oneflow-build-key:
+    description: "the key to check if two builds are equivalent to each other, usually is hash value of non-test cpp and python files"
+    required: true
+    default: "none"
+  # CMake args
+  cmake-init-cache:
+    description: "path to CMake initial cache file to build OneFlow"
+    required: true
+  # Cuda args
   cuda-version:
     description: "default is none, format: 10.1, 10.2"
     required: false
     default: "none"
-  key:
-    description: "the key to check if two builds are equivalent to each other, usually is hash value of non-test cpp and python files"
+  # Conda args
+  conda-env-file:
+    description: ""
     required: true
-    default: "none"
+  # Other args
   force-rebuild:
     description: "rebuild even package with same key found"
     required: false
     default: "false"
-  conda-env-file:
-    description: ""
-    required: true
   dry-run:
     description: ""
     required: false
     default: "false"
-  action:
-    description: "build type, could be conda/manylinux"
-    required: false
-    default: "conda"
 outputs:
   pip-index-url:
     description: "pip index url could be use to install oneflow"
