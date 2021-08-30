@@ -36,6 +36,7 @@ async function buildWithConda(): Promise<void> {
     const buildDir = 'build'
     await io.mkdirP(buildDir)
     await exec.exec('conda', ['init'])
+    await exec.exec('source', ['~/.bashrc'])
     await exec.exec('conda', ['activate', 'oneflow-dev-clang10-v2'])
     await exec.exec('cmake', [
       '-S',
