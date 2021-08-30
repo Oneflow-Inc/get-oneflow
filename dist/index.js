@@ -42,7 +42,7 @@ function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const actionName = github.context.action;
-            core.debug(`github.context: ${github.context}`);
+            core.debug(`github.context: ${JSON.stringify(github.context)}`);
             core.debug(`github.context.action: ${actionName}`);
             const ms = core.getInput('milliseconds');
             core.debug(`Waiting ${ms} milliseconds ...`); // debug is only output if you set the secret `ACTIONS_RUNNER_DEBUG` to true
