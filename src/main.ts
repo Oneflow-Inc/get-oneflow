@@ -6,6 +6,7 @@ import {wait} from './wait'
 async function run(): Promise<void> {
   try {
     const actionName = github.context.action
+    core.debug(`github.context: ${github.context}`)
     core.debug(`github.context.action: ${actionName}`)
     const ms: string = core.getInput('milliseconds')
     core.debug(`Waiting ${ms} milliseconds ...`) // debug is only output if you set the secret `ACTIONS_RUNNER_DEBUG` to true
