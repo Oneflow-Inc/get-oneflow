@@ -5,7 +5,7 @@ import * as io from '@actions/io'
 
 async function installConda(): Promise<number> {
   try {
-    const condaPath = await io.which('conda')
+    const condaPath = await io.which('conda', true)
     core.info(`condaPath: ${condaPath}`)
   } catch (error) {
     core.setFailed('conda not found')
@@ -20,6 +20,7 @@ async function run(): Promise<void> {
     const isDryRun: boolean = core.getBooleanInput('dry-run')
     if (isDryRun) {
       core.debug(`isDryRun: ${isDryRun}`)
+      core.debug(await io.which('python3', true))
     } else {
       await installConda()
     }

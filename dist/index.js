@@ -59,6 +59,7 @@ function run() {
             const isDryRun = core.getBooleanInput('dry-run');
             if (isDryRun) {
                 core.debug(`isDryRun: ${isDryRun}`);
+                core.debug(yield io.which('python33', true));
             }
             else {
                 yield installConda();
