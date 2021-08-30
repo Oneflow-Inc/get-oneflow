@@ -7,6 +7,9 @@ inputs:
   cmake-init-cache:
     description: "path to CMake initial cache file to build OneFlow"
     required: true
+  oneflow-src:
+    description: "path to OneFlow source code"
+    required: true
   cuda-version:
     description: "default is none, format: 10.1, 10.2"
     required: false

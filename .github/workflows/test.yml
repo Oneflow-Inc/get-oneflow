@@ -26,8 +26,17 @@ jobs:
   build-oneFlow-with-conda: # make sure the action works on a clean machine without building
     name: "Build OneFlow with Conda"
     runs-on: ubuntu-latest
+    env:
+      ONEFLOW_SRC: oneflow-src
     steps:
       - uses: actions/checkout@v2
-      - uses: ./
+      - name: Checkout Oneflow-Inc/models
+        uses: actions/checkout@v2
         with:
-          milliseconds: 1000
+          repository: Oneflow-Inc/oneflow
+          ref: master
+          path: ${{ env.ONEFLOW_SRC }}
+      - uses: ./build-with-conda
+        with:
+          cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/cn/fast/cpu-clang.cmake
+          oneflow-src: ${{ env.ONEFLOW_SRC }}
