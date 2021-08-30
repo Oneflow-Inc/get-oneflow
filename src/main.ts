@@ -38,7 +38,7 @@ async function buildWithConda(): Promise<void> {
     const condaEnvName = 'oneflow-dev-clang10-v2'
     await exec.exec('conda', [
       'run',
-      '-name',
+      '-n',
       condaEnvName,
       'cmake',
       '-S',
