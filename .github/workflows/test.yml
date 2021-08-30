@@ -29,9 +29,15 @@ jobs:
           repository: Oneflow-Inc/oneflow
           ref: master
           path: ${{ env.ONEFLOW_SRC }}
+      - name: Checkout Oneflow-Inc/conda-env
+        uses: actions/checkout@v2
+        with:
+          repository: Oneflow-Inc/conda-env
+          ref: 9cd37571cbd6cc6a81fc87faa7f6a43be772ae31
+          path: conda-env
       - uses: ./
         with:
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/cn/fast/cpu-clang.cmake
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           oneflow-build-env: conda
-          conda-env-file: https://raw.githubusercontent.com/Oneflow-Inc/conda-env/9cd37571cbd6cc6a81fc87faa7f6a43be772ae31/dev/clang10/environment-v2.yml
+          conda-env-file: conda-env/dev/clang10/environment-v2.yml
