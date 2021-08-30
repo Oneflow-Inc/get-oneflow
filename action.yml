@@ -23,12 +23,16 @@ inputs:
     default: "none"
   # Conda args
   conda-env-file:
-    description: ""
+    description: "can be a url or a path"
     required: true
   conda-prefix:
     description: "Miniconda prefix, if it fails to run 'conda --version', will install one there"
     required: false
-    default: "~/ci-miniconda-prefix"
+    default: "~/miniconda3-prefixes/py39_4.10.3"
+  conda-installer-url:
+    description: "If conda not installed, use this url to download installer"
+    required: false
+    default: "https://repo.anaconda.com/miniconda/Miniconda3-py39_4.10.3-Linux-x86_64.sh"
   # Other args
   force-rebuild:
     description: "rebuild even package with same key found"
