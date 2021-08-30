@@ -33,3 +33,4 @@ jobs:
         with:
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/cn/fast/cpu-clang.cmake
           oneflow-src: ${{ env.ONEFLOW_SRC }}
+          oneflow-build-env: conda
