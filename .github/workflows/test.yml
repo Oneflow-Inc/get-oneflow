@@ -36,7 +36,7 @@ jobs:
           repository: Oneflow-Inc/oneflow
           ref: master
           path: ${{ env.ONEFLOW_SRC }}
-      - uses: ./build-with-conda
+      - uses: ./
         with:
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/cn/fast/cpu-clang.cmake
           oneflow-src: ${{ env.ONEFLOW_SRC }}
