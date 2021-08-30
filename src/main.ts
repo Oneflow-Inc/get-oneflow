@@ -28,7 +28,7 @@ async function buildWithConda(): Promise<void> {
     envFile = await tc.downloadTool(envFile)
   }
   if (isDryRun === false) {
-    await exec.exec('conda', ['env', 'update', ' -f', envFile, '--prune'])
+    await exec.exec('conda', ['env', 'update', '-f', envFile, '--prune'])
   }
 }
 
