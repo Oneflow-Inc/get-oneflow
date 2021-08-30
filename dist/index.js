@@ -80,7 +80,7 @@ function buildWithConda() {
             const condaEnvName = 'oneflow-dev-clang10-v2';
             yield exec.exec('conda', [
                 'run',
-                '-name',
+                '-n',
                 condaEnvName,
                 'cmake',
                 '-S',
