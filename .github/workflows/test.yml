@@ -23,7 +23,7 @@ jobs:
         with:
           milliseconds: 1000
 
-  build-oneFlow-with-conda: # make sure the action works on a clean machine without building
+  test-build-oneflow-with-conda: # make sure the action works on a clean machine without building
     name: "Build OneFlow with Conda"
     runs-on: ubuntu-latest
     env:
