@@ -42,7 +42,8 @@ const io = __importStar(__nccwpck_require__(7436));
 function installConda() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            yield io.which('conda');
+            const condaPath = yield io.which('conda');
+            core.info(`condaPath: ${condaPath}`);
         }
         catch (error) {
             core.setFailed('conda not found');

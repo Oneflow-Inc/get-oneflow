@@ -5,7 +5,8 @@ import * as io from '@actions/io'
 
 async function installConda(): Promise<number> {
   try {
-    await io.which('conda')
+    const condaPath = await io.which('conda')
+    core.info(`condaPath: ${condaPath}`)
   } catch (error) {
     core.setFailed('conda not found')
   }
