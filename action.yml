@@ -25,10 +25,6 @@ inputs:
   conda-env-file:
     description: ""
     required: true
-  src:
-    description: "src path to OneFlow, default is current directory"
-    required: false
-    default: "."
   dry-run:
     description: ""
     required: false
