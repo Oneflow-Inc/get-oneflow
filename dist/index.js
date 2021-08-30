@@ -70,7 +70,7 @@ function buildWithConda() {
             envFile = yield tc.downloadTool(envFile);
         }
         if (isDryRun === false) {
-            yield exec.exec('conda', ['env update -f', envFile, '--prune']);
+            yield exec.exec('conda', ['env', 'update', ' -f', envFile, '--prune']);
         }
     });
 }
