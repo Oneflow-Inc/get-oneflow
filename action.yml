@@ -34,7 +34,7 @@ inputs:
     required: false
     default: "false"
   action:
-    description: "internal, current action name"
+    description: "build type, could be conda/manylinux"
     required: false
     default: "conda"
 outputs:
