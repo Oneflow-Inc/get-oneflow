@@ -77,10 +77,12 @@ function buildWithConda() {
             yield exec.exec('conda', ['env', 'update', '-f', envFile, '--prune']);
             const buildDir = 'build';
             yield io.mkdirP(buildDir);
-            yield exec.exec('conda', ['init']);
-            yield exec.exec('source', ['~/.bashrc']);
-            yield exec.exec('conda', ['activate', 'oneflow-dev-clang10-v2']);
-            yield exec.exec('cmake', [
+            const condaEnvName = 'oneflow-dev-clang10-v2';
+            yield exec.exec('conda', [
+                'run',
+                '-name',
+                condaEnvName,
+                'cmake',
                 '-S',
                 oneflowSrc,
                 '-C',
