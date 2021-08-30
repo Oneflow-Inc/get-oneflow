@@ -77,9 +77,14 @@ function buildWithConda() {
             yield exec.exec('conda', ['env', 'update', '-f', envFile, '--prune']);
             const buildDir = 'build';
             yield io.mkdirP(buildDir);
-            yield exec.exec('cmake', ['-S', oneflowSrc, '-C', cmakeInitCache], {
-                cwd: buildDir
-            });
+            yield exec.exec('cmake', [
+                '-S',
+                oneflowSrc,
+                '-C',
+                cmakeInitCache,
+                '-B',
+                buildDir
+            ]);
         }
     });
 }
