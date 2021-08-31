@@ -4,13 +4,14 @@ import * as exec from '@actions/exec'
 import * as io from '@actions/io'
 import * as tc from '@actions/tool-cache'
 import fs from 'fs'
+import os from 'os'
 import {ExecOptions} from '@actions/exec'
 import path from 'path'
 
 async function ensureConda(): Promise<string> {
   let condaPrefix: string = core.getInput('conda-prefix', {required: false})
   if (condaPrefix) {
-    condaPrefix = (await exec.getExecOutput('realpath', [condaPrefix])).stdout
+    condaPrefix = condaPrefix.replace('~', os.homedir)
     const condaInstallerUrl: string = core.getInput('conda-installer-url')
     let cmdFromPrefix: string = path.join(condaPrefix, 'condabin', 'conda')
     core.warning(`conda not found, start looking for: ${cmdFromPrefix}`)

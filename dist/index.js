@@ -44,12 +44,13 @@ const exec = __importStar(__nccwpck_require__(1514));
 const io = __importStar(__nccwpck_require__(7436));
 const tc = __importStar(__nccwpck_require__(7784));
 const fs_1 = __importDefault(__nccwpck_require__(5747));
+const os_1 = __importDefault(__nccwpck_require__(2087));
 const path_1 = __importDefault(__nccwpck_require__(5622));
 function ensureConda() {
     return __awaiter(this, void 0, void 0, function* () {
         let condaPrefix = core.getInput('conda-prefix', { required: false });
         if (condaPrefix) {
-            condaPrefix = (yield exec.getExecOutput('realpath', [condaPrefix])).stdout;
+            condaPrefix = condaPrefix.replace('~', os_1.default.homedir);
             const condaInstallerUrl = core.getInput('conda-installer-url');
             let cmdFromPrefix = path_1.default.join(condaPrefix, 'condabin', 'conda');
             core.warning(`conda not found, start looking for: ${cmdFromPrefix}`);
