@@ -8,7 +8,8 @@ import {ExecOptions} from '@actions/exec'
 import path from 'path'
 
 async function ensureConda(): Promise<string> {
-  const condaPrefix: string = core.getInput('conda-prefix', {required: false})
+  let condaPrefix: string = core.getInput('conda-prefix', {required: false})
+  condaPrefix = (await exec.getExecOutput('realpath', [condaPrefix])).stdout
   const condaInstallerUrl: string = core.getInput('conda-installer-url')
   let cmdFromPrefix: string = path.join(condaPrefix, 'condabin', 'conda')
   core.warning(`conda not found, start looking for: ${cmdFromPrefix}`)
@@ -19,6 +20,7 @@ async function ensureConda(): Promise<string> {
     const installerPath = await tc.downloadTool(condaInstallerUrl)
     exec.exec('bash', [installerPath, '-b', '-u', '-s', '-p', condaPrefix])
   }
+  cmdFromPrefix = await io.which(cmdFromPrefix, true)
   return cmdFromPrefix
 }
 

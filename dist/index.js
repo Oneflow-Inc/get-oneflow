@@ -47,7 +47,8 @@ const fs_1 = __importDefault(__nccwpck_require__(5747));
 const path_1 = __importDefault(__nccwpck_require__(5622));
 function ensureConda() {
     return __awaiter(this, void 0, void 0, function* () {
-        const condaPrefix = core.getInput('conda-prefix', { required: false });
+        let condaPrefix = core.getInput('conda-prefix', { required: false });
+        condaPrefix = (yield exec.getExecOutput('realpath', [condaPrefix])).stdout;
         const condaInstallerUrl = core.getInput('conda-installer-url');
         let cmdFromPrefix = path_1.default.join(condaPrefix, 'condabin', 'conda');
         core.warning(`conda not found, start looking for: ${cmdFromPrefix}`);
@@ -59,6 +60,7 @@ function ensureConda() {
             const installerPath = yield tc.downloadTool(condaInstallerUrl);
             exec.exec('bash', [installerPath, '-b', '-u', '-s', '-p', condaPrefix]);
         }
+        cmdFromPrefix = yield io.which(cmdFromPrefix, true);
         return cmdFromPrefix;
     });
 }
