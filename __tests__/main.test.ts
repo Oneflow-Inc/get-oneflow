@@ -4,6 +4,7 @@ import * as cp from 'child_process'
 import * as path from 'path'
 import {expect, test} from '@jest/globals'
 import os from 'os'
+import {ensureDocker} from '../src/docker'
 
 test('throws invalid number', async () => {
   const input = parseInt('foo', 10)
@@ -39,14 +40,13 @@ test('test runs', () => {
   }
 })
 
+function isOnPremise(): boolean {
+  return process.platform === 'linux' && os.hostname().includes('oneflow')
+}
 test(
   'test real cmake',
   () => {
-    if (process.platform != 'linux') {
-      return
-    }
-    console.log(os.hostname())
-    if (os.hostname().includes('oneflow') == false) {
+    if (isOnPremise() == false) {
       return
     }
     process.env['INPUT_ONEFLOW-BUILD-ENV'] = 'conda'
@@ -61,7 +61,7 @@ test(
     process.env['INPUT_CONDA-PREFIX'] = '~/miniconda3-prefixes/py39_4.10.3'
     process.env['INPUT_SELF-HOSTED'] = 'true'
     process.env['INPUT_DRY-RUN'] = 'false'
-    process.env['RUNNER_TEMP'] = '~/runner-tmp'
+    process.env['RUNNER_TEMP'] = 'runner-tmp'
     const np = process.execPath
     const ip = path.join(__dirname, '..', 'lib', 'main.js')
     const options: cp.ExecFileSyncOptions = {
@@ -73,6 +73,17 @@ test(
       console.log(error.output.toString())
       throw error
     }
+  },
+  1000 * 60 * 15
+)
+
+test(
+  'test docker',
+  async () => {
+    if (isOnPremise() == false) {
+      return
+    }
+    await ensureDocker()
   },
   1000 * 60 * 15
 )

@@ -1,6 +1,85 @@
 require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 4774:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ensureConda = void 0;
+const core = __importStar(__nccwpck_require__(2186));
+const exec = __importStar(__nccwpck_require__(1514));
+const io = __importStar(__nccwpck_require__(7436));
+const tc = __importStar(__nccwpck_require__(7784));
+const os_1 = __importDefault(__nccwpck_require__(2087));
+const path_1 = __importDefault(__nccwpck_require__(5622));
+function ensureConda() {
+    return __awaiter(this, void 0, void 0, function* () {
+        let condaPrefix = core.getInput('conda-prefix', { required: false });
+        if (condaPrefix) {
+            condaPrefix = condaPrefix.replace('~', os_1.default.homedir);
+            const condaInstallerUrl = core.getInput('conda-installer-url');
+            let cmdFromPrefix = path_1.default.join(condaPrefix, 'condabin', 'conda');
+            try {
+                yield io.which('conda', true);
+                return 'conda';
+            }
+            catch (error) {
+                core.warning(`conda not found, start looking for: ${cmdFromPrefix}`);
+            }
+            try {
+                yield exec.exec(cmdFromPrefix, ['--version']);
+            }
+            catch (error) {
+                core.warning(`start installing with installer: ${condaInstallerUrl}`);
+                const installerPath = yield tc.downloadTool(condaInstallerUrl);
+                exec.exec('bash', [installerPath, '-b', '-u', '-s', '-p', condaPrefix]);
+            }
+            cmdFromPrefix = yield io.which(cmdFromPrefix, true);
+            return cmdFromPrefix;
+        }
+        else {
+            return 'conda';
+        }
+    });
+}
+exports.ensureConda = ensureConda;
+
+
+/***/ }),
+
 /***/ 3109:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -46,69 +125,7 @@ const tc = __importStar(__nccwpck_require__(7784));
 const fs_1 = __importDefault(__nccwpck_require__(5747));
 const os_1 = __importDefault(__nccwpck_require__(2087));
 const path_1 = __importDefault(__nccwpck_require__(5622));
-function load_img(tag, url) {
-    return __awaiter(this, void 0, void 0, function* () {
-        yield exec.exec('docker', ['ps']);
-        const inspect = yield exec.exec('docker', ['inspect', tag], {
-            ignoreReturnCode: true
-        });
-        if (inspect !== 0) {
-            const imgPath = yield tc.downloadTool(url);
-            yield exec.exec('docker', ['load', '-i', imgPath]);
-        }
-    });
-}
-function ensureDocker() {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            yield exec.exec('docker', ['ps']);
-            yield load_img('quay.io/pypa/manylinux1_x86_64', 'https://oneflow-static.oss-cn-beijing.aliyuncs.com/img/quay.iopypamanylinux1_x86_64.tar.gz');
-            yield load_img('quay.io/pypa/manylinux2010_x86_64', 'https://oneflow-static.oss-cn-beijing.aliyuncs.com/img/quay.iopypamanylinux2010_x86_64.tar.gz');
-            yield load_img('quay.io/pypa/manylinux2014_x86_64:latest', 'https://oneflow-static.oss-cn-beijing.aliyuncs.com/img/quay.iopypamanylinux2014_x86_64.tar.gz');
-            yield load_img('quay.io/pypa/manylinux_2_24_x86_64', 'https://oneflow-static.oss-cn-beijing.aliyuncs.com/img/quay.iopypamanylinux_2_24_x86_64.tar.gz');
-        }
-        catch (error) {
-            core.warning(error.message);
-        }
-    });
-}
-function ensureConda() {
-    return __awaiter(this, void 0, void 0, function* () {
-        let condaPrefix = core.getInput('conda-prefix', { required: false });
-        if (condaPrefix) {
-            condaPrefix = condaPrefix.replace('~', os_1.default.homedir);
-            const condaInstallerUrl = core.getInput('conda-installer-url');
-            const cmdFromPrefix = path_1.default.join(condaPrefix, 'condabin', 'conda');
-            try {
-                yield io.which('conda', true);
-                return 'conda';
-            }
-            catch (error) {
-                core.warning(`conda not found, start looking for: ${cmdFromPrefix}`);
-            }
-            try {
-                yield exec.exec(cmdFromPrefix, ['--version']);
-            }
-            catch (error) {
-                core.warning(`start installing with installer: ${condaInstallerUrl}`);
-                const installerPath = yield tc.downloadTool(condaInstallerUrl);
-                yield exec.exec('bash', [
-                    installerPath,
-                    '-b',
-                    '-u',
-                    '-s',
-                    '-p',
-                    condaPrefix
-                ]);
-            }
-            yield exec.exec(cmdFromPrefix, ['--version']);
-            return cmdFromPrefix;
-        }
-        else {
-            return 'conda';
-        }
-    });
-}
+const conda_1 = __nccwpck_require__(4774);
 function condaRun(condaEnvName, commandLine, args, options) {
     return __awaiter(this, void 0, void 0, function* () {
         let condaCmd = 'conda';
@@ -116,7 +133,7 @@ function condaRun(condaEnvName, commandLine, args, options) {
             condaCmd = yield io.which(condaCmd, true);
         }
         catch (error) {
-            condaCmd = yield ensureConda();
+            condaCmd = yield conda_1.ensureConda();
         }
         return yield exec.exec(condaCmd, ['run', '-n', condaEnvName, commandLine].concat(args || []), options);
     });
@@ -146,10 +163,10 @@ function buildWithConda() {
             envFile = yield tc.downloadTool(envFile);
         }
         if (isDryRun === false) {
-            yield ensureConda();
+            yield conda_1.ensureConda();
         }
         if (isDryRun === false) {
-            yield exec.exec(yield ensureConda(), [
+            yield exec.exec(yield conda_1.ensureConda(), [
                 'env',
                 'update',
                 '-f',
@@ -187,18 +204,12 @@ function run() {
             core.debug(`github.context: ${JSON.stringify(github.context, null, 2)}`);
             const buildEnv = core.getInput('oneflow-build-env');
             const isDryRun = core.getBooleanInput('dry-run');
-            const isSelfHosted = core.getBooleanInput('self-hosted');
             if (['conda', 'manylinux'].includes(buildEnv) === false) {
                 core.setFailed('oneflow-build-env must be conda or manylinux');
             }
             if (isDryRun) {
                 core.debug(`isDryRun: ${isDryRun}`);
                 core.debug(yield io.which('python3', true));
-            }
-            else {
-                if (isSelfHosted) {
-                    yield ensureDocker();
-                }
             }
             if (buildEnv === 'conda') {
                 yield buildWithConda();
