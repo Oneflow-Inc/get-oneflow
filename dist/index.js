@@ -59,14 +59,19 @@ function ensureConda() {
             const installerPath = yield tc.downloadTool(condaInstallerUrl);
             exec.exec('bash', [installerPath, '-b', '-u', '-s', '-p', condaPrefix]);
         }
-        io.which('export');
-        exec.exec('export', [`PATH=\${PATH}:${path_1.default.join(condaPrefix, 'condabin')}`]);
         return cmdFromPrefix;
     });
 }
 function condaRun(condaEnvName, commandLine, args, options) {
     return __awaiter(this, void 0, void 0, function* () {
-        return yield exec.exec('conda', ['run', '-n', condaEnvName, commandLine].concat(args || []), options);
+        let condaCmd = 'conda';
+        try {
+            condaCmd = yield io.which(condaCmd, true);
+        }
+        catch (error) {
+            condaCmd = yield ensureConda();
+        }
+        return yield exec.exec(condaCmd, ['run', '-n', condaEnvName, commandLine].concat(args || []), options);
     });
 }
 function buildWithConda() {

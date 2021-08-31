@@ -19,8 +19,6 @@ async function ensureConda(): Promise<string> {
     const installerPath = await tc.downloadTool(condaInstallerUrl)
     exec.exec('bash', [installerPath, '-b', '-u', '-s', '-p', condaPrefix])
   }
-  io.which('export')
-  exec.exec('export', [`PATH=\${PATH}:${path.join(condaPrefix, 'condabin')}`])
   return cmdFromPrefix
 }
 
@@ -30,8 +28,14 @@ async function condaRun(
   args?: string[],
   options?: ExecOptions
 ): Promise<number> {
+  let condaCmd = 'conda'
+  try {
+    condaCmd = await io.which(condaCmd, true)
+  } catch (error) {
+    condaCmd = await ensureConda()
+  }
   return await exec.exec(
-    'conda',
+    condaCmd,
     ['run', '-n', condaEnvName, commandLine].concat(args || []),
     options
   )
