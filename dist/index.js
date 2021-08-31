@@ -45,22 +45,36 @@ const io = __importStar(__nccwpck_require__(7436));
 const tc = __importStar(__nccwpck_require__(7784));
 const fs_1 = __importDefault(__nccwpck_require__(5747));
 const path_1 = __importDefault(__nccwpck_require__(5622));
-function condaCmd() {
-    const condaPrefix = core.getInput('conda-prefix', { required: false });
-    core.info(`condaPrefix: ${condaPrefix}`);
-    return path_1.default.join(condaPrefix, 'condabin', 'conda');
-}
 function ensureConda() {
+    return __awaiter(this, void 0, void 0, function* () {
+        core.info(yield condaCmd());
+        const condaPrefix = core.getInput('conda-prefix', { required: false });
+        const condaInstallerUrl = core.getInput('conda-installer-url');
+        let cmdFromPrefix = path_1.default.join(condaPrefix, 'condabin', 'conda');
+        core.warning(`conda not found, start looking for: ${cmdFromPrefix}`);
+        try {
+            cmdFromPrefix = yield io.which(cmdFromPrefix, true);
+        }
+        catch (error) {
+            core.warning(`start installing with installer: ${condaInstallerUrl}`);
+            const installerPath = yield tc.downloadTool(condaInstallerUrl);
+            exec.exec('bash', [installerPath, '-b', '-u', '-s', '-p', condaPrefix]);
+            exec.exec('export', [`PATH=\${PATH}:${path_1.default.join(condaPrefix, 'condabin')}`]);
+        }
+        return cmdFromPrefix;
+    });
+}
+function condaCmd() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const condaPath = yield io.which('conda', true);
             core.info(`condaPath: ${condaPath}`);
+            return condaPath;
         }
         catch (error) {
-            core.setFailed('conda not found');
+            const cmdFromPrefix = yield ensureConda();
+            return cmdFromPrefix;
         }
-        core.info(condaCmd());
-        return exec.exec('conda', ['--version'], { ignoreReturnCode: true });
     });
 }
 function condaRun(condaEnvName, commandLine, args, options) {
@@ -84,6 +98,7 @@ function buildWithConda() {
             .catch(() => false);
         if (isEnvFileExist === false && isDryRun === false) {
             envFile = yield tc.downloadTool(envFile);
+            yield ensureConda();
         }
         if (isDryRun === false) {
             yield exec.exec('conda', ['env', 'update', '-f', envFile, '--prune']);
@@ -113,9 +128,6 @@ function run() {
             if (isDryRun) {
                 core.debug(`isDryRun: ${isDryRun}`);
                 core.debug(yield io.which('python3', true));
-            }
-            else {
-                yield ensureConda();
             }
             if (buildEnv === 'conda') {
                 yield buildWithConda();

@@ -7,21 +7,32 @@ import fs from 'fs'
 import {ExecOptions} from '@actions/exec'
 import path from 'path'
 
-function condaCmd(): string {
+async function ensureConda(): Promise<string> {
+  core.info(await condaCmd())
   const condaPrefix: string = core.getInput('conda-prefix', {required: false})
-  core.info(`condaPrefix: ${condaPrefix}`)
-  return path.join(condaPrefix, 'condabin', 'conda')
+  const condaInstallerUrl: string = core.getInput('conda-installer-url')
+  let cmdFromPrefix: string = path.join(condaPrefix, 'condabin', 'conda')
+  core.warning(`conda not found, start looking for: ${cmdFromPrefix}`)
+  try {
+    cmdFromPrefix = await io.which(cmdFromPrefix, true)
+  } catch (error) {
+    core.warning(`start installing with installer: ${condaInstallerUrl}`)
+    const installerPath = await tc.downloadTool(condaInstallerUrl)
+    exec.exec('bash', [installerPath, '-b', '-u', '-s', '-p', condaPrefix])
+    exec.exec('export', [`PATH=\${PATH}:${path.join(condaPrefix, 'condabin')}`])
+  }
+  return cmdFromPrefix
 }
 
-async function ensureConda(): Promise<number> {
+async function condaCmd(): Promise<string> {
   try {
     const condaPath = await io.which('conda', true)
     core.info(`condaPath: ${condaPath}`)
+    return condaPath
   } catch (error) {
-    core.setFailed('conda not found')
+    const cmdFromPrefix: string = await ensureConda()
+    return cmdFromPrefix
   }
-  core.info(condaCmd())
-  return exec.exec('conda', ['--version'], {ignoreReturnCode: true})
 }
 
 async function condaRun(
@@ -52,6 +63,7 @@ async function buildWithConda(): Promise<void> {
     .catch(() => false)
   if (isEnvFileExist === false && isDryRun === false) {
     envFile = await tc.downloadTool(envFile)
+    await ensureConda()
   }
   if (isDryRun === false) {
     await exec.exec('conda', ['env', 'update', '-f', envFile, '--prune'])
@@ -81,8 +93,6 @@ async function run(): Promise<void> {
     if (isDryRun) {
       core.debug(`isDryRun: ${isDryRun}`)
       core.debug(await io.which('python3', true))
-    } else {
-      await ensureConda()
     }
     if (buildEnv === 'conda') {
       await buildWithConda()
