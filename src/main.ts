@@ -74,7 +74,13 @@ async function buildWithConda(): Promise<void> {
     await ensureConda()
   }
   if (isDryRun === false) {
-    await exec.exec('conda', ['env', 'update', '-f', envFile, '--prune'])
+    await exec.exec(await ensureConda(), [
+      'env',
+      'update',
+      '-f',
+      envFile,
+      '--prune'
+    ])
     const buildDir = 'build'
     await io.mkdirP(buildDir)
     const condaEnvName = 'oneflow-dev-clang10-v2'

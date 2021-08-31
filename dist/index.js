@@ -110,7 +110,13 @@ function buildWithConda() {
             yield ensureConda();
         }
         if (isDryRun === false) {
-            yield exec.exec('conda', ['env', 'update', '-f', envFile, '--prune']);
+            yield exec.exec(yield ensureConda(), [
+                'env',
+                'update',
+                '-f',
+                envFile,
+                '--prune'
+            ]);
             const buildDir = 'build';
             yield io.mkdirP(buildDir);
             const condaEnvName = 'oneflow-dev-clang10-v2';
