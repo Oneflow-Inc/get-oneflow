@@ -59,6 +59,7 @@ function ensureConda() {
             const installerPath = yield tc.downloadTool(condaInstallerUrl);
             exec.exec('bash', [installerPath, '-b', '-u', '-s', '-p', condaPrefix]);
         }
+        io.which('export');
         exec.exec('export', [`PATH=\${PATH}:${path_1.default.join(condaPrefix, 'condabin')}`]);
         return cmdFromPrefix;
     });

@@ -28,7 +28,6 @@ inputs:
   conda-prefix:
     description: "Miniconda prefix, if it fails to run 'conda --version', will install one there"
     required: false
-    default: "~/miniconda3-prefixes/py39_4.10.3"
   conda-installer-url:
     description: "If conda not installed, use this url to download installer"
     required: false
