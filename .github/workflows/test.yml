@@ -69,3 +69,4 @@ jobs:
           conda-env-file: conda-env/dev/clang10/environment-v2.yml
           conda-installer-url: https://oneflow-static.oss-cn-beijing.aliyuncs.com/downloads/conda-installers/Miniconda3-py39_4.10.3-Linux-x86_64.sh
           conda-prefix: ${{ env.HOME }}/miniconda3-prefixes/py39_4.10.3
+          self-hosted: ${{ contains(matrix.os, 'self-hosted') }}

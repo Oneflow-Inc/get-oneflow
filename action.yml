@@ -41,6 +41,10 @@ inputs:
     description: ""
     required: false
     default: "false"
+  self-hosted:
+    description: ""
+    required: false
+    default: "false"
 outputs:
   pip-index-url:
     description: "pip index url could be use to install oneflow"
