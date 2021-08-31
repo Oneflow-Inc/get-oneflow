@@ -33,5 +33,36 @@ test('test runs', () => {
     console.log(cp.execFileSync(np, [ip], options).toString())
   } catch (error) {
     console.log(error.output.toString())
+    throw error
+  }
+})
+
+test('test runs1', () => {
+  if (process.platform != 'linux') {
+    return
+  }
+  process.env['INPUT_ONEFLOW-BUILD-ENV'] = 'conda'
+  process.env['INPUT_CMAKE-INIT-CACHE'] =
+    '~/oneflow-conda/cmake/caches/cn/fast/cpu-clang.cmake'
+  process.env['INPUT_ONEFLOW-SRC'] = '~/oneflow-conda'
+  process.env['INPUT_ONEFLOW-BUILD-ENV'] = 'conda'
+  process.env['INPUT_CONDA-ENV-FILE'] =
+    '~/conda-env/dev/clang10/environment-v2.yml'
+  process.env['INPUT_CONDA-INSTALLER-URL'] =
+    'https://oneflow-static.oss-cn-beijing.aliyuncs.com/downloads/conda-installers/Miniconda3-py39_4.10.3-Linux-x86_64.sh'
+  process.env['INPUT_CONDA-PREFIX'] = '~/miniconda3-prefixes/py39_4.10.3'
+  process.env['INPUT_SELF-HOSTED'] = 'true'
+  process.env['INPUT_DRY-RUN'] = 'false'
+  process.env['RUNNER_TEMP'] = '~/runner-tmp'
+  const np = process.execPath
+  const ip = path.join(__dirname, '..', 'lib', 'main.js')
+  const options: cp.ExecFileSyncOptions = {
+    env: process.env
+  }
+  try {
+    console.log(cp.execFileSync(np, [ip], options).toString())
+  } catch (error) {
+    console.log(error.output.toString())
+    throw error
   }
 })

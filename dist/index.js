@@ -90,11 +90,11 @@ function condaRun(condaEnvName, commandLine, args, options) {
 }
 function buildWithConda() {
     return __awaiter(this, void 0, void 0, function* () {
-        let envFile = core.getInput('conda-env-file', { required: true });
+        let envFile = core.getInput('conda-env-file', { required: true }).replace('~', os_1.default.homedir);
         const oneflowSrc = core.getInput('oneflow-src', { required: true });
         const cmakeInitCache = core.getInput('cmake-init-cache', {
             required: true
-        });
+        }).replace('~', os_1.default.homedir);
         const isDryRun = core.getBooleanInput('dry-run');
         const isSelfHosted = core.getBooleanInput('self-hosted');
         const isEnvFileExist = yield fs_1.default.promises
@@ -135,7 +135,9 @@ function buildWithConda() {
                     '--parallel',
                     (yield exec.getExecOutput('nproc')).stdout.trim()
                 ]);
-                yield condaRun(condaEnvName, 'python3', ['setup.py', 'bdist_wheel'], { cwd: path_1.default.join(oneflowSrc, 'python') });
+                yield condaRun(condaEnvName, 'python3', ['setup.py', 'bdist_wheel'], {
+                    cwd: path_1.default.join(oneflowSrc, 'python')
+                });
             }
         }
     });

@@ -54,11 +54,15 @@ async function condaRun(
 }
 
 async function buildWithConda(): Promise<void> {
-  let envFile: string = core.getInput('conda-env-file', {required: true})
+  let envFile: string = core
+    .getInput('conda-env-file', {required: true})
+    .replace('~', os.homedir)
   const oneflowSrc: string = core.getInput('oneflow-src', {required: true})
-  const cmakeInitCache: string = core.getInput('cmake-init-cache', {
-    required: true
-  })
+  const cmakeInitCache: string = core
+    .getInput('cmake-init-cache', {
+      required: true
+    })
+    .replace('~', os.homedir)
   const isDryRun: boolean = core.getBooleanInput('dry-run')
   const isSelfHosted: boolean = core.getBooleanInput('self-hosted')
   const isEnvFileExist = await fs.promises
