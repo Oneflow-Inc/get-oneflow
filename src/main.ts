@@ -22,6 +22,8 @@ async function condaRun(
   args?: string[],
   options?: ExecOptions
 ): Promise<number> {
+  const condaPrefix: string = core.getInput('conda-prefix', {required: false})
+  core.info(`condaPrefix: ${condaPrefix}`)
   return await exec.exec(
     'conda',
     ['run', '-n', condaEnvName, commandLine].concat(args || []),

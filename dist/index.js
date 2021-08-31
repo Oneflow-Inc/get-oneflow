@@ -58,6 +58,8 @@ function installConda() {
 }
 function condaRun(condaEnvName, commandLine, args, options) {
     return __awaiter(this, void 0, void 0, function* () {
+        const condaPrefix = core.getInput('conda-prefix', { required: false });
+        core.info(`condaPrefix: ${condaPrefix}`);
         return yield exec.exec('conda', ['run', '-n', condaEnvName, commandLine].concat(args || []), options);
     });
 }
