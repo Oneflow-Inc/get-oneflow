@@ -4,6 +4,7 @@ import * as exec from '@actions/exec'
 import * as io from '@actions/io'
 import * as tc from '@actions/tool-cache'
 import fs from 'fs'
+import {ExecOptions} from '@actions/exec'
 
 async function installConda(): Promise<number> {
   try {
@@ -13,6 +14,19 @@ async function installConda(): Promise<number> {
     core.setFailed('conda not found')
   }
   return exec.exec('conda', ['--version'], {ignoreReturnCode: true})
+}
+
+async function condaRun(
+  condaEnvName: string,
+  commandLine: string,
+  args?: string[],
+  options?: ExecOptions
+): Promise<number> {
+  return await exec.exec(
+    'conda',
+    ['run', '-n', condaEnvName, commandLine].concat(args || []),
+    options
+  )
 }
 
 async function buildWithConda(): Promise<void> {
@@ -36,11 +50,7 @@ async function buildWithConda(): Promise<void> {
     const buildDir = 'build'
     await io.mkdirP(buildDir)
     const condaEnvName = 'oneflow-dev-clang10-v2'
-    await exec.exec('conda', [
-      'run',
-      '-n',
-      condaEnvName,
-      'cmake',
+    await condaRun(condaEnvName, 'cmake', [
       '-S',
       oneflowSrc,
       '-C',

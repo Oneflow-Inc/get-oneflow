@@ -56,6 +56,11 @@ function installConda() {
         return exec.exec('conda', ['--version'], { ignoreReturnCode: true });
     });
 }
+function condaRun(condaEnvName, commandLine, args, options) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return yield exec.exec('conda', ['run', '-n', condaEnvName, commandLine].concat(args || []), options);
+    });
+}
 function buildWithConda() {
     return __awaiter(this, void 0, void 0, function* () {
         let envFile = core.getInput('conda-env-file', { required: true });
@@ -78,11 +83,7 @@ function buildWithConda() {
             const buildDir = 'build';
             yield io.mkdirP(buildDir);
             const condaEnvName = 'oneflow-dev-clang10-v2';
-            yield exec.exec('conda', [
-                'run',
-                '-n',
-                condaEnvName,
-                'cmake',
+            yield condaRun(condaEnvName, 'cmake', [
                 '-S',
                 oneflowSrc,
                 '-C',
