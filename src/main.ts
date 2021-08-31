@@ -25,7 +25,14 @@ async function ensureConda(): Promise<string> {
     } catch (error) {
       core.warning(`start installing with installer: ${condaInstallerUrl}`)
       const installerPath = await tc.downloadTool(condaInstallerUrl)
-      exec.exec('bash', [installerPath, '-b', '-u', '-s', '-p', condaPrefix])
+      await exec.exec('bash', [
+        installerPath,
+        '-b',
+        '-u',
+        '-s',
+        '-p',
+        condaPrefix
+      ])
     }
     await exec.exec(cmdFromPrefix, ['--version'])
     return cmdFromPrefix

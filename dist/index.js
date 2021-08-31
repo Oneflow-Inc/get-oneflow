@@ -66,7 +66,7 @@ function ensureConda() {
             catch (error) {
                 core.warning(`start installing with installer: ${condaInstallerUrl}`);
                 const installerPath = yield tc.downloadTool(condaInstallerUrl);
-                exec.exec('bash', [installerPath, '-b', '-u', '-s', '-p', condaPrefix]);
+                yield exec.exec('bash', [installerPath, '-b', '-u', '-s', '-p', condaPrefix]);
             }
             yield exec.exec(cmdFromPrefix, ['--version']);
             return cmdFromPrefix;
