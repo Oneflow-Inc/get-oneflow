@@ -63,6 +63,8 @@ async function buildWithConda(): Promise<void> {
     .catch(() => false)
   if (isEnvFileExist === false && isDryRun === false) {
     envFile = await tc.downloadTool(envFile)
+  }
+  if (isDryRun === false) {
     await ensureConda()
   }
   if (isDryRun === false) {

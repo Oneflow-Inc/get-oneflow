@@ -98,6 +98,8 @@ function buildWithConda() {
             .catch(() => false);
         if (isEnvFileExist === false && isDryRun === false) {
             envFile = yield tc.downloadTool(envFile);
+        }
+        if (isDryRun === false) {
             yield ensureConda();
         }
         if (isDryRun === false) {
