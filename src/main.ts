@@ -57,7 +57,9 @@ async function buildWithConda(): Promise<void> {
   let envFile: string = core
     .getInput('conda-env-file', {required: true})
     .replace('~', os.homedir)
-  const oneflowSrc: string = core.getInput('oneflow-src', {required: true})
+  const oneflowSrc: string = core
+    .getInput('oneflow-src', {required: true})
+    .replace('~', os.homedir)
   const cmakeInitCache: string = core
     .getInput('cmake-init-cache', {
       required: true
