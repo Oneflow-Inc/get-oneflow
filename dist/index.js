@@ -47,7 +47,6 @@ const fs_1 = __importDefault(__nccwpck_require__(5747));
 const path_1 = __importDefault(__nccwpck_require__(5622));
 function ensureConda() {
     return __awaiter(this, void 0, void 0, function* () {
-        core.info(yield condaCmd());
         const condaPrefix = core.getInput('conda-prefix', { required: false });
         const condaInstallerUrl = core.getInput('conda-installer-url');
         let cmdFromPrefix = path_1.default.join(condaPrefix, 'condabin', 'conda');
@@ -62,19 +61,6 @@ function ensureConda() {
         }
         exec.exec('export', [`PATH=\${PATH}:${path_1.default.join(condaPrefix, 'condabin')}`]);
         return cmdFromPrefix;
-    });
-}
-function condaCmd() {
-    return __awaiter(this, void 0, void 0, function* () {
-        try {
-            const condaPath = yield io.which('conda', true);
-            core.info(`condaPath: ${condaPath}`);
-            return condaPath;
-        }
-        catch (error) {
-            const cmdFromPrefix = yield ensureConda();
-            return cmdFromPrefix;
-        }
     });
 }
 function condaRun(condaEnvName, commandLine, args, options) {

@@ -8,7 +8,6 @@ import {ExecOptions} from '@actions/exec'
 import path from 'path'
 
 async function ensureConda(): Promise<string> {
-  core.info(await condaCmd())
   const condaPrefix: string = core.getInput('conda-prefix', {required: false})
   const condaInstallerUrl: string = core.getInput('conda-installer-url')
   let cmdFromPrefix: string = path.join(condaPrefix, 'condabin', 'conda')
@@ -22,17 +21,6 @@ async function ensureConda(): Promise<string> {
   }
   exec.exec('export', [`PATH=\${PATH}:${path.join(condaPrefix, 'condabin')}`])
   return cmdFromPrefix
-}
-
-async function condaCmd(): Promise<string> {
-  try {
-    const condaPath = await io.which('conda', true)
-    core.info(`condaPath: ${condaPath}`)
-    return condaPath
-  } catch (error) {
-    const cmdFromPrefix: string = await ensureConda()
-    return cmdFromPrefix
-  }
 }
 
 async function condaRun(
