@@ -5,14 +5,22 @@ import * as io from '@actions/io'
 import * as tc from '@actions/tool-cache'
 import fs from 'fs'
 import {ExecOptions} from '@actions/exec'
+import path from 'path/posix'
 
-async function installConda(): Promise<number> {
+function condaCmd(): string {
+  const condaPrefix: string = core.getInput('conda-prefix', {required: false})
+  core.info(`condaPrefix: ${condaPrefix}`)
+  return path.join(condaPrefix, 'condabin', 'conda')
+}
+
+async function ensureConda(): Promise<number> {
   try {
     const condaPath = await io.which('conda', true)
     core.info(`condaPath: ${condaPath}`)
   } catch (error) {
     core.setFailed('conda not found')
   }
+  core.info(condaCmd())
   return exec.exec('conda', ['--version'], {ignoreReturnCode: true})
 }
 
@@ -22,8 +30,6 @@ async function condaRun(
   args?: string[],
   options?: ExecOptions
 ): Promise<number> {
-  const condaPrefix: string = core.getInput('conda-prefix', {required: false})
-  core.info(`condaPrefix: ${condaPrefix}`)
   return await exec.exec(
     'conda',
     ['run', '-n', condaEnvName, commandLine].concat(args || []),
@@ -76,7 +82,7 @@ async function run(): Promise<void> {
       core.debug(`isDryRun: ${isDryRun}`)
       core.debug(await io.which('python3', true))
     } else {
-      await installConda()
+      await ensureConda()
     }
     if (buildEnv === 'conda') {
       await buildWithConda()

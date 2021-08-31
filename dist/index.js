@@ -44,7 +44,13 @@ const exec = __importStar(__nccwpck_require__(1514));
 const io = __importStar(__nccwpck_require__(7436));
 const tc = __importStar(__nccwpck_require__(7784));
 const fs_1 = __importDefault(__nccwpck_require__(5747));
-function installConda() {
+const posix_1 = __importDefault(__nccwpck_require__(3301));
+function condaCmd() {
+    const condaPrefix = core.getInput('conda-prefix', { required: false });
+    core.info(`condaPrefix: ${condaPrefix}`);
+    return posix_1.default.join(condaPrefix, 'condabin', 'conda');
+}
+function ensureConda() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const condaPath = yield io.which('conda', true);
@@ -53,13 +59,12 @@ function installConda() {
         catch (error) {
             core.setFailed('conda not found');
         }
+        core.info(condaCmd());
         return exec.exec('conda', ['--version'], { ignoreReturnCode: true });
     });
 }
 function condaRun(condaEnvName, commandLine, args, options) {
     return __awaiter(this, void 0, void 0, function* () {
-        const condaPrefix = core.getInput('conda-prefix', { required: false });
-        core.info(`condaPrefix: ${condaPrefix}`);
         return yield exec.exec('conda', ['run', '-n', condaEnvName, commandLine].concat(args || []), options);
     });
 }
@@ -110,7 +115,7 @@ function run() {
                 core.debug(yield io.which('python3', true));
             }
             else {
-                yield installConda();
+                yield ensureConda();
             }
             if (buildEnv === 'conda') {
                 yield buildWithConda();
@@ -10142,6 +10147,14 @@ function wrappy (fn, cb) {
 /***/ ((module) => {
 
 module.exports = eval("require")("encoding");
+
+
+/***/ }),
+
+/***/ 3301:
+/***/ ((module) => {
+
+module.exports = eval("require")("path/posix");
 
 
 /***/ }),
