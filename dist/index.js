@@ -44,11 +44,11 @@ const exec = __importStar(__nccwpck_require__(1514));
 const io = __importStar(__nccwpck_require__(7436));
 const tc = __importStar(__nccwpck_require__(7784));
 const fs_1 = __importDefault(__nccwpck_require__(5747));
-const posix_1 = __importDefault(__nccwpck_require__(3301));
+const path_1 = __importDefault(__nccwpck_require__(5622));
 function condaCmd() {
     const condaPrefix = core.getInput('conda-prefix', { required: false });
     core.info(`condaPrefix: ${condaPrefix}`);
-    return posix_1.default.join(condaPrefix, 'condabin', 'conda');
+    return path_1.default.join(condaPrefix, 'condabin', 'conda');
 }
 function ensureConda() {
     return __awaiter(this, void 0, void 0, function* () {
@@ -10147,14 +10147,6 @@ function wrappy (fn, cb) {
 /***/ ((module) => {
 
 module.exports = eval("require")("encoding");
-
-
-/***/ }),
-
-/***/ 3301:
-/***/ ((module) => {
-
-module.exports = eval("require")("path/posix");
 
 
 /***/ }),

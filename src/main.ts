@@ -5,7 +5,7 @@ import * as io from '@actions/io'
 import * as tc from '@actions/tool-cache'
 import fs from 'fs'
 import {ExecOptions} from '@actions/exec'
-import path from 'path/posix'
+import path from 'path'
 
 function condaCmd(): string {
   const condaPrefix: string = core.getInput('conda-prefix', {required: false})
