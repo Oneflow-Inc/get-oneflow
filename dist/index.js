@@ -53,9 +53,15 @@ function ensureConda() {
             condaPrefix = condaPrefix.replace('~', os_1.default.homedir);
             const condaInstallerUrl = core.getInput('conda-installer-url');
             let cmdFromPrefix = path_1.default.join(condaPrefix, 'condabin', 'conda');
-            core.warning(`conda not found, start looking for: ${cmdFromPrefix}`);
             try {
-                cmdFromPrefix = yield io.which(cmdFromPrefix, true);
+                yield io.which('conda', true);
+                return 'conda';
+            }
+            catch (error) {
+                core.warning(`conda not found, start looking for: ${cmdFromPrefix}`);
+            }
+            try {
+                yield exec.exec(cmdFromPrefix, ['--version']);
             }
             catch (error) {
                 core.warning(`start installing with installer: ${condaInstallerUrl}`);
