@@ -13,7 +13,7 @@ async function ensureConda(): Promise<string> {
   if (condaPrefix) {
     condaPrefix = condaPrefix.replace('~', os.homedir)
     const condaInstallerUrl: string = core.getInput('conda-installer-url')
-    let cmdFromPrefix: string = path.join(condaPrefix, 'condabin', 'conda')
+    const cmdFromPrefix: string = path.join(condaPrefix, 'condabin', 'conda')
     try {
       await io.which('conda', true)
       return 'conda'
@@ -27,7 +27,7 @@ async function ensureConda(): Promise<string> {
       const installerPath = await tc.downloadTool(condaInstallerUrl)
       exec.exec('bash', [installerPath, '-b', '-u', '-s', '-p', condaPrefix])
     }
-    cmdFromPrefix = await io.which(cmdFromPrefix, true)
+    await exec.exec(cmdFromPrefix, ['--version'])
     return cmdFromPrefix
   } else {
     return 'conda'

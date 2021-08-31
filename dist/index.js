@@ -52,7 +52,7 @@ function ensureConda() {
         if (condaPrefix) {
             condaPrefix = condaPrefix.replace('~', os_1.default.homedir);
             const condaInstallerUrl = core.getInput('conda-installer-url');
-            let cmdFromPrefix = path_1.default.join(condaPrefix, 'condabin', 'conda');
+            const cmdFromPrefix = path_1.default.join(condaPrefix, 'condabin', 'conda');
             try {
                 yield io.which('conda', true);
                 return 'conda';
@@ -68,7 +68,7 @@ function ensureConda() {
                 const installerPath = yield tc.downloadTool(condaInstallerUrl);
                 exec.exec('bash', [installerPath, '-b', '-u', '-s', '-p', condaPrefix]);
             }
-            cmdFromPrefix = yield io.which(cmdFromPrefix, true);
+            yield exec.exec(cmdFromPrefix, ['--version']);
             return cmdFromPrefix;
         }
         else {
