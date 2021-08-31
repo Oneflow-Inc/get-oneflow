@@ -77,6 +77,7 @@ function buildWithConda() {
             required: true
         });
         const isDryRun = core.getBooleanInput('dry-run');
+        const isSelfHosted = core.getBooleanInput('self-hosted');
         const isEnvFileExist = yield fs_1.default.promises
             .access(envFile, fs_1.default.constants.F_OK)
             // eslint-disable-next-line github/no-then
@@ -102,6 +103,14 @@ function buildWithConda() {
                 '-B',
                 buildDir
             ]);
+            if (isSelfHosted) {
+                yield condaRun(condaEnvName, 'cmake', [
+                    '--build',
+                    buildDir,
+                    '--parallel',
+                    (yield exec.getExecOutput('nproc')).stdout
+                ]);
+            }
         }
     });
 }

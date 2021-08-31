@@ -44,6 +44,7 @@ async function buildWithConda(): Promise<void> {
     required: true
   })
   const isDryRun: boolean = core.getBooleanInput('dry-run')
+  const isSelfHosted: boolean = core.getBooleanInput('self-hosted')
   const isEnvFileExist = await fs.promises
     .access(envFile, fs.constants.F_OK)
     // eslint-disable-next-line github/no-then
@@ -69,6 +70,14 @@ async function buildWithConda(): Promise<void> {
       '-B',
       buildDir
     ])
+    if (isSelfHosted) {
+      await condaRun(condaEnvName, 'cmake', [
+        '--build',
+        buildDir,
+        '--parallel',
+        (await exec.getExecOutput('nproc')).stdout
+      ])
+    }
   }
 }
 
