@@ -169,7 +169,6 @@ function run() {
             if (buildEnv === 'conda') {
                 yield buildWithConda();
             }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         }
         catch (error) {
             core.setFailed(error.message);

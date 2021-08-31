@@ -100,5 +100,3 @@ lib/**/*
 
 # cmake artifacts
 /build
-
-/package-lock.json
