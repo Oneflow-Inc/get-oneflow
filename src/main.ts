@@ -14,9 +14,14 @@ async function ensureConda(): Promise<string> {
     condaPrefix = condaPrefix.replace('~', os.homedir)
     const condaInstallerUrl: string = core.getInput('conda-installer-url')
     let cmdFromPrefix: string = path.join(condaPrefix, 'condabin', 'conda')
-    core.warning(`conda not found, start looking for: ${cmdFromPrefix}`)
     try {
-      cmdFromPrefix = await io.which(cmdFromPrefix, true)
+      await io.which('conda', true)
+      return 'conda'
+    } catch (error) {
+      core.warning(`conda not found, start looking for: ${cmdFromPrefix}`)
+    }
+    try {
+      await exec.exec(cmdFromPrefix, ['--version'])
     } catch (error) {
       core.warning(`start installing with installer: ${condaInstallerUrl}`)
       const installerPath = await tc.downloadTool(condaInstallerUrl)
@@ -69,7 +74,13 @@ async function buildWithConda(): Promise<void> {
     await ensureConda()
   }
   if (isDryRun === false) {
-    await exec.exec('conda', ['env', 'update', '-f', envFile, '--prune'])
+    await exec.exec(await ensureConda(), [
+      'env',
+      'update',
+      '-f',
+      envFile,
+      '--prune'
+    ])
     const buildDir = 'build'
     await io.mkdirP(buildDir)
     const condaEnvName = 'oneflow-dev-clang10-v2'
@@ -86,7 +97,7 @@ async function buildWithConda(): Promise<void> {
         '--build',
         buildDir,
         '--parallel',
-        (await exec.getExecOutput('nproc')).stdout
+        (await exec.getExecOutput('nproc')).stdout.trim()
       ])
     }
   }
