@@ -41,8 +41,19 @@ jobs:
           ref: 9cd37571cbd6cc6a81fc87faa7f6a43be772ae31
           path: conda-env
       - uses: ./
+        name: Test on hosted
+        if: ${{ contains(matrix.os, 'ubuntu-latest') }}
         with:
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/cn/fast/cpu-clang.cmake
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           oneflow-build-env: conda
           conda-env-file: conda-env/dev/clang10/environment-v2.yml
+      - uses: ./
+        name: Test on self-hosted
+        if: ${{ contains(matrix.os, 'self-hosted') }}
+        with:
+          cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/cn/fast/cpu-clang.cmake
+          oneflow-src: ${{ env.ONEFLOW_SRC }}
+          oneflow-build-env: conda
+          conda-env-file: conda-env/dev/clang10/environment-v2.yml
+          conda-installer-url: https://oneflow-static.oss-cn-beijing.aliyuncs.com/downloads/conda-installers/Miniconda3-py39_4.10.3-Linux-x86_64.sh
