@@ -135,6 +135,7 @@ function buildWithConda() {
                     '--parallel',
                     (yield exec.getExecOutput('nproc')).stdout.trim()
                 ]);
+                yield condaRun(condaEnvName, 'python3', ['setup.py', 'bdist_wheel'], { cwd: path_1.default.join(oneflowSrc, 'python') });
             }
         }
     });
