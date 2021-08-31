@@ -71,9 +71,7 @@ function ensureConda() {
             yield exec.exec(cmdFromPrefix, ['--version']);
             return cmdFromPrefix;
         }
-        else {
-            return 'conda';
-        }
+        return 'conda';
     });
 }
 function condaRun(condaEnvName, commandLine, args, options) {
