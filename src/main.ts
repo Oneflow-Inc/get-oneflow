@@ -97,7 +97,7 @@ async function buildWithConda(): Promise<void> {
         '--build',
         buildDir,
         '--parallel',
-        (await exec.getExecOutput('nproc')).stdout
+        (await exec.getExecOutput('nproc')).stdout.trim()
       ])
     }
   }

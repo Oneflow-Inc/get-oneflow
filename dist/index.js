@@ -133,7 +133,7 @@ function buildWithConda() {
                     '--build',
                     buildDir,
                     '--parallel',
-                    (yield exec.getExecOutput('nproc')).stdout
+                    (yield exec.getExecOutput('nproc')).stdout.trim()
                 ]);
             }
         }
