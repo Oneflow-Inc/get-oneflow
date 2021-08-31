@@ -46,6 +46,32 @@ const tc = __importStar(__nccwpck_require__(7784));
 const fs_1 = __importDefault(__nccwpck_require__(5747));
 const os_1 = __importDefault(__nccwpck_require__(2087));
 const path_1 = __importDefault(__nccwpck_require__(5622));
+function load_img(tag, url) {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield exec.exec('docker', ['ps']);
+        const inspect = yield exec.exec('docker', ['inspect', tag], {
+            ignoreReturnCode: true
+        });
+        if (inspect !== 0) {
+            const imgPath = yield tc.downloadTool(url);
+            yield exec.exec('docker', ['load', '-i', imgPath]);
+        }
+    });
+}
+function ensureDocker() {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            yield exec.exec('docker', ['ps']);
+            yield load_img('quay.io/pypa/manylinux1_x86_64', 'https://oneflow-static.oss-cn-beijing.aliyuncs.com/img/quay.iopypamanylinux1_x86_64.tar.gz');
+            yield load_img('quay.io/pypa/manylinux2010_x86_64', 'https://oneflow-static.oss-cn-beijing.aliyuncs.com/img/quay.iopypamanylinux2010_x86_64.tar.gz');
+            yield load_img('quay.io/pypa/manylinux2014_x86_64:latest', 'https://oneflow-static.oss-cn-beijing.aliyuncs.com/img/quay.iopypamanylinux2014_x86_64.tar.gz');
+            yield load_img('quay.io/pypa/manylinux_2_24_x86_64', 'https://oneflow-static.oss-cn-beijing.aliyuncs.com/img/quay.iopypamanylinux_2_24_x86_64.tar.gz');
+        }
+        catch (error) {
+            core.warning(error.message);
+        }
+    });
+}
 function ensureConda() {
     return __awaiter(this, void 0, void 0, function* () {
         let condaPrefix = core.getInput('conda-prefix', { required: false });
@@ -161,12 +187,18 @@ function run() {
             core.debug(`github.context: ${JSON.stringify(github.context, null, 2)}`);
             const buildEnv = core.getInput('oneflow-build-env');
             const isDryRun = core.getBooleanInput('dry-run');
+            const isSelfHosted = core.getBooleanInput('self-hosted');
             if (['conda', 'manylinux'].includes(buildEnv) === false) {
                 core.setFailed('oneflow-build-env must be conda or manylinux');
             }
             if (isDryRun) {
                 core.debug(`isDryRun: ${isDryRun}`);
                 core.debug(yield io.which('python3', true));
+            }
+            else {
+                if (isSelfHosted) {
+                    yield ensureDocker();
+                }
             }
             if (buildEnv === 'conda') {
                 yield buildWithConda();
