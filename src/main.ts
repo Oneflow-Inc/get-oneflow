@@ -36,8 +36,9 @@ async function ensureConda(): Promise<string> {
     }
     await exec.exec(cmdFromPrefix, ['--version'])
     return cmdFromPrefix
+  } else {
+    return 'conda'
   }
-  return 'conda'
 }
 
 async function condaRun(
