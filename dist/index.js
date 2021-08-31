@@ -48,20 +48,25 @@ const path_1 = __importDefault(__nccwpck_require__(5622));
 function ensureConda() {
     return __awaiter(this, void 0, void 0, function* () {
         let condaPrefix = core.getInput('conda-prefix', { required: false });
-        condaPrefix = (yield exec.getExecOutput('realpath', [condaPrefix])).stdout;
-        const condaInstallerUrl = core.getInput('conda-installer-url');
-        let cmdFromPrefix = path_1.default.join(condaPrefix, 'condabin', 'conda');
-        core.warning(`conda not found, start looking for: ${cmdFromPrefix}`);
-        try {
+        if (condaPrefix) {
+            condaPrefix = (yield exec.getExecOutput('realpath', [condaPrefix])).stdout;
+            const condaInstallerUrl = core.getInput('conda-installer-url');
+            let cmdFromPrefix = path_1.default.join(condaPrefix, 'condabin', 'conda');
+            core.warning(`conda not found, start looking for: ${cmdFromPrefix}`);
+            try {
+                cmdFromPrefix = yield io.which(cmdFromPrefix, true);
+            }
+            catch (error) {
+                core.warning(`start installing with installer: ${condaInstallerUrl}`);
+                const installerPath = yield tc.downloadTool(condaInstallerUrl);
+                exec.exec('bash', [installerPath, '-b', '-u', '-s', '-p', condaPrefix]);
+            }
             cmdFromPrefix = yield io.which(cmdFromPrefix, true);
+            return cmdFromPrefix;
         }
-        catch (error) {
-            core.warning(`start installing with installer: ${condaInstallerUrl}`);
-            const installerPath = yield tc.downloadTool(condaInstallerUrl);
-            exec.exec('bash', [installerPath, '-b', '-u', '-s', '-p', condaPrefix]);
+        else {
+            return 'conda';
         }
-        cmdFromPrefix = yield io.which(cmdFromPrefix, true);
-        return cmdFromPrefix;
     });
 }
 function condaRun(condaEnvName, commandLine, args, options) {

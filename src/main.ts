@@ -9,19 +9,23 @@ import path from 'path'
 
 async function ensureConda(): Promise<string> {
   let condaPrefix: string = core.getInput('conda-prefix', {required: false})
-  condaPrefix = (await exec.getExecOutput('realpath', [condaPrefix])).stdout
-  const condaInstallerUrl: string = core.getInput('conda-installer-url')
-  let cmdFromPrefix: string = path.join(condaPrefix, 'condabin', 'conda')
-  core.warning(`conda not found, start looking for: ${cmdFromPrefix}`)
-  try {
+  if (condaPrefix) {
+    condaPrefix = (await exec.getExecOutput('realpath', [condaPrefix])).stdout
+    const condaInstallerUrl: string = core.getInput('conda-installer-url')
+    let cmdFromPrefix: string = path.join(condaPrefix, 'condabin', 'conda')
+    core.warning(`conda not found, start looking for: ${cmdFromPrefix}`)
+    try {
+      cmdFromPrefix = await io.which(cmdFromPrefix, true)
+    } catch (error) {
+      core.warning(`start installing with installer: ${condaInstallerUrl}`)
+      const installerPath = await tc.downloadTool(condaInstallerUrl)
+      exec.exec('bash', [installerPath, '-b', '-u', '-s', '-p', condaPrefix])
+    }
     cmdFromPrefix = await io.which(cmdFromPrefix, true)
-  } catch (error) {
-    core.warning(`start installing with installer: ${condaInstallerUrl}`)
-    const installerPath = await tc.downloadTool(condaInstallerUrl)
-    exec.exec('bash', [installerPath, '-b', '-u', '-s', '-p', condaPrefix])
+    return cmdFromPrefix
+  } else {
+    return 'conda'
   }
-  cmdFromPrefix = await io.which(cmdFromPrefix, true)
-  return cmdFromPrefix
 }
 
 async function condaRun(
