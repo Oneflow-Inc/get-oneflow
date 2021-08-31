@@ -18,7 +18,12 @@ jobs:
 
   test-build-oneflow-with-conda: # make sure the action works on a clean machine without building
     name: "Build OneFlow with Conda"
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      max-parallel: 5
+      matrix:
+        os: [["self-hosted", "linux", "build"], [ubuntu-latest]]
     env:
       ONEFLOW_SRC: oneflow-src
     steps:
