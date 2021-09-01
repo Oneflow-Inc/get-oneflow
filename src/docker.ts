@@ -2,6 +2,7 @@ import * as core from '@actions/core'
 import * as exec from './exec'
 import * as tc from '@actions/tool-cache'
 import Docker from 'dockerode'
+import os from 'os'
 
 async function load_img(tag: string, url: string): Promise<void> {
   await exec.exec('docker', ['ps'])
@@ -40,7 +41,7 @@ export async function ensureDocker(): Promise<void> {
 
 type ManylinuxVersion = '1' | '2010' | '2014' | '2_24'
 
-function tagFromversion(version: ManylinuxVersion): string {
+export function tagFromversion(version: ManylinuxVersion): string {
   const repo = 'quay.io/pypa/'
   switch (version) {
     case '1':
@@ -66,7 +67,7 @@ type StreamFrame = StreamFrameData | StreamErr
 
 export async function buildManylinuxAndTag(
   version: ManylinuxVersion
-): Promise<void> {
+): Promise<string> {
   const fromTag = tagFromversion(version)
   core.info(fromTag)
   const splits = fromTag.split('/')
@@ -94,24 +95,43 @@ export async function buildManylinuxAndTag(
   )
 
   await new Promise((resolve, reject) => {
-    new Docker().modem.followProgress(
-      stream,
-      (err, res: StreamFrame[]) => {
-        const lastFrame = res[res.length - 1] as StreamErr
-        lastFrame.error ? reject(lastFrame) : resolve(res)
-        err ? reject(err) : resolve(res)
-      },
-      event => {
-        if ((event as StreamFrameData).stream) {
-          // eslint-disable-next-line no-console
-          console.log(event.stream)
-        }
-      }
-    )
+    new Docker().modem.followProgress(stream, (err, res: StreamFrame[]) => {
+      const lastFrame = res[res.length - 1] as StreamErr
+      lastFrame.error ? reject(lastFrame) : resolve(res)
+      err ? reject(err) : resolve(res)
+    })
   })
+  return toTag
 }
 
-export async function buildManylinux(): Promise<void> {
-  await buildManylinuxAndTag('2014')
-  // await buildManylinuxAndTag('2_24')
+export async function buildOneFlow(tag: string): Promise<void> {
+  const oneflowSrc: string = core
+    .getInput('oneflow-src', {required: true})
+    .replace('~', os.homedir)
+  const docker = new Docker({socketPath: '/var/run/docker.sock'})
+  const container = await docker.createContainer({
+    Cmd: ['sleep', '10'],
+    Image: tag,
+    name: 'ci-test-build-oneflow',
+    HostConfig: {
+      AutoRemove: true,
+      NetworkMode: 'host',
+      Mounts: [
+        {
+          Source: oneflowSrc,
+          Target: oneflowSrc,
+          ReadOnly: true,
+          Type: 'bind'
+        }
+      ]
+    }
+  })
+  await container.start()
+  await container.exec({
+    Cmd: ['python3', '--version']
+  })
+  const exec_ = await container.exec({
+    Cmd: ['lsx', oneflowSrc]
+  })
+  await exec_.start({Tty: false})
 }

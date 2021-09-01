@@ -4,7 +4,12 @@ import * as cp from 'child_process'
 import * as path from 'path'
 import {expect, test} from '@jest/globals'
 import os from 'os'
-import {buildManylinux, ensureDocker} from '../src/docker'
+import {
+  buildManylinuxAndTag,
+  ensureDocker,
+  buildOneFlow,
+  tagFromversion
+} from '../src/docker'
 
 test('throws invalid number', async () => {
   const input = parseInt('foo', 10)
@@ -33,7 +38,7 @@ test('test runs', () => {
     env: process.env
   }
   try {
-    console.log(cp.execFileSync(np, [ip], options).toString())
+    cp.execFileSync(np, [ip], options).toString()
   } catch (error) {
     console.log(error.output.toString())
     throw error
@@ -68,7 +73,7 @@ test(
       env: process.env
     }
     try {
-      console.log(cp.execFileSync(np, [ip], options).toString())
+      cp.execFileSync(np, [ip], options).toString()
     } catch (error) {
       console.log(error.output.toString())
       throw error
@@ -92,7 +97,10 @@ test(
 test(
   'build manylinux',
   async () => {
-    await buildManylinux()
+    process.env['INPUT_ONEFLOW-SRC'] = '~/oneflow'
+    const manylinuxVersion = '2014'
+    const tag = await buildManylinuxAndTag(manylinuxVersion)
+    await buildOneFlow(tag)
   },
   1000 * 60 * 15
 )
