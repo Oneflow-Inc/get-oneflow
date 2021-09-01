@@ -82,10 +82,13 @@ export async function buildManylinuxAndTag(
       t: toTag,
       buildargs: {
         from: fromTag,
+        networkmode: 'host',
         HTTP_PROXY: process.env.HTTP_PROXY as string,
         http_proxy: process.env.http_proxy as string,
         HTTPS_PROXY: process.env.HTTPS_PROXY as string,
-        https_proxy: process.env.https_proxy as string
+        https_proxy: process.env.https_proxy as string,
+        SCCACHE_RELEASE_URL:
+          'https://oneflow-static.oss-cn-beijing.aliyuncs.com/downloads/sccache-v0.2.15-x86_64-unknown-linux-musl.tar.gz'
       }
     }
   )
