@@ -4,7 +4,7 @@ import * as cp from 'child_process'
 import * as path from 'path'
 import {expect, test} from '@jest/globals'
 import os from 'os'
-import {ensureDocker} from '../src/docker'
+import {buildManylinux, ensureDocker} from '../src/docker'
 
 test('throws invalid number', async () => {
   const input = parseInt('foo', 10)
@@ -85,6 +85,14 @@ test(
       return
     }
     await ensureDocker()
+  },
+  1000 * 60 * 15
+)
+
+test(
+  'build manylinux',
+  async () => {
+    await buildManylinux()
   },
   1000 * 60 * 15
 )

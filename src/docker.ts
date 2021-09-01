@@ -1,6 +1,7 @@
 import * as core from '@actions/core'
 import * as exec from './exec'
 import * as tc from '@actions/tool-cache'
+import Docker from 'dockerode'
 
 async function load_img(tag: string, url: string): Promise<void> {
   await exec.exec('docker', ['ps'])
@@ -35,4 +36,79 @@ export async function ensureDocker(): Promise<void> {
   } catch (error) {
     core.warning(error.message)
   }
+}
+
+type ManylinuxVersion = '1' | '2010' | '2014' | '2_24'
+
+function tagFromversion(version: ManylinuxVersion): string {
+  const repo = 'quay.io/pypa/'
+  switch (version) {
+    case '1':
+    case '2010':
+    case '2014':
+      return repo.concat('manylinux').concat(version).concat('_x86_64')
+    case '2_24':
+      return repo.concat('manylinux_').concat(version).concat('_x86_64')
+    default:
+      throw new Error(`${version} not supported`)
+  }
+}
+
+type StreamErr = {
+  errorDetail: {
+    code: number
+    message: string
+  }
+  error: string
+}
+type StreamFrameData = {stream: string}
+type StreamFrame = StreamFrameData | StreamErr
+
+export async function buildManylinuxAndTag(
+  version: ManylinuxVersion
+): Promise<void> {
+  const fromTag = tagFromversion(version)
+  core.info(fromTag)
+  const splits = fromTag.split('/')
+  const toTag: string = 'oneflowinc/'.concat(splits[splits.length - 1])
+  core.info(toTag)
+  const docker = new Docker({socketPath: '/var/run/docker.sock'})
+  const stream = await docker.buildImage(
+    {
+      context: version === '2_24' ? 'manylinux/debian' : 'manylinux/centos',
+      src: ['Dockerfile']
+    },
+    {
+      t: toTag,
+      buildargs: {
+        from: fromTag,
+        HTTP_PROXY: process.env.HTTP_PROXY as string,
+        http_proxy: process.env.http_proxy as string,
+        HTTPS_PROXY: process.env.HTTPS_PROXY as string,
+        https_proxy: process.env.https_proxy as string
+      }
+    }
+  )
+
+  await new Promise((resolve, reject) => {
+    new Docker().modem.followProgress(
+      stream,
+      (err, res: StreamFrame[]) => {
+        const lastFrame = res[res.length - 1] as StreamErr
+        lastFrame.error ? reject(lastFrame) : resolve(res)
+        err ? reject(err) : resolve(res)
+      },
+      event => {
+        if ((event as StreamFrameData).stream) {
+          // eslint-disable-next-line no-console
+          console.log(event.stream)
+        }
+      }
+    )
+  })
+}
+
+export async function buildManylinux(): Promise<void> {
+  await buildManylinuxAndTag('2014')
+  // await buildManylinuxAndTag('2_24')
 }

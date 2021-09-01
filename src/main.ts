@@ -1,5 +1,4 @@
 import * as core from '@actions/core'
-import * as github from '@actions/github'
 import * as exec from './exec'
 import * as io from '@actions/io'
 import * as tc from '@actions/tool-cache'
@@ -89,16 +88,9 @@ async function buildWithConda(): Promise<void> {
 
 async function run(): Promise<void> {
   try {
-    core.debug(`github.context: ${JSON.stringify(github.context, null, 2)}`)
     const buildEnv: string = core.getInput('oneflow-build-env')
-    const isDryRun: boolean = core.getBooleanInput('dry-run')
-
     if (['conda', 'manylinux'].includes(buildEnv) === false) {
       core.setFailed('oneflow-build-env must be conda or manylinux')
-    }
-    if (isDryRun) {
-      core.debug(`isDryRun: ${isDryRun}`)
-      core.debug(await io.which('python3', true))
     }
     if (buildEnv === 'conda') {
       await buildWithConda()
