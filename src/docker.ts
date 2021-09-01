@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
 import * as exec from './exec'
 import * as tc from '@actions/tool-cache'
-import Docker from 'dockerode'
+import Docker, {Container} from 'dockerode'
 import os from 'os'
 
 async function load_img(tag: string, url: string): Promise<void> {
@@ -69,10 +69,8 @@ export async function buildManylinuxAndTag(
   version: ManylinuxVersion
 ): Promise<string> {
   const fromTag = tagFromversion(version)
-  core.info(fromTag)
   const splits = fromTag.split('/')
   const toTag: string = 'oneflowinc/'.concat(splits[splits.length - 1])
-  core.info(toTag)
   const docker = new Docker({socketPath: '/var/run/docker.sock'})
   const stream = await docker.buildImage(
     {
@@ -93,7 +91,7 @@ export async function buildManylinuxAndTag(
       }
     }
   )
-
+  new Docker().modem.demuxStream(stream, process.stdout, process.stderr)
   await new Promise((resolve, reject) => {
     new Docker().modem.followProgress(stream, (err, res: StreamFrame[]) => {
       const lastFrame = res[res.length - 1] as StreamErr
@@ -104,11 +102,51 @@ export async function buildManylinuxAndTag(
   return toTag
 }
 
+export async function runExec(
+  container: Container,
+  cmd: string[],
+  cwd?: string
+): Promise<void> {
+  const exec_ = await container.exec({
+    Cmd: cmd,
+    AttachStdout: true,
+    AttachStderr: true,
+    WorkingDir: cwd
+  })
+  const stream = await exec_.start({Tty: false, Detach: false})
+  await container.modem.demuxStream(stream, process.stdout, process.stderr)
+  await new Promise((resolve, reject) => {
+    const cb = (): void => {
+      exec_.inspect((error, info) => {
+        if (info) {
+          if (info.Running === false) {
+            if (info.ExitCode === 0) {
+              resolve(info)
+            } else {
+              reject(info)
+            }
+          }
+        }
+        if (error) {
+          reject(error)
+        }
+      })
+    }
+    cb()
+    stream.on('end', cb)
+    stream.on('error', cb)
+    stream.on('close', cb)
+    setTimeout(cb, 1000)
+  })
+}
+
 export async function buildOneFlow(tag: string): Promise<void> {
   const oneflowSrc: string = core
     .getInput('oneflow-src', {required: true})
     .replace('~', os.homedir)
   const docker = new Docker({socketPath: '/var/run/docker.sock'})
+  const CUDA_TOOLKIT_ROOT_DIR = '/usr/local/cuda'
+  const CUDNN_ROOT_DIR = '/usr/local/cudnn'
   const container = await docker.createContainer({
     Cmd: ['sleep', '10'],
     Image: tag,
@@ -122,16 +160,39 @@ export async function buildOneFlow(tag: string): Promise<void> {
           Target: oneflowSrc,
           ReadOnly: true,
           Type: 'bind'
+        },
+        {
+          Source: CUDA_TOOLKIT_ROOT_DIR,
+          Target: '/usr/local/cuda',
+          ReadOnly: true,
+          Type: 'bind'
+        },
+        {
+          Source: CUDNN_ROOT_DIR,
+          Target: '/usr/local/cudnn',
+          ReadOnly: true,
+          Type: 'bind'
         }
       ]
     }
   })
   await container.start()
-  await container.exec({
-    Cmd: ['python3', '--version']
-  })
-  const exec_ = await container.exec({
-    Cmd: ['lsx', oneflowSrc]
-  })
-  await exec_.start({Tty: false})
+  const buildDir = '/build'
+  const cmakeInitCache = 'cmake/caches/ci/cuda-75.cmake'
+  await runExec(container, ['mkdir', buildDir])
+  await runExec(container, ['ls'], oneflowSrc)
+  await runExec(
+    container,
+    [
+      'cmake',
+      '-S',
+      oneflowSrc,
+      '-C',
+      cmakeInitCache,
+      '-B',
+      buildDir,
+      '-DPython3_EXECUTABLE=/opt/python/cp38-cp38/bin/python3'
+    ],
+    oneflowSrc
+  )
 }
