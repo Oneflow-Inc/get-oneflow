@@ -60,7 +60,7 @@ test(
       'https://oneflow-static.oss-cn-beijing.aliyuncs.com/downloads/conda-installers/Miniconda3-py39_4.10.3-Linux-x86_64.sh'
     process.env['INPUT_CONDA-PREFIX'] = '~/miniconda3-prefixes/py39_4.10.3'
     process.env['INPUT_SELF-HOSTED'] = 'true'
-    process.env['INPUT_DRY-RUN'] = 'false'
+    process.env['INPUT_DRY-RUN'] = 'true'
     process.env['RUNNER_TEMP'] = 'runner-tmp'
     const np = process.execPath
     const ip = path.join(__dirname, '..', 'lib', 'main.js')
@@ -80,6 +80,7 @@ test(
 test(
   'test docker',
   async () => {
+    process.env['INPUT_DRY-RUN'] = 'true'
     if (isOnPremise() == false) {
       return
     }

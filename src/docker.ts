@@ -1,5 +1,5 @@
 import * as core from '@actions/core'
-import * as exec from '@actions/exec'
+import * as exec from './exec'
 import * as tc from '@actions/tool-cache'
 
 async function load_img(tag: string, url: string): Promise<void> {

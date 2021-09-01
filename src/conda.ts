@@ -1,5 +1,5 @@
 import * as core from '@actions/core'
-import * as exec from '@actions/exec'
+import * as exec from './exec'
 import * as io from '@actions/io'
 import * as tc from '@actions/tool-cache'
 import os from 'os'
