@@ -80,9 +80,9 @@ export async function buildManylinuxAndTag(
     },
     {
       t: toTag,
+      networkmode: 'host',
       buildargs: {
         from: fromTag,
-        networkmode: 'host',
         HTTP_PROXY: process.env.HTTP_PROXY as string,
         http_proxy: process.env.http_proxy as string,
         HTTPS_PROXY: process.env.HTTPS_PROXY as string,
