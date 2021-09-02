@@ -2,7 +2,7 @@ import * as core from '@actions/core'
 import * as exec from './exec'
 import * as tc from '@actions/tool-cache'
 import Docker, {Container} from 'dockerode'
-import os from 'os'
+import {getPathInput} from './util'
 
 async function load_img(tag: string, url: string): Promise<void> {
   await exec.exec('docker', ['ps'])
@@ -141,9 +141,7 @@ export async function runExec(
 }
 
 export async function buildOneFlow(tag: string): Promise<void> {
-  const oneflowSrc: string = core
-    .getInput('oneflow-src', {required: true})
-    .replace('~', os.homedir)
+  const oneflowSrc: string = getPathInput('oneflow-src', {required: true})
   const docker = new Docker({socketPath: '/var/run/docker.sock'})
   const CUDA_TOOLKIT_ROOT_DIR = '/usr/local/cuda'
   const CUDNN_ROOT_DIR = '/usr/local/cudnn'
@@ -162,6 +160,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
     }
   }
   let httpProxyEnvs: string[] = []
+  const manylinuxCacheDir = getPathInput('manylinux-cache-dir')
   if (core.getBooleanInput('use-system-http-proxy', {required: false})) {
     httpProxyEnvs = [
       `HTTP_PROXY=${process.env.HTTP_PROXY}`,
@@ -192,6 +191,12 @@ export async function buildOneFlow(tag: string): Promise<void> {
         },
         {
           Source: CUDNN_ROOT_DIR,
+          Target: '/usr/local/cudnn',
+          ReadOnly: true,
+          Type: 'bind'
+        },
+        {
+          Source: manylinuxCacheDir,
           Target: '/usr/local/cudnn',
           ReadOnly: true,
           Type: 'bind'

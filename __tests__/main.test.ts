@@ -85,6 +85,7 @@ test(
   async () => {
     process.env['INPUT_USE-SYSTEM-HTTP-PROXY'] = 'false'
     process.env['INPUT_ONEFLOW-SRC'] = '~/oneflow'
+    process.env['INPUT_MANYLINUX-CACHE-DIR'] = '~/manylinux-cache-dir/unittest'
     const manylinuxVersion = '2014'
     const tag = await buildManylinuxAndTag(manylinuxVersion)
     await buildOneFlow(tag)

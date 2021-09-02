@@ -8,4 +8,4 @@ RUN curl ${SCCACHE_RELEASE_URL} -o sccache.tar.gz && \
 ARG from
 FROM ${from}
 COPY --from=0 /tmp/sccache /usr/local/bin
-RUN yum install -y nasm rdma-core-devel rsync gdb ninja-build openblas-static autoconf libtool wget
+RUN yum install -y nasm rdma-core-devel rsync gdb ninja-build openblas-static autoconf libtool wget ccache
