@@ -9,6 +9,9 @@ import {ok} from 'assert'
 import {v4 as uuidV4} from 'uuid'
 
 export function getPathInput(name: string, options?: InputOptions): string {
+  if (name.startsWith('/') === false) {
+    name = path.join(process.cwd(), name)
+  }
   return core.getInput(name, options).replace('~', os.homedir)
 }
 

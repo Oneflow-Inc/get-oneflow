@@ -7,6 +7,7 @@ import os from 'os'
 import {ExecOptions} from '@actions/exec'
 import path from 'path'
 import {ensureConda} from './conda'
+import {buildManylinuxAndTag, buildOneFlow} from './docker'
 
 async function condaRun(
   condaEnvName: string,
@@ -94,6 +95,11 @@ async function run(): Promise<void> {
     }
     if (buildEnv === 'conda') {
       await buildWithConda()
+    }
+    if (buildEnv === 'docker') {
+      const manylinuxVersion = '2014'
+      const tag = await buildManylinuxAndTag(manylinuxVersion)
+      await buildOneFlow(tag)
     }
   } catch (error) {
     core.setFailed(error.message)
