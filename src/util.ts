@@ -132,6 +132,7 @@ export async function ensureTool(
   let cachedPath = tc.find(tool, version)
   if (cachedPath === '') {
     const url = getToolURL(tool, version)
+    // TODO: wrap oss node sdk around tc.downloadTool
     const downloaded = await tc.downloadTool(url)
     const destExpanded = dest.replace('~', os.homedir)
 

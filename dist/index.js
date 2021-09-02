@@ -782,6 +782,7 @@ function ensureTool(tool, version, dest) {
         let cachedPath = tc.find(tool, version);
         if (cachedPath === '') {
             const url = getToolURL(tool, version);
+            // TODO: wrap oss node sdk around tc.downloadTool
             const downloaded = yield tc.downloadTool(url);
             const destExpanded = dest.replace('~', os_1.default.homedir);
             if (url.endsWith('tar.gz')) {
