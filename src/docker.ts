@@ -294,7 +294,7 @@ async function buildOnePythonVersion(
   )
   await runExec(
     container,
-    ['auditwheel', 'repair', 'dist/*.whl', '--wheel-dir', wheelhouseDir],
+    ['bash', '-c', `auditwheel repair dist/*.whl --wheel-dir ${wheelhouseDir}`],
     path.join(oneflowSrc, 'python')
   )
 }
