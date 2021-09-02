@@ -1,53 +1,56 @@
-name: "Build/Get OneFlow"
-description: ""
+name: 'Build/Get OneFlow'
+description: ''
 inputs:
   # OneFlow args
   oneflow-build-env:
-    description: "environment to build OneFlow: conda, manylinux"
+    description: 'environment to build OneFlow: conda, manylinux'
     required: true
   oneflow-src:
-    description: "path to OneFlow source code"
+    description: 'path to OneFlow source code'
     required: true
   oneflow-build-key:
-    description: "the key to check if two builds are equivalent to each other, usually is hash value of non-test cpp and python files"
+    description: 'the key to check if two builds are equivalent to each other, usually is hash value of non-test cpp and python files'
     required: true
-    default: "none"
+    default: 'none'
   # CMake args
   cmake-init-cache:
-    description: "path to CMake initial cache file to build OneFlow"
+    description: 'path to CMake initial cache file to build OneFlow'
     required: true
   # Cuda args
   cuda-version:
-    description: "default is none, format: 10.1, 10.2"
+    description: 'default is none, format: 10.1, 10.2'
     required: false
-    default: "none"
+    default: 'none'
   # Conda args
   conda-env-file:
-    description: "can be a url or a path"
+    description: 'can be a url or a path'
     required: true
   conda-prefix:
     description: "Miniconda prefix, if it fails to run 'conda --version', will install one there"
     required: false
   conda-installer-url:
-    description: "If conda not installed, use this url to download installer"
+    description: 'If conda not installed, use this url to download installer'
     required: false
-    default: "https://repo.anaconda.com/miniconda/Miniconda3-py39_4.10.3-Linux-x86_64.sh"
+    default: 'https://repo.anaconda.com/miniconda/Miniconda3-py39_4.10.3-Linux-x86_64.sh'
   # Other args
   force-rebuild:
-    description: "rebuild even package with same key found"
+    description: 'rebuild even package with same key found'
     required: false
-    default: "false"
+    default: 'false'
   dry-run:
-    description: ""
+    description: ''
     required: false
-    default: "false"
+    default: 'false'
   self-hosted:
-    description: ""
+    description: ''
     required: false
-    default: "false"
+    default: 'false'
+  python-versions:
+    description: ''
+    required: true
 outputs:
   pip-index-url:
-    description: "pip index url could be use to install oneflow"
+    description: 'pip index url could be use to install oneflow'
 runs:
-  using: "node12"
-  main: "dist/index.js"
+  using: 'node12'
+  main: 'dist/index.js'
