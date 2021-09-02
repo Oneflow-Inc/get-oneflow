@@ -147,10 +147,25 @@ export async function buildOneFlow(tag: string): Promise<void> {
   const docker = new Docker({socketPath: '/var/run/docker.sock'})
   const CUDA_TOOLKIT_ROOT_DIR = '/usr/local/cuda'
   const CUDNN_ROOT_DIR = '/usr/local/cudnn'
+  const containerName = 'ci-test-build-oneflow'
+  const containerInfos = await docker.listContainers()
+  for (const containerInfo of containerInfos) {
+    core.info(JSON.stringify(containerInfo, null, 2))
+    if (
+      containerInfo.Names.includes(containerName) ||
+      containerInfo.Names.includes('/'.concat(containerName))
+    ) {
+      core.info(`removing docker: ${containerInfo.Names}`)
+      await docker.getContainer(containerInfo.Id).kill()
+      await docker.getContainer(containerInfo.Id).wait({
+        condition: 'removed'
+      })
+    }
+  }
   const container = await docker.createContainer({
-    Cmd: ['sleep', '10'],
+    Cmd: ['sleep', '3600'],
     Image: tag,
-    name: 'ci-test-build-oneflow',
+    name: containerName,
     HostConfig: {
       AutoRemove: true,
       NetworkMode: 'host',
@@ -174,7 +189,13 @@ export async function buildOneFlow(tag: string): Promise<void> {
           Type: 'bind'
         }
       ]
-    }
+    },
+    Env: [
+      `HTTP_PROXY=${process.env.HTTP_PROXY}`,
+      `http_proxy=${process.env.http_proxy}`,
+      `HTTPS_PROXY=${process.env.HTTPS_PROXY}`,
+      `https_proxy=${process.env.https_proxy}`
+    ]
   })
   await container.start()
   const buildDir = '/build'
