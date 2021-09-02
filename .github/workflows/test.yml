@@ -85,7 +85,7 @@ jobs:
           oneflow-build-env: manylinux
           wheelhouse-dir: manylinux-wheelhouse
           self-hosted: ${{ contains(matrix.os, 'self-hosted') }}
-          python-versions:
+          python-versions: |
             - 3.6
             - 3.7
             - 3.8
