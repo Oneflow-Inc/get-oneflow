@@ -86,9 +86,9 @@ export async function extractTarX(
   const isGnuTar = versionOutput.toUpperCase().includes('GNU TAR')
 
   // Initialize args
-  let args: string[]
+  let args: string[] = [file]
   if (flags instanceof Array) {
-    args = flags
+    args = args.concat(args)
   } else {
     args = [flags]
   }
@@ -103,7 +103,7 @@ export async function extractTarX(
     args.push('--overwrite')
   }
 
-  args.push(file, '-C', dest)
+  args.push('-C', dest)
   await exec.exec(`tar`, args)
 
   return dest
