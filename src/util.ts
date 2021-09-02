@@ -10,7 +10,7 @@ import {v4 as uuidV4} from 'uuid'
 
 export function getPathInput(name: string, options?: InputOptions): string {
   let val = core.getInput(name, options).replace('~', os.homedir)
-  if (name.startsWith('/') === false) {
+  if (val.startsWith('/') === false) {
     val = path.join(process.cwd(), val)
   }
   return val

@@ -81,3 +81,7 @@ jobs:
           oneflow-build-env: manylinux
           wheelhouse-dir: manylinux-wheelhouse
           self-hosted: true
+          python-versions:
+            - 3.6
+            - 3.7
+            - 3.8

@@ -125,6 +125,7 @@ const dockerode_1 = __importDefault(__nccwpck_require__(4571));
 const util_1 = __nccwpck_require__(4024);
 const io = __importStar(__nccwpck_require__(7436));
 const path_1 = __importDefault(__nccwpck_require__(5622));
+const assert_1 = __nccwpck_require__(2357);
 function load_img(tag, url) {
     return __awaiter(this, void 0, void 0, function* () {
         yield exec.exec('docker', ['ps'], { silent: true });
@@ -237,6 +238,18 @@ function runExec(container, cmd, cwd) {
     });
 }
 exports.runExec = runExec;
+const PythonExeMap = new Map([
+    ['3.6', '/opt/python/cp36-cp36m/bin/python3'],
+    ['3.7', '/opt/python/cp37-cp37m/bin/python3'],
+    ['3.8', '/opt/python/cp38-cp38/bin/python3'],
+    ['3.9', '/opt/python/cp39-cp39/bin/python3'],
+    ['3.10', '/opt/python/cp310-cp310/bin/python3']
+]);
+function getPythonExe(pythonVersion) {
+    const exe = PythonExeMap.get(pythonVersion);
+    assert_1.ok(exe);
+    return exe;
+}
 function buildOneFlow(tag) {
     return __awaiter(this, void 0, void 0, function* () {
         const oneflowSrc = util_1.getPathInput('oneflow-src', { required: true });
@@ -315,13 +328,11 @@ function buildOneFlow(tag) {
             ].concat(httpProxyEnvs)
         });
         yield container.start();
-        for (const pythonExe of [
-            '/opt/python/cp36-cp36m/bin/python3',
-            '/opt/python/cp37-cp37m/bin/python3',
-            '/opt/python/cp38-cp38/bin/python3',
-            '/opt/python/cp39-cp39/bin/python3',
-            '/opt/python/cp310-cp310/bin/python3'
-        ]) {
+        const pythonVersions = core.getMultilineInput('python-versions', {
+            required: true
+        });
+        for (const pythonVersion of pythonVersions) {
+            const pythonExe = getPythonExe(pythonVersion);
             yield buildOnePythonVersion(container, oneflowSrc, buildDir, pythonExe);
         }
         yield runExec(container, ['bash', '-c', `auditwheel repair dist/*.whl --wheel-dir ${wheelhouseDir}`], path_1.default.join(oneflowSrc, 'python'));
@@ -640,10 +651,11 @@ const io = __importStar(__nccwpck_require__(7436));
 const assert_1 = __nccwpck_require__(2357);
 const uuid_1 = __nccwpck_require__(5840);
 function getPathInput(name, options) {
-    if (name.startsWith('/') === false) {
-        name = path_1.default.join(process.cwd(), name);
+    let val = core.getInput(name, options).replace('~', os_1.default.homedir);
+    if (val.startsWith('/') === false) {
+        val = path_1.default.join(process.cwd(), val);
     }
-    return core.getInput(name, options).replace('~', os_1.default.homedir);
+    return val;
 }
 exports.getPathInput = getPathInput;
 function isSelfHosted() {

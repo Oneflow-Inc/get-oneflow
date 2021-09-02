@@ -87,6 +87,7 @@ test(
     process.env['INPUT_ONEFLOW-SRC'] = '~/oneflow'
     process.env['INPUT_MANYLINUX-CACHE-DIR'] = '~/manylinux-cache-dirs/unittest'
     process.env['INPUT_WHEELHOUSE-DIR'] = '~/manylinux-wheelhouse'
+    process.env['INPUT_PYTHON-VERSIONS'] = '3.6'
     process.env['RUNNER_TOOL_CACHE'] = '~/runner_tool_cache'.replace(
       '~',
       os.homedir
