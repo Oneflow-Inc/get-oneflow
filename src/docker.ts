@@ -1,9 +1,10 @@
 import * as core from '@actions/core'
-import * as exec from './exec'
+import * as exec from '@actions/exec'
 import * as tc from '@actions/tool-cache'
-import Docker, {Container} from 'dockerode'
+import Docker, {Container, MountSettings} from 'dockerode'
 import {ensureTool as ensureTool, getPathInput} from './util'
 import * as io from '@actions/io'
+import path from 'path'
 
 async function load_img(tag: string, url: string): Promise<void> {
   await exec.exec('docker', ['ps'])
@@ -171,7 +172,38 @@ export async function buildOneFlow(tag: string): Promise<void> {
       `https_proxy=${process.env.https_proxy}`
     ]
   }
-  const llvmPath = await ensureTool('llvm', '10.0.1', '~/tools/llvm-10.01')
+  let llvmDir = ''
+  const shouldMountLLVM = false
+  const mounts: MountSettings[] = [
+    {
+      Source: oneflowSrc,
+      Target: oneflowSrc,
+      ReadOnly: true,
+      Type: 'bind'
+    },
+    {
+      Source: CUDA_TOOLKIT_ROOT_DIR,
+      Target: '/usr/local/cuda',
+      ReadOnly: true,
+      Type: 'bind'
+    },
+    {
+      Source: CUDNN_ROOT_DIR,
+      Target: '/usr/local/cudnn',
+      ReadOnly: true,
+      Type: 'bind'
+    }
+  ]
+  if (shouldMountLLVM) {
+    llvmDir = await ensureTool('llvm', '9.0.1', '~/tools/llvm-9.01')
+    mounts.push({
+      Source: llvmDir,
+      Target: '/usr/local/llvm',
+      ReadOnly: true,
+      Type: 'bind'
+    })
+  }
+  const buildDir = path.join(manylinuxCacheDir, 'build')
   const container = await docker.createContainer({
     Cmd: ['sleep', '3600'],
     Image: tag,
@@ -179,53 +211,41 @@ export async function buildOneFlow(tag: string): Promise<void> {
     HostConfig: {
       AutoRemove: true,
       NetworkMode: 'host',
-      Binds: [`${manylinuxCacheDir}:${manylinuxCacheDir}`],
-      Mounts: [
-        {
-          Source: oneflowSrc,
-          Target: oneflowSrc,
-          ReadOnly: true,
-          Type: 'bind'
-        },
-        {
-          Source: CUDA_TOOLKIT_ROOT_DIR,
-          Target: '/usr/local/cuda',
-          ReadOnly: true,
-          Type: 'bind'
-        },
-        {
-          Source: CUDNN_ROOT_DIR,
-          Target: '/usr/local/cudnn',
-          ReadOnly: true,
-          Type: 'bind'
-        },
-        {
-          Source: llvmPath,
-          Target: '/usr/local/llvm',
-          ReadOnly: true,
-          Type: 'bind'
-        }
-      ]
+      Binds: [
+        `${manylinuxCacheDir}:${manylinuxCacheDir}`,
+        `${path.join(manylinuxCacheDir, 'ccache')}:/root/.ccache`,
+        `${path.join(manylinuxCacheDir, 'local')}:/root/.local`
+      ],
+      Mounts: mounts
     },
-    Env: httpProxyEnvs
+    Env: [
+      `ONEFLOW_CI_BUILD_DIR=${buildDir}`,
+      `ONEFLOW_CI_LLVM_DIR=${llvmDir}`
+    ].concat(httpProxyEnvs)
   })
   await container.start()
-  const buildDir = '/build'
-  const cmakeInitCache = 'cmake/caches/ci/cuda-75.cmake'
-  await runExec(container, ['mkdir', buildDir])
-  await runExec(container, ['ls'], oneflowSrc)
+  const cmakeInitCache = path.join(oneflowSrc, 'cmake/caches/ci/cuda-75.cmake')
+  await runExec(container, ['mkdir', '-p', buildDir])
+  await runExec(container, [
+    'cmake',
+    '-S',
+    oneflowSrc,
+    '-C',
+    cmakeInitCache,
+    '-B',
+    buildDir,
+    '-DPython3_EXECUTABLE=/opt/python/cp38-cp38/bin/python3'
+  ])
+  await runExec(container, [
+    'cmake',
+    '--build',
+    buildDir,
+    '--parallel',
+    (await exec.getExecOutput('nproc')).stdout.trim()
+  ])
   await runExec(
     container,
-    [
-      'cmake',
-      '-S',
-      oneflowSrc,
-      '-C',
-      cmakeInitCache,
-      '-B',
-      buildDir,
-      '-DPython3_EXECUTABLE=/opt/python/cp38-cp38/bin/python3'
-    ],
-    oneflowSrc
+    ['python3', 'setup.py', 'bdist_wheel'],
+    path.join(oneflowSrc, 'python')
   )
 }

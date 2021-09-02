@@ -7,5 +7,6 @@ RUN curl ${SCCACHE_RELEASE_URL} -o sccache.tar.gz && \
     chmod +x /tmp/sccache
 ARG from
 FROM ${from}
+ENV PATH="/usr/local/cuda/bin:/usr/local/llvm/bin:${PATH}"
 COPY --from=0 /tmp/sccache /usr/local/bin
 RUN yum install -y nasm rdma-core-devel rsync gdb ninja-build openblas-static autoconf libtool wget ccache

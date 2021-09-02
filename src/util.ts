@@ -18,6 +18,9 @@ export function isSelfHosted(): boolean {
 
 export function getToolURL(tool: string, version: string): string {
   if (tool === 'llvm') {
+    if (version === '9.0.1') {
+      return getLLVM901URL()
+    }
     if (version === '10.0.1') {
       return getLLVM1001URL()
     }
@@ -26,6 +29,14 @@ export function getToolURL(tool: string, version: string): string {
     }
   }
   throw new Error(`no url found tool ${tool} version ${version}`)
+}
+
+export function getLLVM901URL(): string {
+  if (isSelfHosted()) {
+    return 'https://oneflow-static.oss-cn-beijing.aliyuncs.com/downloads/clang%2Bllvm-9.0.1-x86_64-linux-gnu-ubuntu-16.04.tar.xz'
+  } else {
+    return 'https://github.com/llvm/llvm-project/releases/download/llvmorg-9.0.1/clang+llvm-9.0.1-x86_64-linux-gnu-ubuntu-16.04.tar.xz'
+  }
 }
 
 export function getLLVM1001URL(): string {
@@ -130,11 +141,20 @@ export async function ensureTool(
       throw new Error(`not supported: ${url}`)
     }
   }
-  if (tool === 'llvm' && version === '10.0.1') {
-    cachedPath = path.join(
-      cachedPath,
-      'clang+llvm-10.0.1-x86_64-linux-sles12.4'
-    )
+  // TODO: parse from URL
+  if (tool === 'llvm') {
+    if (version === '10.0.1') {
+      cachedPath = path.join(
+        cachedPath,
+        'clang+llvm-10.0.1-x86_64-linux-sles12.4'
+      )
+    }
+    if (version === '9.0.1') {
+      cachedPath = path.join(
+        cachedPath,
+        'clang+llvm-9.0.1-x86_64-linux-gnu-ubuntu-16.04'
+      )
+    }
   }
   return cachedPath
 }
