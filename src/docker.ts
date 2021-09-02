@@ -270,14 +270,15 @@ async function buildOnePythonVersion(
   pythonExe: string
 ): Promise<void> {
   const cmakeInitCache = getPathInput('cmake-init-cache')
+  const argsExclude = ['-e', '!dist', '-e', '!dist/**']
   await runExec(
     container,
-    ['git', 'clean', '-nXd'],
+    ['git', 'clean', '-nXd'].concat(argsExclude),
     path.join(oneflowSrc, 'python')
   )
   await runExec(
     container,
-    ['git', 'clean', '-fXd'],
+    ['git', 'clean', '-fXd'].concat(argsExclude),
     path.join(oneflowSrc, 'python')
   )
   await runExec(container, ['mkdir', '-p', buildDir])
