@@ -9,10 +9,11 @@ import {ok} from 'assert'
 import {v4 as uuidV4} from 'uuid'
 
 export function getPathInput(name: string, options?: InputOptions): string {
+  let val = core.getInput(name, options).replace('~', os.homedir)
   if (name.startsWith('/') === false) {
-    name = path.join(process.cwd(), name)
+    val = path.join(process.cwd(), val)
   }
-  return core.getInput(name, options).replace('~', os.homedir)
+  return val
 }
 
 export function isSelfHosted(): boolean {

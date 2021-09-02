@@ -5,6 +5,7 @@ import Docker, {Container, MountSettings} from 'dockerode'
 import {ensureTool as ensureTool, getPathInput} from './util'
 import * as io from '@actions/io'
 import path from 'path'
+import {ok} from 'assert'
 
 async function load_img(tag: string, url: string): Promise<void> {
   await exec.exec('docker', ['ps'], {silent: true})
@@ -143,6 +144,20 @@ export async function runExec(
   })
 }
 
+const PythonExeMap = new Map([
+  ['3.6', '/opt/python/cp36-cp36m/bin/python3'],
+  ['3.7', '/opt/python/cp37-cp37m/bin/python3'],
+  ['3.8', '/opt/python/cp38-cp38/bin/python3'],
+  ['3.9', '/opt/python/cp39-cp39/bin/python3'],
+  ['3.10', '/opt/python/cp310-cp310/bin/python3']
+])
+
+function getPythonExe(pythonVersion: string): string {
+  const exe = PythonExeMap.get(pythonVersion)
+  ok(exe)
+  return exe
+}
+
 export async function buildOneFlow(tag: string): Promise<void> {
   const oneflowSrc: string = getPathInput('oneflow-src', {required: true})
   const wheelhouseDir: string = getPathInput('wheelhouse-dir', {required: true})
@@ -224,13 +239,11 @@ export async function buildOneFlow(tag: string): Promise<void> {
   })
   await container.start()
 
-  for (const pythonExe of [
-    '/opt/python/cp36-cp36m/bin/python3',
-    '/opt/python/cp37-cp37m/bin/python3',
-    '/opt/python/cp38-cp38/bin/python3',
-    '/opt/python/cp39-cp39/bin/python3',
-    '/opt/python/cp310-cp310/bin/python3'
-  ]) {
+  const pythonVersions: string[] = core.getMultilineInput('python-versions', {
+    required: true
+  })
+  for (const pythonVersion of pythonVersions) {
+    const pythonExe = getPythonExe(pythonVersion)
     await buildOnePythonVersion(container, oneflowSrc, buildDir, pythonExe)
   }
   await runExec(
