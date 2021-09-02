@@ -241,7 +241,9 @@ export async function buildOneFlow(tag: string): Promise<void> {
     '--build',
     buildDir,
     '--parallel',
-    (await exec.getExecOutput('nproc')).stdout.trim()
+    (await exec.getExecOutput('nproc')).stdout.trim(),
+    '--target',
+    'of_ccobj'
   ])
   await runExec(
     container,
