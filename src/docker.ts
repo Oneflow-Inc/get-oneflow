@@ -2,7 +2,7 @@ import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import * as tc from '@actions/tool-cache'
 import Docker, {Container, MountSettings} from 'dockerode'
-import {ensureTool as ensureTool, getPathInput} from './util'
+import {ensureTool as ensureTool, getPathInput, isSelfHosted} from './util'
 import * as io from '@actions/io'
 import path from 'path'
 import {ok} from 'assert'
@@ -76,6 +76,24 @@ export async function buildManylinuxAndTag(
   const splits = fromTag.split('/')
   const toTag: string = 'oneflowinc/'.concat(splits[splits.length - 1])
   const docker = new Docker({socketPath: '/var/run/docker.sock'})
+  let buildArgs = {
+    from: fromTag,
+    HTTP_PROXY: process.env.HTTP_PROXY as string,
+    http_proxy: process.env.http_proxy as string,
+    HTTPS_PROXY: process.env.HTTPS_PROXY as string,
+    https_proxy: process.env.https_proxy as string
+  }
+  if (isSelfHosted()) {
+    const selfHostedBuildArgs = {
+      SCCACHE_RELEASE_URL:
+        'https://oneflow-static.oss-cn-beijing.aliyuncs.com/downloads/sccache-v0.2.15-x86_64-unknown-linux-musl.tar.gz',
+      LLVM_SRC_URL:
+        'https://oneflow-static.oss-cn-beijing.aliyuncs.com/downloads/llvm-project-12.0.1.src.tar.xz',
+      BAZEL_URL:
+        'https://oneflow-static.oss-cn-beijing.aliyuncs.com/downloads/bazel-3.4.1-linux-x86_64'
+    }
+    buildArgs = {...buildArgs, ...selfHostedBuildArgs}
+  }
   const stream = await docker.buildImage(
     {
       context: version === '2_24' ? 'manylinux/debian' : 'manylinux/centos',
@@ -84,22 +102,14 @@ export async function buildManylinuxAndTag(
     {
       t: toTag,
       networkmode: 'host',
-      buildargs: {
-        from: fromTag,
-        HTTP_PROXY: process.env.HTTP_PROXY as string,
-        http_proxy: process.env.http_proxy as string,
-        HTTPS_PROXY: process.env.HTTPS_PROXY as string,
-        https_proxy: process.env.https_proxy as string,
-        SCCACHE_RELEASE_URL:
-          'https://oneflow-static.oss-cn-beijing.aliyuncs.com/downloads/sccache-v0.2.15-x86_64-unknown-linux-musl.tar.gz'
-      }
+      buildargs: buildArgs
     }
   )
   new Docker().modem.demuxStream(stream, process.stdout, process.stderr)
   await new Promise((resolve, reject) => {
     new Docker().modem.followProgress(stream, (err, res: StreamFrame[]) => {
       const lastFrame = res[res.length - 1] as StreamErr
-      lastFrame.error ? reject(lastFrame) : resolve(res)
+      lastFrame.error ? reject(res) : resolve(res)
       err ? reject(err) : resolve(res)
     })
   })
@@ -234,7 +244,8 @@ export async function buildOneFlow(tag: string): Promise<void> {
     },
     Env: [
       `ONEFLOW_CI_BUILD_DIR=${buildDir}`,
-      `ONEFLOW_CI_LLVM_DIR=${llvmDir}`
+      `ONEFLOW_CI_LLVM_DIR=${llvmDir}`,
+      `LDFLAGS="fuse-ld=lld"`
     ].concat(httpProxyEnvs)
   })
   await container.start()
@@ -259,7 +270,7 @@ async function buildOnePythonVersion(
   buildDir: string,
   pythonExe: string
 ): Promise<void> {
-  const cmakeInitCache = path.join(oneflowSrc, 'cmake/caches/ci/cuda-75.cmake')
+  const cmakeInitCache = getPathInput('cmake-init-cache')
   await runExec(
     container,
     ['git', 'clean', '-nXd'],

@@ -174,26 +174,34 @@ function buildManylinuxAndTag(version) {
         const splits = fromTag.split('/');
         const toTag = 'oneflowinc/'.concat(splits[splits.length - 1]);
         const docker = new dockerode_1.default({ socketPath: '/var/run/docker.sock' });
+        let buildArgs = {
+            from: fromTag,
+            HTTP_PROXY: process.env.HTTP_PROXY,
+            http_proxy: process.env.http_proxy,
+            HTTPS_PROXY: process.env.HTTPS_PROXY,
+            https_proxy: process.env.https_proxy
+        };
+        if (util_1.isSelfHosted()) {
+            const selfHostedBuildArgs = {
+                SCCACHE_RELEASE_URL: 'https://oneflow-static.oss-cn-beijing.aliyuncs.com/downloads/sccache-v0.2.15-x86_64-unknown-linux-musl.tar.gz',
+                LLVM_SRC_URL: 'https://oneflow-static.oss-cn-beijing.aliyuncs.com/downloads/llvm-project-12.0.1.src.tar.xz',
+                BAZEL_URL: 'https://oneflow-static.oss-cn-beijing.aliyuncs.com/downloads/bazel-3.4.1-linux-x86_64'
+            };
+            buildArgs = Object.assign(Object.assign({}, buildArgs), selfHostedBuildArgs);
+        }
         const stream = yield docker.buildImage({
             context: version === '2_24' ? 'manylinux/debian' : 'manylinux/centos',
             src: ['Dockerfile']
         }, {
             t: toTag,
             networkmode: 'host',
-            buildargs: {
-                from: fromTag,
-                HTTP_PROXY: process.env.HTTP_PROXY,
-                http_proxy: process.env.http_proxy,
-                HTTPS_PROXY: process.env.HTTPS_PROXY,
-                https_proxy: process.env.https_proxy,
-                SCCACHE_RELEASE_URL: 'https://oneflow-static.oss-cn-beijing.aliyuncs.com/downloads/sccache-v0.2.15-x86_64-unknown-linux-musl.tar.gz'
-            }
+            buildargs: buildArgs
         });
         new dockerode_1.default().modem.demuxStream(stream, process.stdout, process.stderr);
         yield new Promise((resolve, reject) => {
             new dockerode_1.default().modem.followProgress(stream, (err, res) => {
                 const lastFrame = res[res.length - 1];
-                lastFrame.error ? reject(lastFrame) : resolve(res);
+                lastFrame.error ? reject(res) : resolve(res);
                 err ? reject(err) : resolve(res);
             });
         });
@@ -324,7 +332,8 @@ function buildOneFlow(tag) {
             },
             Env: [
                 `ONEFLOW_CI_BUILD_DIR=${buildDir}`,
-                `ONEFLOW_CI_LLVM_DIR=${llvmDir}`
+                `ONEFLOW_CI_LLVM_DIR=${llvmDir}`,
+                `LDFLAGS="fuse-ld=lld"`
             ].concat(httpProxyEnvs)
         });
         yield container.start();
@@ -341,7 +350,7 @@ function buildOneFlow(tag) {
 exports.buildOneFlow = buildOneFlow;
 function buildOnePythonVersion(container, oneflowSrc, buildDir, pythonExe) {
     return __awaiter(this, void 0, void 0, function* () {
-        const cmakeInitCache = path_1.default.join(oneflowSrc, 'cmake/caches/ci/cuda-75.cmake');
+        const cmakeInitCache = util_1.getPathInput('cmake-init-cache');
         yield runExec(container, ['git', 'clean', '-nXd'], path_1.default.join(oneflowSrc, 'python'));
         yield runExec(container, ['git', 'clean', '-fXd'], path_1.default.join(oneflowSrc, 'python'));
         yield runExec(container, ['mkdir', '-p', buildDir]);

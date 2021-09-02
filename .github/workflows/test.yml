@@ -58,8 +58,8 @@ jobs:
           ref: 9cd37571cbd6cc6a81fc87faa7f6a43be772ae31
           path: conda-env
       - uses: ./
-        name: Test on hosted
-        if: ${{ contains(matrix.os, 'ubuntu-latest') }}
+        name: Test conda on hosted
+        if: ${{ contains(matrix.os, 'ubuntu-latest') }} && ${{ matrix.os.oneflow-build-env == 'conda'}}
         with:
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/cn/fast/cpu-clang.cmake
           oneflow-src: ${{ env.ONEFLOW_SRC }}
@@ -75,7 +75,7 @@ jobs:
           conda-env-file: conda-env/dev/clang10/environment-v2.yml
           conda-installer-url: https://oneflow-static.oss-cn-beijing.aliyuncs.com/downloads/conda-installers/Miniconda3-py39_4.10.3-Linux-x86_64.sh
           conda-prefix: ~/miniconda3-prefixes/py39_4.10.3
-          self-hosted: true
+          self-hosted: ${{ contains(matrix.os, 'self-hosted') }}
       - uses: ./
         name: Test manylinux
         if: ${{ matrix.os.oneflow-build-env == 'manylinux'}}
@@ -84,7 +84,7 @@ jobs:
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           oneflow-build-env: manylinux
           wheelhouse-dir: manylinux-wheelhouse
-          self-hosted: true
+          self-hosted: ${{ contains(matrix.os, 'self-hosted') }}
           python-versions:
             - 3.6
             - 3.7

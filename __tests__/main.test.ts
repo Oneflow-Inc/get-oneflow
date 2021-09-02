@@ -42,7 +42,7 @@ test(
     }
     process.env['INPUT_ONEFLOW-BUILD-ENV'] = 'conda'
     process.env['INPUT_CMAKE-INIT-CACHE'] =
-      '~/oneflow-conda/cmake/caches/cn/fast/cpu-clang.cmake'
+      '~/oneflow/cmake/caches/cn/fast/cpu-clang.cmake'
     process.env['INPUT_ONEFLOW-SRC'] = '~/oneflow-conda'
     process.env['INPUT_ONEFLOW-BUILD-ENV'] = 'conda'
     process.env['INPUT_CONDA-ENV-FILE'] =
@@ -84,6 +84,8 @@ test(
   'build manylinux',
   async () => {
     process.env['INPUT_USE-SYSTEM-HTTP-PROXY'] = 'false'
+    process.env['INPUT_CMAKE-INIT-CACHE'] =
+      '~/oneflow/cmake/caches/ci/cuda-75.cmake'
     process.env['INPUT_ONEFLOW-SRC'] = '~/oneflow'
     process.env['INPUT_MANYLINUX-CACHE-DIR'] = '~/manylinux-cache-dirs/unittest'
     process.env['INPUT_WHEELHOUSE-DIR'] = '~/manylinux-wheelhouse'
