@@ -114,22 +114,27 @@ export async function ensureTool(
   version: string,
   dest: string
 ): Promise<string> {
-  const toolDir = tc.find(tool, version)
-  if (toolDir !== '') {
-    return toolDir
+  let cachedPath = tc.find(tool, version)
+  if (cachedPath === '') {
+    const url = getToolURL(tool, version)
+    const downloaded = await tc.downloadTool(url)
+    const destExpanded = dest.replace('~', os.homedir)
+
+    if (url.endsWith('tar.gz')) {
+      const extracted = await tc.extractTar(downloaded, destExpanded)
+      cachedPath = await tc.cacheDir(extracted, tool, version)
+    } else if (url.endsWith('tar.xz')) {
+      const extracted = await extractTarX(downloaded, destExpanded, ['xf'])
+      cachedPath = await tc.cacheDir(extracted, tool, version)
+    } else {
+      throw new Error(`not supported: ${url}`)
+    }
   }
-  const url = getToolURL(tool, version)
-  const downloaded = await tc.downloadTool(url)
-  const destExpanded = dest.replace('~', os.homedir)
-  if (url.endsWith('tar.gz')) {
-    const extracted = await tc.extractTar(downloaded, destExpanded)
-    const cachedPath = await tc.cacheDir(extracted, tool, version)
-    return cachedPath
-  } else if (url.endsWith('tar.xz')) {
-    const extracted = await extractTarX(downloaded, destExpanded, ['xf'])
-    const cachedPath = await tc.cacheDir(extracted, tool, version)
-    return cachedPath
-  } else {
-    throw new Error(`not supported: ${url}`)
+  if (tool === 'llvm' && version === '10.0.1') {
+    cachedPath = path.join(
+      cachedPath,
+      'clang+llvm-10.0.1-x86_64-linux-sles12.4'
+    )
   }
+  return cachedPath
 }
