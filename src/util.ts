@@ -88,7 +88,7 @@ export async function extractTarX(
   // Initialize args
   let args: string[] = [file]
   if (flags instanceof Array) {
-    args = args.concat(args)
+    args = flags.concat(args)
   } else {
     args = [flags]
   }
