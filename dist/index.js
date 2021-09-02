@@ -125,6 +125,7 @@ const dockerode_1 = __importDefault(__nccwpck_require__(4571));
 const util_1 = __nccwpck_require__(4024);
 const io = __importStar(__nccwpck_require__(7436));
 const path_1 = __importDefault(__nccwpck_require__(5622));
+const fs_1 = __importDefault(__nccwpck_require__(5747));
 const assert_1 = __nccwpck_require__(2357);
 function load_img(tag, url) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -332,6 +333,7 @@ function buildOneFlow(tag) {
             },
             Env: [
                 `ONEFLOW_CI_BUILD_DIR=${buildDir}`,
+                `ONEFLOW_CI_SRC_DIR=${oneflowSrc}`,
                 `ONEFLOW_CI_LLVM_DIR=${llvmDir}`
             ].concat(httpProxyEnvs)
         });
@@ -341,17 +343,25 @@ function buildOneFlow(tag) {
         });
         for (const pythonVersion of pythonVersions) {
             const pythonExe = getPythonExe(pythonVersion);
+            continue;
+            // eslint-disable-next-line no-unreachable
             yield buildOnePythonVersion(container, oneflowSrc, buildDir, pythonExe);
         }
-        yield runExec(container, ['bash', '-c', `auditwheel repair dist/*.whl --wheel-dir ${wheelhouseDir}`], path_1.default.join(oneflowSrc, 'python'));
+        const distDir = path_1.default.join(oneflowSrc, 'python', 'dist');
+        const whlFiles = yield fs_1.default.promises.readdir(distDir);
+        assert_1.ok(whlFiles.length);
+        yield Promise.all(whlFiles.map((whl) => __awaiter(this, void 0, void 0, function* () {
+            return runExec(container, ['auditwheel', 'repair', whl, '--wheel-dir', wheelhouseDir], distDir);
+        })));
     });
 }
 exports.buildOneFlow = buildOneFlow;
 function buildOnePythonVersion(container, oneflowSrc, buildDir, pythonExe) {
     return __awaiter(this, void 0, void 0, function* () {
         const cmakeInitCache = util_1.getPathInput('cmake-init-cache');
-        yield runExec(container, ['git', 'clean', '-nXd'], path_1.default.join(oneflowSrc, 'python'));
-        yield runExec(container, ['git', 'clean', '-fXd'], path_1.default.join(oneflowSrc, 'python'));
+        const argsExclude = ['-e', '!dist', '-e', '!dist/**'];
+        yield runExec(container, ['git', 'clean', '-nXd'].concat(argsExclude), path_1.default.join(oneflowSrc, 'python'));
+        yield runExec(container, ['git', 'clean', '-fXd'].concat(argsExclude), path_1.default.join(oneflowSrc, 'python'));
         yield runExec(container, ['mkdir', '-p', buildDir]);
         yield runExec(container, [
             'cmake',

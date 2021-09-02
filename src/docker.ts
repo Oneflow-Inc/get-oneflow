@@ -5,6 +5,7 @@ import Docker, {Container, MountSettings} from 'dockerode'
 import {ensureTool as ensureTool, getPathInput, isSelfHosted} from './util'
 import * as io from '@actions/io'
 import path from 'path'
+import fs from 'fs'
 import {ok} from 'assert'
 
 async function load_img(tag: string, url: string): Promise<void> {
@@ -244,6 +245,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
     },
     Env: [
       `ONEFLOW_CI_BUILD_DIR=${buildDir}`,
+      `ONEFLOW_CI_SRC_DIR=${oneflowSrc}`,
       `ONEFLOW_CI_LLVM_DIR=${llvmDir}`
     ].concat(httpProxyEnvs)
   })
@@ -254,12 +256,21 @@ export async function buildOneFlow(tag: string): Promise<void> {
   })
   for (const pythonVersion of pythonVersions) {
     const pythonExe = getPythonExe(pythonVersion)
+    continue
+    // eslint-disable-next-line no-unreachable
     await buildOnePythonVersion(container, oneflowSrc, buildDir, pythonExe)
   }
-  await runExec(
-    container,
-    ['bash', '-c', `auditwheel repair dist/*.whl --wheel-dir ${wheelhouseDir}`],
-    path.join(oneflowSrc, 'python')
+  const distDir = path.join(oneflowSrc, 'python', 'dist')
+  const whlFiles = await fs.promises.readdir(distDir)
+  ok(whlFiles.length)
+  await Promise.all(
+    whlFiles.map(async (whl: string) =>
+      runExec(
+        container,
+        ['auditwheel', 'repair', whl, '--wheel-dir', wheelhouseDir],
+        distDir
+      )
+    )
   )
 }
 
