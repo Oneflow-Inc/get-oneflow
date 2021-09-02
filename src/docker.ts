@@ -2,7 +2,8 @@ import * as core from '@actions/core'
 import * as exec from './exec'
 import * as tc from '@actions/tool-cache'
 import Docker, {Container} from 'dockerode'
-import {getPathInput} from './util'
+import {ensureTool as ensureTool, getPathInput} from './util'
+import * as io from '@actions/io'
 
 async function load_img(tag: string, url: string): Promise<void> {
   await exec.exec('docker', ['ps'])
@@ -161,6 +162,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
   }
   let httpProxyEnvs: string[] = []
   const manylinuxCacheDir = getPathInput('manylinux-cache-dir')
+  await io.mkdirP(manylinuxCacheDir)
   if (core.getBooleanInput('use-system-http-proxy', {required: false})) {
     httpProxyEnvs = [
       `HTTP_PROXY=${process.env.HTTP_PROXY}`,
@@ -169,6 +171,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
       `https_proxy=${process.env.https_proxy}`
     ]
   }
+  const llvmPath = await ensureTool('llvm', '10.0.1', '~/tools/llvm-10.01')
   const container = await docker.createContainer({
     Cmd: ['sleep', '3600'],
     Image: tag,
@@ -176,6 +179,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
     HostConfig: {
       AutoRemove: true,
       NetworkMode: 'host',
+      Binds: [`${manylinuxCacheDir}:${manylinuxCacheDir}`],
       Mounts: [
         {
           Source: oneflowSrc,
@@ -196,8 +200,8 @@ export async function buildOneFlow(tag: string): Promise<void> {
           Type: 'bind'
         },
         {
-          Source: manylinuxCacheDir,
-          Target: '/usr/local/cudnn',
+          Source: llvmPath,
+          Target: '/usr/local/llvm',
           ReadOnly: true,
           Type: 'bind'
         }
