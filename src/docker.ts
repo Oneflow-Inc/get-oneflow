@@ -150,17 +150,25 @@ export async function buildOneFlow(tag: string): Promise<void> {
   const containerName = 'ci-test-build-oneflow'
   const containerInfos = await docker.listContainers()
   for (const containerInfo of containerInfos) {
-    core.info(JSON.stringify(containerInfo, null, 2))
     if (
       containerInfo.Names.includes(containerName) ||
       containerInfo.Names.includes('/'.concat(containerName))
     ) {
-      core.info(`removing docker: ${containerInfo.Names}`)
+      core.info(`removing docker container: ${containerInfo.Names}`)
       await docker.getContainer(containerInfo.Id).kill()
       await docker.getContainer(containerInfo.Id).wait({
         condition: 'removed'
       })
     }
+  }
+  let httpProxyEnvs: string[] = []
+  if (core.getBooleanInput('use-system-http-proxy', {required: false})) {
+    httpProxyEnvs = [
+      `HTTP_PROXY=${process.env.HTTP_PROXY}`,
+      `http_proxy=${process.env.http_proxy}`,
+      `HTTPS_PROXY=${process.env.HTTPS_PROXY}`,
+      `https_proxy=${process.env.https_proxy}`
+    ]
   }
   const container = await docker.createContainer({
     Cmd: ['sleep', '3600'],
@@ -190,12 +198,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
         }
       ]
     },
-    Env: [
-      `HTTP_PROXY=${process.env.HTTP_PROXY}`,
-      `http_proxy=${process.env.http_proxy}`,
-      `HTTPS_PROXY=${process.env.HTTPS_PROXY}`,
-      `https_proxy=${process.env.https_proxy}`
-    ]
+    Env: httpProxyEnvs
   })
   await container.start()
   const buildDir = '/build'

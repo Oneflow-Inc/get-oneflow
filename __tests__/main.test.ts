@@ -83,6 +83,7 @@ test(
 test(
   'build manylinux',
   async () => {
+    process.env['INPUT_USE-SYSTEM-HTTP-PROXY'] = 'false'
     process.env['INPUT_ONEFLOW-SRC'] = '~/oneflow'
     const manylinuxVersion = '2014'
     const tag = await buildManylinuxAndTag(manylinuxVersion)
