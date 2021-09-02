@@ -343,8 +343,6 @@ function buildOneFlow(tag) {
         });
         for (const pythonVersion of pythonVersions) {
             const pythonExe = getPythonExe(pythonVersion);
-            continue;
-            // eslint-disable-next-line no-unreachable
             yield buildOnePythonVersion(container, oneflowSrc, buildDir, pythonExe);
         }
         const distDir = path_1.default.join(oneflowSrc, 'python', 'dist');

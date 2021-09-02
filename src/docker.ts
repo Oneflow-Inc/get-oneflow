@@ -256,8 +256,6 @@ export async function buildOneFlow(tag: string): Promise<void> {
   })
   for (const pythonVersion of pythonVersions) {
     const pythonExe = getPythonExe(pythonVersion)
-    continue
-    // eslint-disable-next-line no-unreachable
     await buildOnePythonVersion(container, oneflowSrc, buildDir, pythonExe)
   }
   const distDir = path.join(oneflowSrc, 'python', 'dist')
