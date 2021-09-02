@@ -9,7 +9,8 @@ import path from 'path'
 async function load_img(tag: string, url: string): Promise<void> {
   await exec.exec('docker', ['ps'])
   const inspect = await exec.exec('docker', ['inspect', tag], {
-    ignoreReturnCode: true
+    ignoreReturnCode: true,
+    silent: true
   })
   if (inspect !== 0) {
     const imgPath = await tc.downloadTool(url)
@@ -144,6 +145,7 @@ export async function runExec(
 
 export async function buildOneFlow(tag: string): Promise<void> {
   const oneflowSrc: string = getPathInput('oneflow-src', {required: true})
+  const wheelhouseDir: string = getPathInput('wheelhouse-dir', {required: true})
   const docker = new Docker({socketPath: '/var/run/docker.sock'})
   const CUDA_TOOLKIT_ROOT_DIR = '/usr/local/cuda'
   const CUDNN_ROOT_DIR = '/usr/local/cudnn'
@@ -176,12 +178,6 @@ export async function buildOneFlow(tag: string): Promise<void> {
   const shouldMountLLVM = false
   const mounts: MountSettings[] = [
     {
-      Source: oneflowSrc,
-      Target: oneflowSrc,
-      ReadOnly: true,
-      Type: 'bind'
-    },
-    {
       Source: CUDA_TOOLKIT_ROOT_DIR,
       Target: '/usr/local/cuda',
       ReadOnly: true,
@@ -204,7 +200,42 @@ export async function buildOneFlow(tag: string): Promise<void> {
     })
   }
   const buildDir = path.join(manylinuxCacheDir, 'build')
-  const pythonExe = '/opt/python/cp38-cp38/bin/python3'
+  for (const pythonExe of [
+    '/opt/python/cp36-cp36m/bin/python3',
+    '/opt/python/cp37-cp37m/bin/python3',
+    '/opt/python/cp38-cp38/bin/python3',
+    '/opt/python/cp39-cp39/bin/python3',
+    '/opt/python/cp310-cp310/bin/python3'
+  ]) {
+    await buildOnePythonVersion(
+      docker,
+      tag,
+      containerName,
+      manylinuxCacheDir,
+      oneflowSrc,
+      mounts,
+      buildDir,
+      llvmDir,
+      httpProxyEnvs,
+      pythonExe,
+      wheelhouseDir
+    )
+  }
+}
+
+async function buildOnePythonVersion(
+  docker: Docker,
+  tag: string,
+  containerName: string,
+  manylinuxCacheDir: string,
+  oneflowSrc: string,
+  mounts: Docker.MountSettings[],
+  buildDir: string,
+  llvmDir: string,
+  httpProxyEnvs: string[],
+  pythonExe: string,
+  wheelhouseDir: string
+): Promise<void> {
   const container = await docker.createContainer({
     Cmd: ['sleep', '3600'],
     Image: tag,
@@ -215,7 +246,9 @@ export async function buildOneFlow(tag: string): Promise<void> {
       Binds: [
         `${manylinuxCacheDir}:${manylinuxCacheDir}`,
         `${path.join(manylinuxCacheDir, 'ccache')}:/root/.ccache`,
-        `${path.join(manylinuxCacheDir, 'local')}:/root/.local`
+        `${path.join(manylinuxCacheDir, 'local')}:/root/.local`,
+        `${oneflowSrc}:${oneflowSrc}`,
+        `${wheelhouseDir}:${wheelhouseDir}`
       ],
       Mounts: mounts
     },
@@ -226,6 +259,16 @@ export async function buildOneFlow(tag: string): Promise<void> {
   })
   await container.start()
   const cmakeInitCache = path.join(oneflowSrc, 'cmake/caches/ci/cuda-75.cmake')
+  await runExec(
+    container,
+    ['git', 'clean', '-nXd'],
+    path.join(oneflowSrc, 'python')
+  )
+  await runExec(
+    container,
+    ['git', 'clean', '-fXd'],
+    path.join(oneflowSrc, 'python')
+  )
   await runExec(container, ['mkdir', '-p', buildDir])
   await runExec(container, [
     'cmake',
@@ -242,13 +285,16 @@ export async function buildOneFlow(tag: string): Promise<void> {
     '--build',
     buildDir,
     '--parallel',
-    (await exec.getExecOutput('nproc')).stdout.trim(),
-    '--target',
-    'of_ccobj'
+    (await exec.getExecOutput('nproc')).stdout.trim()
   ])
   await runExec(
     container,
     [pythonExe, 'setup.py', 'bdist_wheel'],
+    path.join(oneflowSrc, 'python')
+  )
+  await runExec(
+    container,
+    ['auditwheel', 'repair', 'dist/*.whl', '--wheel-dir', wheelhouseDir],
     path.join(oneflowSrc, 'python')
   )
 }

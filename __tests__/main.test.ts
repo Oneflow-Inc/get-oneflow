@@ -86,6 +86,7 @@ test(
     process.env['INPUT_USE-SYSTEM-HTTP-PROXY'] = 'false'
     process.env['INPUT_ONEFLOW-SRC'] = '~/oneflow'
     process.env['INPUT_MANYLINUX-CACHE-DIR'] = '~/manylinux-cache-dirs/unittest'
+    process.env['INPUT_WHEELHOUSE-DIR'] = '~/manylinux-wheelhouse'
     process.env['RUNNER_TOOL_CACHE'] = '~/runner_tool_cache'.replace(
       '~',
       os.homedir
