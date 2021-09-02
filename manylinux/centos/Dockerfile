@@ -23,3 +23,4 @@ RUN mkdir /llvm-tmp && cd /llvm-tmp && \
     cd llvm-project-12.0.1.src && mkdir build && cd build && \
     cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PROJECTS=lld -DCMAKE_INSTALL_PREFIX=/usr/local ../llvm && ninja install && \
     rm -rf /llvm-tmp
+RUN ln -s  $(which ccache) /usr/lib64/ccache/nvcc
