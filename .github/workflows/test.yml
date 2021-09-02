@@ -38,7 +38,7 @@ jobs:
         os: [['self-hosted', 'linux', 'provision'], [ubuntu-latest]]
         oneflow-build-env: ['conda', 'manylinux']
     env:
-      ONEFLOW_SRC: oneflow-src
+      ONEFLOW_SRC: oneflow-src-${{ matrix.os.oneflow-build-env }}
     steps:
       - uses: actions/checkout@v2
       - name: Checkout Oneflow-Inc/oneflow
