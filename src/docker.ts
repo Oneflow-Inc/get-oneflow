@@ -200,42 +200,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
     })
   }
   const buildDir = path.join(manylinuxCacheDir, 'build')
-  for (const pythonExe of [
-    '/opt/python/cp36-cp36m/bin/python3',
-    '/opt/python/cp37-cp37m/bin/python3',
-    '/opt/python/cp38-cp38/bin/python3',
-    '/opt/python/cp39-cp39/bin/python3',
-    '/opt/python/cp310-cp310/bin/python3'
-  ]) {
-    await buildOnePythonVersion(
-      docker,
-      tag,
-      containerName,
-      manylinuxCacheDir,
-      oneflowSrc,
-      mounts,
-      buildDir,
-      llvmDir,
-      httpProxyEnvs,
-      pythonExe,
-      wheelhouseDir
-    )
-  }
-}
 
-async function buildOnePythonVersion(
-  docker: Docker,
-  tag: string,
-  containerName: string,
-  manylinuxCacheDir: string,
-  oneflowSrc: string,
-  mounts: Docker.MountSettings[],
-  buildDir: string,
-  llvmDir: string,
-  httpProxyEnvs: string[],
-  pythonExe: string,
-  wheelhouseDir: string
-): Promise<void> {
   const container = await docker.createContainer({
     Cmd: ['sleep', '3600'],
     Image: tag,
@@ -258,6 +223,29 @@ async function buildOnePythonVersion(
     ].concat(httpProxyEnvs)
   })
   await container.start()
+
+  for (const pythonExe of [
+    '/opt/python/cp36-cp36m/bin/python3',
+    '/opt/python/cp37-cp37m/bin/python3',
+    '/opt/python/cp38-cp38/bin/python3',
+    '/opt/python/cp39-cp39/bin/python3',
+    '/opt/python/cp310-cp310/bin/python3'
+  ]) {
+    await buildOnePythonVersion(container, oneflowSrc, buildDir, pythonExe)
+  }
+  await runExec(
+    container,
+    ['bash', '-c', `auditwheel repair dist/*.whl --wheel-dir ${wheelhouseDir}`],
+    path.join(oneflowSrc, 'python')
+  )
+}
+
+async function buildOnePythonVersion(
+  container: Docker.Container,
+  oneflowSrc: string,
+  buildDir: string,
+  pythonExe: string
+): Promise<void> {
   const cmakeInitCache = path.join(oneflowSrc, 'cmake/caches/ci/cuda-75.cmake')
   await runExec(
     container,
@@ -290,11 +278,6 @@ async function buildOnePythonVersion(
   await runExec(
     container,
     [pythonExe, 'setup.py', 'bdist_wheel'],
-    path.join(oneflowSrc, 'python')
-  )
-  await runExec(
-    container,
-    ['bash', '-c', `auditwheel repair dist/*.whl --wheel-dir ${wheelhouseDir}`],
     path.join(oneflowSrc, 'python')
   )
 }
