@@ -73,7 +73,7 @@ jobs:
           conda-prefix: ~/miniconda3-prefixes/py39_4.10.3
           self-hosted: true
       - uses: ./
-        name: Test manylinux on self-hosted
+        name: Test manylinux
         if: ${{ matrix.os.oneflow-build-env == 'manylinux'}}
         with:
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/cn/fast/cpu-clang.cmake
