@@ -7,7 +7,7 @@ import * as io from '@actions/io'
 import path from 'path'
 
 async function load_img(tag: string, url: string): Promise<void> {
-  await exec.exec('docker', ['ps'])
+  await exec.exec('docker', ['ps'], {silent: true})
   const inspect = await exec.exec('docker', ['inspect', tag], {
     ignoreReturnCode: true,
     silent: true
@@ -20,7 +20,7 @@ async function load_img(tag: string, url: string): Promise<void> {
 
 export async function ensureDocker(): Promise<void> {
   try {
-    await exec.exec('docker', ['ps'])
+    await exec.exec('docker', ['ps'], {silent: true})
     await load_img(
       'quay.io/pypa/manylinux1_x86_64',
       'https://oneflow-static.oss-cn-beijing.aliyuncs.com/img/quay.iopypamanylinux1_x86_64.tar.gz'
