@@ -244,8 +244,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
     },
     Env: [
       `ONEFLOW_CI_BUILD_DIR=${buildDir}`,
-      `ONEFLOW_CI_LLVM_DIR=${llvmDir}`,
-      `LDFLAGS="-fuse-ld=lld"`
+      `ONEFLOW_CI_LLVM_DIR=${llvmDir}`
     ].concat(httpProxyEnvs)
   })
   await container.start()
