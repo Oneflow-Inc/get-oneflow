@@ -204,6 +204,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
     })
   }
   const buildDir = path.join(manylinuxCacheDir, 'build')
+  const pythonExe = '/opt/python/cp38-cp38/bin/python3'
   const container = await docker.createContainer({
     Cmd: ['sleep', '3600'],
     Image: tag,
@@ -234,7 +235,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
     cmakeInitCache,
     '-B',
     buildDir,
-    '-DPython3_EXECUTABLE=/opt/python/cp38-cp38/bin/python3'
+    `-DPython3_EXECUTABLE=${pythonExe}`
   ])
   await runExec(container, [
     'cmake',
@@ -247,7 +248,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
   ])
   await runExec(
     container,
-    ['python3', 'setup.py', 'bdist_wheel'],
+    [pythonExe, 'setup.py', 'bdist_wheel'],
     path.join(oneflowSrc, 'python')
   )
 }
