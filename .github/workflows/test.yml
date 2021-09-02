@@ -36,6 +36,7 @@ jobs:
       max-parallel: 5
       matrix:
         os: [['self-hosted', 'linux', 'provision'], [ubuntu-latest]]
+        oneflow-build-env: ['conda', 'manylinux']
     env:
       ONEFLOW_SRC: oneflow-src
     steps:
@@ -61,8 +62,8 @@ jobs:
           oneflow-build-env: conda
           conda-env-file: conda-env/dev/clang10/environment-v2.yml
       - uses: ./
-        name: Test on self-hosted
-        if: ${{ contains(matrix.os, 'self-hosted') }}
+        name: Test conda on self-hosted
+        if: ${{ contains(matrix.os, 'self-hosted') }} && ${{ matrix.os.oneflow-build-env == 'conda'}}
         with:
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/cn/fast/cpu-clang.cmake
           oneflow-src: ${{ env.ONEFLOW_SRC }}
@@ -72,11 +73,11 @@ jobs:
           conda-prefix: ~/miniconda3-prefixes/py39_4.10.3
           self-hosted: true
       - uses: ./
-        name: Test on self-hosted
-        if: ${{ contains(matrix.os, 'self-hosted') }}
+        name: Test manylinux on self-hosted
+        if: ${{ matrix.os.oneflow-build-env == 'manylinux'}}
         with:
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/cn/fast/cpu-clang.cmake
           oneflow-src: ${{ env.ONEFLOW_SRC }}
-          oneflow-build-env: docker
+          oneflow-build-env: manylinux
           wheelhouse-dir: manylinux-wheelhouse
           self-hosted: true

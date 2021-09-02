@@ -8,6 +8,7 @@ import {ExecOptions} from '@actions/exec'
 import path from 'path'
 import {ensureConda} from './conda'
 import {buildManylinuxAndTag, buildOneFlow} from './docker'
+import {isSelfHosted} from './util'
 
 async function condaRun(
   condaEnvName: string,
@@ -41,7 +42,6 @@ async function buildWithConda(): Promise<void> {
     })
     .replace('~', os.homedir)
   const isDryRun: boolean = core.getBooleanInput('dry-run')
-  const isSelfHosted: boolean = core.getBooleanInput('self-hosted')
   const isEnvFileExist = await fs.promises
     .access(envFile, fs.constants.F_OK)
     // eslint-disable-next-line github/no-then
@@ -73,7 +73,7 @@ async function buildWithConda(): Promise<void> {
       '-B',
       buildDir
     ])
-    if (isSelfHosted) {
+    if (isSelfHosted()) {
       await condaRun(condaEnvName, 'cmake', [
         '--build',
         buildDir,
@@ -96,10 +96,12 @@ async function run(): Promise<void> {
     if (buildEnv === 'conda') {
       await buildWithConda()
     }
-    if (buildEnv === 'docker') {
+    if (buildEnv === 'manylinux') {
       const manylinuxVersion = '2014'
       const tag = await buildManylinuxAndTag(manylinuxVersion)
-      await buildOneFlow(tag)
+      if (isSelfHosted()) {
+        await buildOneFlow(tag)
+      }
     }
   } catch (error) {
     core.setFailed(error.message)
