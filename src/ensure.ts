@@ -3,7 +3,6 @@ import OSS from 'ali-oss'
 import path from 'path'
 import * as tc from '@actions/tool-cache'
 import os from 'os'
-import {countReset} from 'console'
 import * as core from '@actions/core'
 
 type Tool = {
@@ -59,6 +58,7 @@ export async function mirrorTool(tool: Tool): Promise<void> {
   } catch (error) {
     const downloaded = await tc.downloadTool(tool.url)
     await client.put(objectKey, downloaded)
+    core.info(`mirrored: ${tool.url}`)
   }
 }
 
