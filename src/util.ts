@@ -1,7 +1,6 @@
 import * as core from '@actions/core'
 import {InputOptions} from '@actions/core'
 import os from 'os'
-import * as tc from '@actions/tool-cache'
 import * as exec from '@actions/exec'
 import path from 'path'
 import * as io from '@actions/io'
@@ -122,44 +121,4 @@ export async function extractTarX(
   await exec.exec(`tar`, args)
 
   return dest
-}
-
-export async function ensureTool(
-  tool: string,
-  version: string,
-  dest: string
-): Promise<string> {
-  let cachedPath = tc.find(tool, version)
-  if (cachedPath === '') {
-    const url = getToolURL(tool, version)
-    // TODO: wrap oss node sdk around tc.downloadTool
-    const downloaded = await tc.downloadTool(url)
-    const destExpanded = dest.replace('~', os.homedir)
-
-    if (url.endsWith('tar.gz')) {
-      const extracted = await tc.extractTar(downloaded, destExpanded)
-      cachedPath = await tc.cacheDir(extracted, tool, version)
-    } else if (url.endsWith('tar.xz')) {
-      const extracted = await extractTarX(downloaded, destExpanded, ['xf'])
-      cachedPath = await tc.cacheDir(extracted, tool, version)
-    } else {
-      throw new Error(`not supported: ${url}`)
-    }
-  }
-  // TODO: parse from URL
-  if (tool === 'llvm') {
-    if (version === '10.0.1') {
-      cachedPath = path.join(
-        cachedPath,
-        'clang+llvm-10.0.1-x86_64-linux-sles12.4'
-      )
-    }
-    if (version === '9.0.1') {
-      cachedPath = path.join(
-        cachedPath,
-        'clang+llvm-9.0.1-x86_64-linux-gnu-ubuntu-16.04'
-      )
-    }
-  }
-  return cachedPath
 }

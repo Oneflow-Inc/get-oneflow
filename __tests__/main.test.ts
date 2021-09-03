@@ -37,6 +37,9 @@ function isOnPremise(): boolean {
 test(
   'test real cmake',
   () => {
+    if (!process.env['TEST_CONDA']) {
+      return
+    }
     if (isOnPremise() == false) {
       return
     }
@@ -71,6 +74,9 @@ test(
 test(
   'test docker',
   async () => {
+    if (!process.env['TEST_DOCKER']) {
+      return
+    }
     process.env['INPUT_DRY-RUN'] = 'true'
     if (isOnPremise() == false) {
       return
@@ -83,6 +89,33 @@ test(
 test(
   'build manylinux',
   async () => {
+    if (!process.env['TEST_MANYLINUX']) {
+      return
+    }
+    process.env['INPUT_USE-SYSTEM-HTTP-PROXY'] = 'false'
+    process.env['INPUT_CMAKE-INIT-CACHE'] =
+      '~/oneflow/cmake/caches/ci/cuda-75.cmake'
+    process.env['INPUT_ONEFLOW-SRC'] = '~/oneflow'
+    process.env['INPUT_MANYLINUX-CACHE-DIR'] = '~/manylinux-cache-dirs/unittest'
+    process.env['INPUT_WHEELHOUSE-DIR'] = '~/manylinux-wheelhouse'
+    process.env['INPUT_PYTHON-VERSIONS'] = '3.6\n3.7'
+    process.env['RUNNER_TOOL_CACHE'] = '~/runner_tool_cache'.replace(
+      '~',
+      os.homedir
+    )
+    const manylinuxVersion = '2014'
+    const tag = await buildManylinuxAndTag(manylinuxVersion)
+    await buildOneFlow(tag)
+  },
+  1000 * 60 * 15
+)
+
+test(
+  'build manylinux',
+  async () => {
+    if (!process.env['TEST_MANYLINUX']) {
+      return
+    }
     process.env['INPUT_USE-SYSTEM-HTTP-PROXY'] = 'false'
     process.env['INPUT_CMAKE-INIT-CACHE'] =
       '~/oneflow/cmake/caches/ci/cuda-75.cmake'
