@@ -11,6 +11,11 @@ import {
 } from '../src/docker'
 import {TOOLS, mirrorToDownloads, ensureCUDA102} from '../src/ensure'
 
+process.env['RUNNER_TOOL_CACHE'] = '~/runner_tool_cache'.replace(
+  '~',
+  os.homedir
+)
+process.env['RUNNER_TEMP'] = '~/runner_temp'.replace('~', os.homedir)
 const MINUTES15 = 1000 * 60 * 15
 // shows how the runner will run a javascript action with env / stdout protocol
 test('test runs', () => {
@@ -57,7 +62,6 @@ test(
     process.env['INPUT_CONDA-PREFIX'] = '~/miniconda3-prefixes/py39_4.10.3'
     process.env['INPUT_SELF-HOSTED'] = 'true'
     process.env['INPUT_DRY-RUN'] = 'true'
-    process.env['RUNNER_TEMP'] = 'runner-tmp'
     const np = process.execPath
     const ip = path.join(__dirname, '..', 'lib', 'main.js')
     const options: cp.ExecFileSyncOptions = {
@@ -101,11 +105,6 @@ test(
     process.env['INPUT_MANYLINUX-CACHE-DIR'] = '~/manylinux-cache-dirs/unittest'
     process.env['INPUT_WHEELHOUSE-DIR'] = '~/manylinux-wheelhouse'
     process.env['INPUT_PYTHON-VERSIONS'] = '3.6\n3.7'
-    process.env['RUNNER_TOOL_CACHE'] = '~/runner_tool_cache'.replace(
-      '~',
-      os.homedir
-    )
-    process.env['RUNNER_TEMP'] = '~/runner_temp'.replace('~', os.homedir)
     const manylinuxVersion = '2014'
     const tag = await buildManylinuxAndTag(manylinuxVersion)
     await buildOneFlow(tag)
@@ -124,7 +123,7 @@ test(
 test(
   'ensure cuda',
   async () => {
-    if (!process.env['TEST_MANYLINUX']) {
+    if (isOnPremise() == false) {
       return
     }
     await ensureCUDA102()

@@ -4,6 +4,7 @@ import path from 'path'
 import * as tc from '@actions/tool-cache'
 import * as core from '@actions/core'
 import * as io from '@actions/io'
+import {ok} from 'assert'
 
 type Tool = {
   name: string
@@ -24,7 +25,7 @@ export const CUDA102 = {
   name: 'cuda',
   url:
     'https://developer.download.nvidia.com/compute/cuda/10.2/Prod/local_installers/cuda_10.2.89_440.33.01_linux.run',
-  version: '10.2',
+  version: '10.2.89',
   dirName: 'cuda_10.2.89_440.33.01_linux'
 }
 
@@ -64,7 +65,7 @@ export const TOOLS: Tool[] = [
     name: 'cuda',
     url:
       'https://developer.download.nvidia.com/compute/cuda/10.1/Prod/local_installers/cuda_10.1.243_418.87.00_linux.run',
-    version: '10.1',
+    version: '10.1.243',
     dirName: 'cuda_10.1.243_418.87.00_linux'
   },
   CUDNN102
@@ -96,7 +97,7 @@ async function downloadAndExtract(url: string): Promise<string> {
   }
 }
 
-function GetDownloadsKey(fileName: string): string {
+function getDownloadsKey(fileName: string): string {
   return path.join('downloads', fileName)
 }
 
@@ -104,7 +105,7 @@ export async function mirrorToDownloads(url: string): Promise<void> {
   const parsedURL = new URL(url)
   const fileName = path.basename(parsedURL.pathname)
   const store = staticBucketStore()
-  const objectKey = GetDownloadsKey(fileName)
+  const objectKey = getDownloadsKey(fileName)
   try {
     await store.head(objectKey)
     core.info(`[found] ${url}`)
@@ -123,11 +124,11 @@ export async function mirrorToDownloads(url: string): Promise<void> {
   }
 }
 
-export function GetOSSDownloadURL(url: string): string {
+export function getOSSDownloadURL(url: string): string {
   const parsedURL = new URL(url)
   const store = staticBucketStore()
   const fileName = path.basename(parsedURL.pathname)
-  const objectKey = GetDownloadsKey(fileName)
+  const objectKey = getDownloadsKey(fileName)
   return store.getObjectUrl(objectKey)
 }
 
@@ -135,27 +136,54 @@ export async function ensureTool(tool: Tool): Promise<string> {
   const cachedPath = tc.find(tool.name, tool.version)
   const parsedURL = new URL(tool.url)
   const fileName = path.basename(parsedURL.pathname)
+  let archiveName = tool.name.concat('-archive')
   const store = staticBucketStore()
   const isCudaRun: Boolean = tool.name === 'cuda' && tool.url.endsWith('.run')
+  if (isCudaRun) {
+    archiveName = 'cuda-run'
+  }
   if (cachedPath) {
     return cachedPath
   } else {
     let downloadURL = tool.url
     if (isSelfHosted()) {
-      const objectKey = GetDownloadsKey(fileName)
-      downloadURL = store.getObjectUrl(objectKey)
+      const objectKey = getDownloadsKey(fileName)
+      downloadURL = store.getObjectUrl(
+        objectKey,
+        'https://oneflow-static.oss-cn-beijing.aliyuncs.com'
+      )
+    }
+    let archivePath = tc.find(archiveName, tool.version)
+    if (!archivePath) {
+      core.info(`[not-found] ${archiveName}`)
+      const allArchiveVersions = tc.findAllVersions(archiveName)
+      core.info(`[all-versions] ${JSON.stringify(allArchiveVersions, null, 2)}`)
+      const downloaded = await tc.downloadTool(downloadURL)
+      const archivePathCached = await tc.cacheFile(
+        downloaded,
+        fileName,
+        archiveName,
+        tool.version
+      )
+      const archivePathFound = tc.find(archiveName, tool.version, 'x64')
+      ok(
+        archivePathCached === archivePathFound,
+        new Error(
+          JSON.stringify(
+            {
+              archivePathCached,
+              archivePathFound
+            },
+            null,
+            2
+          )
+        )
+      )
+      archivePath = archivePathFound
     }
     if (isCudaRun) {
-      let cudaRunFile = tc.find('cuda-run', tool.version)
-      if (!cudaRunFile) {
-        const downloaded = await tc.downloadTool(downloadURL)
-        cudaRunFile = await tc.cacheFile(
-          downloaded,
-          'cuda-run',
-          'cuda-run',
-          tool.version
-        )
-      }
+      throw new Error('TODO')
+      // eslint-disable-next-line no-unreachable
       const installedPath = path.join(getTempDirectory(), tool.dirName)
       const installedPathCached = tc.cacheDir(
         installedPath,
@@ -164,6 +192,8 @@ export async function ensureTool(tool: Tool): Promise<string> {
       )
       return installedPathCached
     } else {
+      throw new Error('TODO')
+      // eslint-disable-next-line no-unreachable
       const extractedDir = await downloadAndExtract(downloadURL)
       return await tc.cacheDir(
         path.join(extractedDir, tool.dirName),

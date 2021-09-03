@@ -7,7 +7,7 @@ import * as io from '@actions/io'
 import path from 'path'
 import fs from 'fs'
 import {ok} from 'assert'
-import {GetOSSDownloadURL, ensureTool, LLVM12} from './ensure'
+import {getOSSDownloadURL, ensureTool, LLVM12} from './ensure'
 
 async function load_img(tag: string, url: string): Promise<void> {
   await exec.exec('docker', ['ps'], {silent: true})
@@ -96,9 +96,9 @@ export async function buildManylinuxAndTag(
   }
   if (isSelfHosted()) {
     const selfHostedBuildArgs = {
-      SCCACHE_RELEASE_URL: GetOSSDownloadURL(DOCKER_TOOL_URLS.sccache),
-      LLVM_SRC_URL: GetOSSDownloadURL(DOCKER_TOOL_URLS.llvm1201src),
-      BAZEL_URL: GetOSSDownloadURL(DOCKER_TOOL_URLS.bazel)
+      SCCACHE_RELEASE_URL: getOSSDownloadURL(DOCKER_TOOL_URLS.sccache),
+      LLVM_SRC_URL: getOSSDownloadURL(DOCKER_TOOL_URLS.llvm1201src),
+      BAZEL_URL: getOSSDownloadURL(DOCKER_TOOL_URLS.bazel)
     }
     buildArgs = {...buildArgs, ...selfHostedBuildArgs}
   }

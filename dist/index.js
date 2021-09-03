@@ -190,9 +190,9 @@ function buildManylinuxAndTag(version) {
         };
         if (util_1.isSelfHosted()) {
             const selfHostedBuildArgs = {
-                SCCACHE_RELEASE_URL: ensure_1.GetOSSDownloadURL(exports.DOCKER_TOOL_URLS.sccache),
-                LLVM_SRC_URL: ensure_1.GetOSSDownloadURL(exports.DOCKER_TOOL_URLS.llvm1201src),
-                BAZEL_URL: ensure_1.GetOSSDownloadURL(exports.DOCKER_TOOL_URLS.bazel)
+                SCCACHE_RELEASE_URL: ensure_1.getOSSDownloadURL(exports.DOCKER_TOOL_URLS.sccache),
+                LLVM_SRC_URL: ensure_1.getOSSDownloadURL(exports.DOCKER_TOOL_URLS.llvm1201src),
+                BAZEL_URL: ensure_1.getOSSDownloadURL(exports.DOCKER_TOOL_URLS.bazel)
             };
             buildArgs = Object.assign(Object.assign({}, buildArgs), selfHostedBuildArgs);
         }
@@ -428,13 +428,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.ensureCUDA102 = exports.ensureTool = exports.GetOSSDownloadURL = exports.mirrorToDownloads = exports.TOOLS = exports.CUDNN102 = exports.CUDA102 = exports.LLVM12 = void 0;
+exports.ensureCUDA102 = exports.ensureTool = exports.getOSSDownloadURL = exports.mirrorToDownloads = exports.TOOLS = exports.CUDNN102 = exports.CUDA102 = exports.LLVM12 = void 0;
 const util_1 = __nccwpck_require__(64024);
 const ali_oss_1 = __importDefault(__nccwpck_require__(92399));
 const path_1 = __importDefault(__nccwpck_require__(85622));
 const tc = __importStar(__nccwpck_require__(27784));
 const core = __importStar(__nccwpck_require__(42186));
 const io = __importStar(__nccwpck_require__(47351));
+const assert_1 = __nccwpck_require__(42357);
 exports.LLVM12 = {
     name: 'llvm',
     url: 'https://github.com/llvm/llvm-project/releases/download/llvmorg-12.0.1/clang+llvm-12.0.1-x86_64-linux-gnu-ubuntu-16.04.tar.xz',
@@ -444,7 +445,7 @@ exports.LLVM12 = {
 exports.CUDA102 = {
     name: 'cuda',
     url: 'https://developer.download.nvidia.com/compute/cuda/10.2/Prod/local_installers/cuda_10.2.89_440.33.01_linux.run',
-    version: '10.2',
+    version: '10.2.89',
     dirName: 'cuda_10.2.89_440.33.01_linux'
 };
 exports.CUDNN102 = {
@@ -477,7 +478,7 @@ exports.TOOLS = [
     {
         name: 'cuda',
         url: 'https://developer.download.nvidia.com/compute/cuda/10.1/Prod/local_installers/cuda_10.1.243_418.87.00_linux.run',
-        version: '10.1',
+        version: '10.1.243',
         dirName: 'cuda_10.1.243_418.87.00_linux'
     },
     exports.CUDNN102
@@ -509,7 +510,7 @@ function downloadAndExtract(url) {
         }
     });
 }
-function GetDownloadsKey(fileName) {
+function getDownloadsKey(fileName) {
     return path_1.default.join('downloads', fileName);
 }
 function mirrorToDownloads(url) {
@@ -517,7 +518,7 @@ function mirrorToDownloads(url) {
         const parsedURL = new URL(url);
         const fileName = path_1.default.basename(parsedURL.pathname);
         const store = staticBucketStore();
-        const objectKey = GetDownloadsKey(fileName);
+        const objectKey = getDownloadsKey(fileName);
         try {
             yield store.head(objectKey);
             core.info(`[found] ${url}`);
@@ -538,41 +539,58 @@ function mirrorToDownloads(url) {
     });
 }
 exports.mirrorToDownloads = mirrorToDownloads;
-function GetOSSDownloadURL(url) {
+function getOSSDownloadURL(url) {
     const parsedURL = new URL(url);
     const store = staticBucketStore();
     const fileName = path_1.default.basename(parsedURL.pathname);
-    const objectKey = GetDownloadsKey(fileName);
+    const objectKey = getDownloadsKey(fileName);
     return store.getObjectUrl(objectKey);
 }
-exports.GetOSSDownloadURL = GetOSSDownloadURL;
+exports.getOSSDownloadURL = getOSSDownloadURL;
 function ensureTool(tool) {
     return __awaiter(this, void 0, void 0, function* () {
         const cachedPath = tc.find(tool.name, tool.version);
         const parsedURL = new URL(tool.url);
         const fileName = path_1.default.basename(parsedURL.pathname);
+        let archiveName = tool.name.concat('-archive');
         const store = staticBucketStore();
         const isCudaRun = tool.name === 'cuda' && tool.url.endsWith('.run');
+        if (isCudaRun) {
+            archiveName = 'cuda-run';
+        }
         if (cachedPath) {
             return cachedPath;
         }
         else {
             let downloadURL = tool.url;
             if (util_1.isSelfHosted()) {
-                const objectKey = GetDownloadsKey(fileName);
-                downloadURL = store.getObjectUrl(objectKey);
+                const objectKey = getDownloadsKey(fileName);
+                downloadURL = store.getObjectUrl(objectKey, 'https://oneflow-static.oss-cn-beijing.aliyuncs.com');
+            }
+            let archivePath = tc.find(archiveName, tool.version);
+            if (!archivePath) {
+                core.info(`[not-found] ${archiveName}`);
+                const allArchiveVersions = tc.findAllVersions(archiveName);
+                core.info(`[all-versions] ${JSON.stringify(allArchiveVersions, null, 2)}`);
+                const downloaded = yield tc.downloadTool(downloadURL);
+                const archivePathCached = yield tc.cacheFile(downloaded, fileName, archiveName, tool.version);
+                const archivePathFound = tc.find(archiveName, tool.version, 'x64');
+                assert_1.ok(archivePathCached === archivePathFound, new Error(JSON.stringify({
+                    archivePathCached,
+                    archivePathFound
+                }, null, 2)));
+                archivePath = archivePathFound;
             }
             if (isCudaRun) {
-                let cudaRunFile = tc.find('cuda-run', tool.version);
-                if (!cudaRunFile) {
-                    const downloaded = yield tc.downloadTool(downloadURL);
-                    cudaRunFile = yield tc.cacheFile(downloaded, 'cuda-run', 'cuda-run', tool.version);
-                }
+                throw new Error('TODO');
+                // eslint-disable-next-line no-unreachable
                 const installedPath = path_1.default.join(util_1.getTempDirectory(), tool.dirName);
                 const installedPathCached = tc.cacheDir(installedPath, tool.name, tool.version);
                 return installedPathCached;
             }
             else {
+                throw new Error('TODO');
+                // eslint-disable-next-line no-unreachable
                 const extractedDir = yield downloadAndExtract(downloadURL);
                 return yield tc.cacheDir(path_1.default.join(extractedDir, tool.dirName), tool.name, tool.version);
             }
