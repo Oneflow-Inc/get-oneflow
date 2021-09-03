@@ -3,6 +3,8 @@ import OSS from 'ali-oss'
 import path from 'path'
 import * as tc from '@actions/tool-cache'
 import os from 'os'
+import {countReset} from 'console'
+import * as core from '@actions/core'
 
 type Tool = {
   name: string
@@ -43,22 +45,39 @@ async function downloadAndExtract(
   }
 }
 
+function GetDownloadsKey(fileName: string): string {
+  return path.join('downloads', fileName)
+}
+
+export async function mirrorTool(tool: Tool): Promise<void> {
+  const parsedURL = new URL(tool.url)
+  const fileName = path.basename(parsedURL.pathname)
+  const client = staticBucketClient()
+  const objectKey = GetDownloadsKey(fileName)
+  try {
+    await client.get(objectKey)
+  } catch (error) {
+    const downloaded = await tc.downloadTool(tool.url)
+    await client.put(objectKey, downloaded)
+  }
+}
+
 export async function ensureTool(
   tool: Tool,
   setup: Function | null
 ): Promise<string> {
   const cachedPath = tc.find(tool.name, tool.version)
   const parsedURL = new URL(tool.url)
-  const client = staticBucketClient()
   const fileName = path.basename(parsedURL.pathname)
+  const client = staticBucketClient()
   if (!cachedPath) {
     let downloadURL = tool.url
     if (isSelfHosted()) {
-      const objectKey = path.join('downloads', fileName)
-      downloadURL = await client.getObjectUrl(objectKey)
-      downloadAndExtract(downloadURL, tool.name, tool.version)
-      return await downloadAndExtract(downloadURL, tool.name, tool.version)
+      const objectKey = GetDownloadsKey(fileName)
+      downloadURL = client.getObjectUrl(objectKey)
     }
+    downloadAndExtract(downloadURL, tool.name, tool.version)
+    await downloadAndExtract(downloadURL, tool.name, tool.version)
     if (setup) {
       setup()
     }
