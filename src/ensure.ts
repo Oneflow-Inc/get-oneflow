@@ -176,7 +176,7 @@ export async function ensureTool(tool: Tool): Promise<string> {
       )
       archivePath = archivePathFound
     }
-    // Install, extract, cache
+    // Extract and cache
     if (isCudaRun) {
       const cudaExtractDir = await createExtractFolder()
       await exec.exec('bash', [
@@ -204,7 +204,7 @@ export async function ensureTool(tool: Tool): Promise<string> {
       ok(cachedPath === tc.find(tool.name, tool.version))
     }
   }
-  // CHECK
+  // Check
   if (isCudaRun) {
     ok(fs.existsSync(path.join(cachedPath, 'bin', 'nvcc')))
   }

@@ -580,7 +580,7 @@ function ensureTool(tool) {
                 assert_1.ok(archivePathCached === archivePathFound, new Error(`${archivePathCached} vs ${archivePathFound}`));
                 archivePath = archivePathFound;
             }
-            // Install, extract, cache
+            // Extract and cache
             if (isCudaRun) {
                 const cudaExtractDir = yield util_1.createExtractFolder();
                 yield exec.exec('bash', [
@@ -599,7 +599,7 @@ function ensureTool(tool) {
                 assert_1.ok(cachedPath === tc.find(tool.name, tool.version));
             }
         }
-        // CHECK
+        // Check
         if (isCudaRun) {
             assert_1.ok(fs.existsSync(path_1.default.join(cachedPath, 'bin', 'nvcc')));
         }
