@@ -435,6 +435,8 @@ const path_1 = __importDefault(__nccwpck_require__(85622));
 const tc = __importStar(__nccwpck_require__(27784));
 const os_1 = __importDefault(__nccwpck_require__(12087));
 const core = __importStar(__nccwpck_require__(42186));
+const io = __importStar(__nccwpck_require__(47351));
+const fs_1 = __importDefault(__nccwpck_require__(35747));
 exports.LLVM12 = {
     name: 'llvm',
     url: 'https://github.com/llvm/llvm-project/releases/download/llvmorg-12.0.1/clang+llvm-12.0.1-x86_64-linux-gnu-ubuntu-16.04.tar.xz',
@@ -474,18 +476,18 @@ exports.TOOLS = [
         dirName: null
     }
 ];
-function ossClient() {
-    const client = new ali_oss_1.default({
+function ossStore() {
+    const store = new ali_oss_1.default({
         region: 'oss-cn-beijing',
         accessKeyId: process.env['OSS_ACCESS_KEY_ID'],
         accessKeySecret: process.env['OSS_ACCESS_KEY_SECRET']
     });
-    return client;
+    return store;
 }
-function staticBucketClient() {
-    const client = ossClient();
-    client.useBucket('oneflow-static');
-    return client;
+function staticBucketStore() {
+    const store = ossStore();
+    store.useBucket('oneflow-static');
+    return store;
 }
 function downloadAndExtract(url, tool, version) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -509,10 +511,10 @@ function mirrorToDownloads(url) {
     return __awaiter(this, void 0, void 0, function* () {
         const parsedURL = new URL(url);
         const fileName = path_1.default.basename(parsedURL.pathname);
-        const client = staticBucketClient();
+        const store = staticBucketStore();
         const objectKey = GetDownloadsKey(fileName);
         try {
-            yield client.head(objectKey);
+            yield store.head(objectKey);
             core.info(`[found] ${url}`);
         }
         catch (error) {
@@ -522,7 +524,17 @@ function mirrorToDownloads(url) {
                 return;
             }
             const downloaded = yield tc.downloadTool(url);
-            yield client.put(objectKey, downloaded);
+            for (let i = 0; i <= 5; i++) {
+                try {
+                    const result = yield store.putStream(objectKey, fs_1.default.createReadStream(downloaded));
+                    core.info(JSON.stringify(result, null, 2));
+                    break; // break if success
+                }
+                catch (e) {
+                    core.info(e);
+                }
+            }
+            yield io.rmRF(downloaded);
             core.info(`[mirrored] ${url}`);
         }
     });
@@ -530,10 +542,10 @@ function mirrorToDownloads(url) {
 exports.mirrorToDownloads = mirrorToDownloads;
 function GetOSSDownloadURL(url) {
     const parsedURL = new URL(url);
-    const client = staticBucketClient();
+    const store = staticBucketStore();
     const fileName = path_1.default.basename(parsedURL.pathname);
     const objectKey = GetDownloadsKey(fileName);
-    return client.getObjectUrl(objectKey);
+    return store.getObjectUrl(objectKey);
 }
 exports.GetOSSDownloadURL = GetOSSDownloadURL;
 function ensureTool(tool, setup) {
@@ -541,12 +553,12 @@ function ensureTool(tool, setup) {
         const cachedPath = tc.find(tool.name, tool.version);
         const parsedURL = new URL(tool.url);
         const fileName = path_1.default.basename(parsedURL.pathname);
-        const client = staticBucketClient();
+        const store = staticBucketStore();
         if (!cachedPath) {
             let downloadURL = tool.url;
             if (util_1.isSelfHosted()) {
                 const objectKey = GetDownloadsKey(fileName);
-                downloadURL = client.getObjectUrl(objectKey);
+                downloadURL = store.getObjectUrl(objectKey);
             }
             downloadAndExtract(downloadURL, tool.name, tool.version);
             yield downloadAndExtract(downloadURL, tool.name, tool.version);

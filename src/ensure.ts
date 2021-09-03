@@ -4,6 +4,8 @@ import path from 'path'
 import * as tc from '@actions/tool-cache'
 import os from 'os'
 import * as core from '@actions/core'
+import * as io from '@actions/io'
+import fs from 'fs'
 
 type Tool = {
   name: string
@@ -59,19 +61,19 @@ export const TOOLS: Tool[] = [
   }
 ]
 
-function ossClient(): OSS {
-  const client = new OSS({
+function ossStore(): OSS {
+  const store = new OSS({
     region: 'oss-cn-beijing',
     accessKeyId: process.env['OSS_ACCESS_KEY_ID'] as string,
     accessKeySecret: process.env['OSS_ACCESS_KEY_SECRET'] as string
   })
-  return client
+  return store
 }
 
-function staticBucketClient(): OSS {
-  const client = ossClient()
-  client.useBucket('oneflow-static')
-  return client
+function staticBucketStore(): OSS {
+  const store = ossStore()
+  store.useBucket('oneflow-static')
+  return store
 }
 
 async function downloadAndExtract(
@@ -97,10 +99,10 @@ function GetDownloadsKey(fileName: string): string {
 export async function mirrorToDownloads(url: string): Promise<void> {
   const parsedURL = new URL(url)
   const fileName = path.basename(parsedURL.pathname)
-  const client = staticBucketClient()
+  const store = staticBucketStore()
   const objectKey = GetDownloadsKey(fileName)
   try {
-    await client.head(objectKey)
+    await store.head(objectKey)
     core.info(`[found] ${url}`)
   } catch (error) {
     core.info(`[absent-url] ${url}`)
@@ -109,17 +111,29 @@ export async function mirrorToDownloads(url: string): Promise<void> {
       return
     }
     const downloaded = await tc.downloadTool(url)
-    await client.put(objectKey, downloaded)
+    for (let i = 0; i <= 5; i++) {
+      try {
+        const result = await store.putStream(
+          objectKey,
+          fs.createReadStream(downloaded)
+        )
+        core.info(JSON.stringify(result, null, 2))
+        break // break if success
+      } catch (e) {
+        core.info(e)
+      }
+    }
+    await io.rmRF(downloaded)
     core.info(`[mirrored] ${url}`)
   }
 }
 
 export function GetOSSDownloadURL(url: string): string {
   const parsedURL = new URL(url)
-  const client = staticBucketClient()
+  const store = staticBucketStore()
   const fileName = path.basename(parsedURL.pathname)
   const objectKey = GetDownloadsKey(fileName)
-  return client.getObjectUrl(objectKey)
+  return store.getObjectUrl(objectKey)
 }
 
 export async function ensureTool(
@@ -129,12 +143,12 @@ export async function ensureTool(
   const cachedPath = tc.find(tool.name, tool.version)
   const parsedURL = new URL(tool.url)
   const fileName = path.basename(parsedURL.pathname)
-  const client = staticBucketClient()
+  const store = staticBucketStore()
   if (!cachedPath) {
     let downloadURL = tool.url
     if (isSelfHosted()) {
       const objectKey = GetDownloadsKey(fileName)
-      downloadURL = client.getObjectUrl(objectKey)
+      downloadURL = store.getObjectUrl(objectKey)
     }
     downloadAndExtract(downloadURL, tool.name, tool.version)
     await downloadAndExtract(downloadURL, tool.name, tool.version)
