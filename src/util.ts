@@ -19,45 +19,6 @@ export function isSelfHosted(): boolean {
   return core.getBooleanInput('self-hosted')
 }
 
-export function getToolURL(tool: string, version: string): string {
-  if (tool === 'llvm') {
-    if (version === '9.0.1') {
-      return getLLVM901URL()
-    }
-    if (version === '10.0.1') {
-      return getLLVM1001URL()
-    }
-    if (version === '12.0.1') {
-      return getLLVM1201URL()
-    }
-  }
-  throw new Error(`no url found tool ${tool} version ${version}`)
-}
-
-export function getLLVM901URL(): string {
-  if (isSelfHosted()) {
-    return 'https://oneflow-static.oss-cn-beijing.aliyuncs.com/downloads/clang%2Bllvm-9.0.1-x86_64-linux-gnu-ubuntu-16.04.tar.xz'
-  } else {
-    return 'https://github.com/llvm/llvm-project/releases/download/llvmorg-9.0.1/clang+llvm-9.0.1-x86_64-linux-gnu-ubuntu-16.04.tar.xz'
-  }
-}
-
-export function getLLVM1001URL(): string {
-  if (isSelfHosted()) {
-    return 'https://oneflow-static.oss-cn-beijing.aliyuncs.com/downloads/clang%2Bllvm-10.0.1-x86_64-linux-sles12.4.tar.xz'
-  } else {
-    return 'https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.1/clang+llvm-10.0.1-x86_64-linux-sles12.4.tar.xz'
-  }
-}
-
-export function getLLVM1201URL(): string {
-  if (isSelfHosted()) {
-    return 'https://oneflow-static.oss-cn-beijing.aliyuncs.com/downloads/clang%2Bllvm-12.0.1-x86_64-linux-gnu-ubuntu-16.04.tar.xz'
-  } else {
-    return 'https://github.com/llvm/llvm-project/releases/download/llvmorg-12.0.1/clang+llvm-12.0.1-x86_64-linux-gnu-ubuntu-16.04.tar.xz'
-  }
-}
-
 function _getTempDirectory(): string {
   const tempDirectory = process.env['RUNNER_TEMP'] || ''
   ok(tempDirectory, 'Expected RUNNER_TEMP to be defined')

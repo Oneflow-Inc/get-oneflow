@@ -2,11 +2,12 @@ import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import * as tc from '@actions/tool-cache'
 import Docker, {Container, MountSettings} from 'dockerode'
-import {ensureTool as ensureTool, getPathInput, isSelfHosted} from './util'
+import {getPathInput, isSelfHosted} from './util'
 import * as io from '@actions/io'
 import path from 'path'
 import fs from 'fs'
 import {ok} from 'assert'
+import {GetOSSDownloadURL, ensureTool, LLVM12} from './ensure'
 
 async function load_img(tag: string, url: string): Promise<void> {
   await exec.exec('docker', ['ps'], {silent: true})
@@ -70,6 +71,15 @@ type StreamErr = {
 type StreamFrameData = {stream: string}
 type StreamFrame = StreamFrameData | StreamErr
 
+const URLS = {
+  sccache:
+    'https://github.com/mozilla/sccache/releases/download/v0.2.15/sccache-v0.2.15-x86_64-unknown-linux-musl.tar.gz',
+  bazel:
+    'https://github.com/bazelbuild/bazel/releases/download/3.4.1/bazel-3.4.1-linux-x86_64',
+  llvm1201src:
+    'https://github.com/llvm/llvm-project/releases/download/llvmorg-12.0.1/llvm-project-12.0.1.src.tar.xz'
+}
+
 export async function buildManylinuxAndTag(
   version: ManylinuxVersion
 ): Promise<string> {
@@ -86,12 +96,9 @@ export async function buildManylinuxAndTag(
   }
   if (isSelfHosted()) {
     const selfHostedBuildArgs = {
-      SCCACHE_RELEASE_URL:
-        'https://oneflow-static.oss-cn-beijing.aliyuncs.com/downloads/sccache-v0.2.15-x86_64-unknown-linux-musl.tar.gz',
-      LLVM_SRC_URL:
-        'https://oneflow-static.oss-cn-beijing.aliyuncs.com/downloads/llvm-project-12.0.1.src.tar.xz',
-      BAZEL_URL:
-        'https://oneflow-static.oss-cn-beijing.aliyuncs.com/downloads/bazel-3.4.1-linux-x86_64'
+      SCCACHE_RELEASE_URL: GetOSSDownloadURL(URLS.sccache),
+      LLVM_SRC_URL: GetOSSDownloadURL(URLS.llvm1201src),
+      BAZEL_URL: GetOSSDownloadURL(URLS.bazel)
     }
     buildArgs = {...buildArgs, ...selfHostedBuildArgs}
   }
@@ -217,7 +224,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
     }
   ]
   if (shouldMountLLVM) {
-    llvmDir = await ensureTool('llvm', '9.0.1', '~/tools/llvm-9.01')
+    llvmDir = await ensureTool(LLVM12)
     mounts.push({
       Source: llvmDir,
       Target: '/usr/local/llvm',

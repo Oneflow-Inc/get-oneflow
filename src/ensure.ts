@@ -9,9 +9,34 @@ type Tool = {
   name: string
   url: string
   version: string
-  dest: string
-  dirName: string | null
+  dirName: string | null | undefined
 }
+
+export const LLVM12 = {
+  name: 'llvm',
+  url:
+    'https://github.com/llvm/llvm-project/releases/download/llvmorg-12.0.1/clang+llvm-12.0.1-x86_64-linux-gnu-ubuntu-16.04.tar.xz',
+  version: '12.0.1',
+  dirName: null
+}
+
+export const TOOLS: Tool[] = [
+  LLVM12,
+  {
+    name: 'llvm',
+    url:
+      'https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.1/clang+llvm-10.0.1-x86_64-linux-sles12.4.tar.xz',
+    version: '10.0.1',
+    dirName: null
+  },
+  {
+    name: 'llvm',
+    url:
+      'https://github.com/llvm/llvm-project/releases/download/llvmorg-9.0.1/clang+llvm-9.0.1-x86_64-linux-gnu-ubuntu-16.04.tar.xz',
+    version: '9.0.1',
+    dirName: null
+  }
+]
 
 function ossClient(): OSS {
   const client = new OSS({
@@ -48,23 +73,31 @@ function GetDownloadsKey(fileName: string): string {
   return path.join('downloads', fileName)
 }
 
-export async function mirrorTool(tool: Tool): Promise<void> {
-  const parsedURL = new URL(tool.url)
+export async function mirrorToDownloads(url: string): Promise<void> {
+  const parsedURL = new URL(url)
   const fileName = path.basename(parsedURL.pathname)
   const client = staticBucketClient()
   const objectKey = GetDownloadsKey(fileName)
   try {
     await client.get(objectKey)
   } catch (error) {
-    const downloaded = await tc.downloadTool(tool.url)
+    const downloaded = await tc.downloadTool(url)
     await client.put(objectKey, downloaded)
-    core.info(`mirrored: ${tool.url}`)
+    core.info(`mirrored: ${url}`)
   }
+}
+
+export function GetOSSDownloadURL(url: string): string {
+  const parsedURL = new URL(url)
+  const client = staticBucketClient()
+  const fileName = path.basename(parsedURL.pathname)
+  const objectKey = GetDownloadsKey(fileName)
+  return client.getObjectUrl(objectKey)
 }
 
 export async function ensureTool(
   tool: Tool,
-  setup: Function | null
+  setup?: Function | null
 ): Promise<string> {
   const cachedPath = tc.find(tool.name, tool.version)
   const parsedURL = new URL(tool.url)
