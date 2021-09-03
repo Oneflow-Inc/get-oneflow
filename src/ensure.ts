@@ -140,10 +140,10 @@ export async function ensureTool(tool: Tool): Promise<string> {
   const fileName = path.basename(parsedURL.pathname)
   let archiveName = tool.name.concat('-archive')
   const store = staticBucketStore()
-  const isCudaRun: Boolean =
+  const isCUDAToolkit: Boolean =
     tool.name === 'cuda-toolkit' && tool.url.endsWith('.run')
   const isCuDNN: Boolean = tool.name === 'cudnn'
-  if (isCudaRun) {
+  if (isCUDAToolkit) {
     archiveName = 'cuda-run'
   }
   ok(semver.clean(tool.version), `not a proper semver: ${tool.version}`)
@@ -177,7 +177,7 @@ export async function ensureTool(tool: Tool): Promise<string> {
       archivePath = archivePathFound
     }
     // Extract and cache
-    if (isCudaRun) {
+    if (isCUDAToolkit) {
       const cudaExtractDir = await createExtractFolder()
       await exec.exec('bash', [
         path.join(archivePath, fileName),
@@ -205,7 +205,7 @@ export async function ensureTool(tool: Tool): Promise<string> {
     }
   }
   // Check
-  if (isCudaRun) {
+  if (isCUDAToolkit) {
     ok(fs.existsSync(path.join(cachedPath, 'bin', 'nvcc')))
   }
   if (isCuDNN) {

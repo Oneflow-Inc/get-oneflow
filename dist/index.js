@@ -556,9 +556,9 @@ function ensureTool(tool) {
         const fileName = path_1.default.basename(parsedURL.pathname);
         let archiveName = tool.name.concat('-archive');
         const store = staticBucketStore();
-        const isCudaRun = tool.name === 'cuda-toolkit' && tool.url.endsWith('.run');
+        const isCUDAToolkit = tool.name === 'cuda-toolkit' && tool.url.endsWith('.run');
         const isCuDNN = tool.name === 'cudnn';
-        if (isCudaRun) {
+        if (isCUDAToolkit) {
             archiveName = 'cuda-run';
         }
         assert_1.ok(semver.clean(tool.version), `not a proper semver: ${tool.version}`);
@@ -581,7 +581,7 @@ function ensureTool(tool) {
                 archivePath = archivePathFound;
             }
             // Extract and cache
-            if (isCudaRun) {
+            if (isCUDAToolkit) {
                 const cudaExtractDir = yield util_1.createExtractFolder();
                 yield exec.exec('bash', [
                     path_1.default.join(archivePath, fileName),
@@ -600,7 +600,7 @@ function ensureTool(tool) {
             }
         }
         // Check
-        if (isCudaRun) {
+        if (isCUDAToolkit) {
             assert_1.ok(fs.existsSync(path_1.default.join(cachedPath, 'bin', 'nvcc')));
         }
         if (isCuDNN) {
