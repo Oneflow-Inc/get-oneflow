@@ -1,9 +1,4 @@
-import {
-  isSelfHosted,
-  extractTarX,
-  getTempDirectory,
-  createExtractFolder
-} from './util'
+import {isSelfHosted, extractTarX, createExtractFolder} from './util'
 import OSS from 'ali-oss'
 import path from 'path'
 import * as tc from '@actions/tool-cache'
@@ -11,6 +6,8 @@ import * as core from '@actions/core'
 import * as io from '@actions/io'
 import {ok} from 'assert'
 import * as exec from '@actions/exec'
+import * as fs from 'fs'
+import * as semver from 'semver'
 
 type Tool = {
   name: string
@@ -39,7 +36,7 @@ export const CUDNN102 = {
   name: 'cudnn',
   url:
     'https://oneflow-static.oss-cn-beijing.aliyuncs.com/downloads/cudnn-10.2-linux-x64-v8.2.4.15.tgz',
-  version: 'cudnn-10.2-v8.2.4.15',
+  version: '8.2.4-15-10.2',
   dirName: 'cudnn-10.2-linux-x64-v8.2.4.15'
 }
 
@@ -139,7 +136,7 @@ export function getOSSDownloadURL(url: string): string {
 }
 
 export async function ensureTool(tool: Tool): Promise<string> {
-  const cachedPath = tc.find(tool.name, tool.version)
+  let cachedPath = tc.find(tool.name, tool.version)
   const parsedURL = new URL(tool.url)
   const fileName = path.basename(parsedURL.pathname)
   let archiveName = tool.name.concat('-archive')
@@ -149,9 +146,8 @@ export async function ensureTool(tool: Tool): Promise<string> {
   if (isCudaRun) {
     archiveName = 'cuda-run'
   }
-  if (cachedPath) {
-    return cachedPath
-  } else {
+  ok(semver.clean(tool.version), `not a proper semver: ${tool.version}`)
+  if (!cachedPath) {
     let downloadURL = tool.url
     if (isSelfHosted()) {
       const objectKey = getDownloadsKey(fileName)
@@ -161,6 +157,7 @@ export async function ensureTool(tool: Tool): Promise<string> {
       )
     }
     let archivePath = tc.find(archiveName, tool.version)
+    // Download
     if (!archivePath) {
       core.info(`[not-found] ${archiveName}`)
       const allArchiveVersions = tc.findAllVersions(archiveName)
@@ -175,23 +172,15 @@ export async function ensureTool(tool: Tool): Promise<string> {
       const archivePathFound = tc.find(archiveName, tool.version, 'x64')
       ok(
         archivePathCached === archivePathFound,
-        new Error(
-          JSON.stringify(
-            {
-              archivePathCached,
-              archivePathFound
-            },
-            null,
-            2
-          )
-        )
+        new Error(`${archivePathCached} vs ${archivePathFound}`)
       )
       archivePath = archivePathFound
     }
+    // Install, extract, cache
     if (isCudaRun) {
       const cudaExtractDir = await createExtractFolder()
       await exec.exec('bash', [
-        archivePath,
+        path.join(archivePath, fileName),
         `--extract=${cudaExtractDir}`,
         '--override'
       ])
@@ -202,7 +191,7 @@ export async function ensureTool(tool: Tool): Promise<string> {
       )
       const cudaToolkitPathFound = tc.find(tool.name, tool.version)
       ok(cudaToolkitPathCached === cudaToolkitPathFound)
-      return cudaToolkitPathCached
+      cachedPath = cudaToolkitPathCached
     } else {
       throw new Error('TODO')
       // eslint-disable-next-line no-unreachable
@@ -214,6 +203,11 @@ export async function ensureTool(tool: Tool): Promise<string> {
       )
     }
   }
+  // CHECK
+  if (isCudaRun) {
+    ok(fs.existsSync(path.join(cachedPath, 'bin', 'nvcc')))
+  }
+  return cachedPath
 }
 
 export async function ensureCUDA102(): Promise<void> {

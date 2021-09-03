@@ -436,6 +436,9 @@ const tc = __importStar(__nccwpck_require__(27784));
 const core = __importStar(__nccwpck_require__(42186));
 const io = __importStar(__nccwpck_require__(47351));
 const assert_1 = __nccwpck_require__(42357);
+const exec = __importStar(__nccwpck_require__(71514));
+const fs = __importStar(__nccwpck_require__(35747));
+const semver = __importStar(__nccwpck_require__(85911));
 exports.LLVM12 = {
     name: 'llvm',
     url: 'https://github.com/llvm/llvm-project/releases/download/llvmorg-12.0.1/clang+llvm-12.0.1-x86_64-linux-gnu-ubuntu-16.04.tar.xz',
@@ -443,7 +446,7 @@ exports.LLVM12 = {
     dirName: 'clang+llvm-12.0.1-x86_64-linux-gnu-ubuntu-16.04'
 };
 exports.CUDA102 = {
-    name: 'cuda',
+    name: 'cuda-toolkit',
     url: 'https://developer.download.nvidia.com/compute/cuda/10.2/Prod/local_installers/cuda_10.2.89_440.33.01_linux.run',
     version: '10.2.89',
     dirName: 'cuda_10.2.89_440.33.01_linux'
@@ -451,7 +454,7 @@ exports.CUDA102 = {
 exports.CUDNN102 = {
     name: 'cudnn',
     url: 'https://oneflow-static.oss-cn-beijing.aliyuncs.com/downloads/cudnn-10.2-linux-x64-v8.2.4.15.tgz',
-    version: 'cudnn-10.2-v8.2.4.15',
+    version: '8.2.4-15-10.2',
     dirName: 'cudnn-10.2-linux-x64-v8.2.4.15'
 };
 exports.TOOLS = [
@@ -469,14 +472,14 @@ exports.TOOLS = [
         dirName: 'clang+llvm-9.0.1-x86_64-linux-gnu-ubuntu-16.04'
     },
     {
-        name: 'cuda',
+        name: 'cuda-toolkit',
         url: 'https://developer.download.nvidia.com/compute/cuda/11.4.1/local_installers/cuda_11.4.1_470.57.02_linux.run',
         version: '11.4.1',
         dirName: 'cuda_11.4.1_470.57.02_linux'
     },
     exports.CUDA102,
     {
-        name: 'cuda',
+        name: 'cuda-toolkit',
         url: 'https://developer.download.nvidia.com/compute/cuda/10.1/Prod/local_installers/cuda_10.1.243_418.87.00_linux.run',
         version: '10.1.243',
         dirName: 'cuda_10.1.243_418.87.00_linux'
@@ -549,25 +552,24 @@ function getOSSDownloadURL(url) {
 exports.getOSSDownloadURL = getOSSDownloadURL;
 function ensureTool(tool) {
     return __awaiter(this, void 0, void 0, function* () {
-        const cachedPath = tc.find(tool.name, tool.version);
+        let cachedPath = tc.find(tool.name, tool.version);
         const parsedURL = new URL(tool.url);
         const fileName = path_1.default.basename(parsedURL.pathname);
         let archiveName = tool.name.concat('-archive');
         const store = staticBucketStore();
-        const isCudaRun = tool.name === 'cuda' && tool.url.endsWith('.run');
+        const isCudaRun = tool.name === 'cuda-toolkit' && tool.url.endsWith('.run');
         if (isCudaRun) {
             archiveName = 'cuda-run';
         }
-        if (cachedPath) {
-            return cachedPath;
-        }
-        else {
+        assert_1.ok(semver.clean(tool.version), `not a proper semver: ${tool.version}`);
+        if (!cachedPath) {
             let downloadURL = tool.url;
             if (util_1.isSelfHosted()) {
                 const objectKey = getDownloadsKey(fileName);
                 downloadURL = store.getObjectUrl(objectKey, 'https://oneflow-static.oss-cn-beijing.aliyuncs.com');
             }
             let archivePath = tc.find(archiveName, tool.version);
+            // Download
             if (!archivePath) {
                 core.info(`[not-found] ${archiveName}`);
                 const allArchiveVersions = tc.findAllVersions(archiveName);
@@ -575,18 +577,21 @@ function ensureTool(tool) {
                 const downloaded = yield tc.downloadTool(downloadURL);
                 const archivePathCached = yield tc.cacheFile(downloaded, fileName, archiveName, tool.version);
                 const archivePathFound = tc.find(archiveName, tool.version, 'x64');
-                assert_1.ok(archivePathCached === archivePathFound, new Error(JSON.stringify({
-                    archivePathCached,
-                    archivePathFound
-                }, null, 2)));
+                assert_1.ok(archivePathCached === archivePathFound, new Error(`${archivePathCached} vs ${archivePathFound}`));
                 archivePath = archivePathFound;
             }
+            // Install, extract, cache
             if (isCudaRun) {
-                throw new Error('TODO');
-                // eslint-disable-next-line no-unreachable
-                const installedPath = path_1.default.join(util_1.getTempDirectory(), tool.dirName);
-                const installedPathCached = tc.cacheDir(installedPath, tool.name, tool.version);
-                return installedPathCached;
+                const cudaExtractDir = yield util_1.createExtractFolder();
+                yield exec.exec('bash', [
+                    path_1.default.join(archivePath, fileName),
+                    `--extract=${cudaExtractDir}`,
+                    '--override'
+                ]);
+                const cudaToolkitPathCached = yield tc.cacheDir(path_1.default.join(cudaExtractDir, 'cuda-toolkit'), tool.name, tool.version);
+                const cudaToolkitPathFound = tc.find(tool.name, tool.version);
+                assert_1.ok(cudaToolkitPathCached === cudaToolkitPathFound);
+                cachedPath = cudaToolkitPathCached;
             }
             else {
                 throw new Error('TODO');
@@ -595,6 +600,11 @@ function ensureTool(tool) {
                 return yield tc.cacheDir(path_1.default.join(extractedDir, tool.dirName), tool.name, tool.version);
             }
         }
+        // CHECK
+        if (isCudaRun) {
+            assert_1.ok(fs.existsSync(path_1.default.join(cachedPath, 'bin', 'nvcc')));
+        }
+        return cachedPath;
     });
 }
 exports.ensureTool = ensureTool;
@@ -895,7 +905,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.extractTarX = exports.getTempDirectory = exports.isSelfHosted = exports.getPathInput = void 0;
+exports.extractTarX = exports.createExtractFolder = exports.getTempDirectory = exports.isSelfHosted = exports.getPathInput = void 0;
 const core = __importStar(__nccwpck_require__(42186));
 const os_1 = __importDefault(__nccwpck_require__(12087));
 const exec = __importStar(__nccwpck_require__(71514));
@@ -921,7 +931,7 @@ function getTempDirectory() {
     return tempDirectory.replace('~', os_1.default.homedir);
 }
 exports.getTempDirectory = getTempDirectory;
-function _createExtractFolder(dest) {
+function createExtractFolder(dest) {
     return __awaiter(this, void 0, void 0, function* () {
         if (!dest) {
             // create a temp dir
@@ -931,13 +941,14 @@ function _createExtractFolder(dest) {
         return dest;
     });
 }
+exports.createExtractFolder = createExtractFolder;
 function extractTarX(file, dest, flags = 'xz') {
     return __awaiter(this, void 0, void 0, function* () {
         if (!file) {
             throw new Error("parameter 'file' is required");
         }
         // Create dest
-        dest = yield _createExtractFolder(dest);
+        dest = yield createExtractFolder(dest);
         // Determine whether GNU tar
         core.debug('Checking tar --version');
         let versionOutput = '';
