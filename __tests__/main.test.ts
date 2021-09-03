@@ -9,7 +9,9 @@ import {
   buildOneFlow,
   tagFromversion
 } from '../src/docker'
+import {TOOLS, mirrorToDownloads} from '../src/ensure'
 
+const MINUTES15 = 1000 * 60 * 15
 // shows how the runner will run a javascript action with env / stdout protocol
 test('test runs', () => {
   process.env['INPUT_ONEFLOW-BUILD-ENV'] = 'conda'
@@ -68,7 +70,7 @@ test(
       throw error
     }
   },
-  1000 * 60 * 15
+  MINUTES15
 )
 
 test(
@@ -83,11 +85,11 @@ test(
     }
     await ensureDocker()
   },
-  1000 * 60 * 15
+  MINUTES15
 )
 
 test(
-  'build manylinux',
+  'build manylinux pip',
   async () => {
     if (!process.env['TEST_MANYLINUX']) {
       return
@@ -107,29 +109,13 @@ test(
     const tag = await buildManylinuxAndTag(manylinuxVersion)
     await buildOneFlow(tag)
   },
-  1000 * 60 * 15
+  MINUTES15
 )
 
 test(
-  'build manylinux',
+  'build mirror',
   async () => {
-    if (!process.env['TEST_MANYLINUX']) {
-      return
-    }
-    process.env['INPUT_USE-SYSTEM-HTTP-PROXY'] = 'false'
-    process.env['INPUT_CMAKE-INIT-CACHE'] =
-      '~/oneflow/cmake/caches/ci/cuda-75.cmake'
-    process.env['INPUT_ONEFLOW-SRC'] = '~/oneflow'
-    process.env['INPUT_MANYLINUX-CACHE-DIR'] = '~/manylinux-cache-dirs/unittest'
-    process.env['INPUT_WHEELHOUSE-DIR'] = '~/manylinux-wheelhouse'
-    process.env['INPUT_PYTHON-VERSIONS'] = '3.6\n3.7'
-    process.env['RUNNER_TOOL_CACHE'] = '~/runner_tool_cache'.replace(
-      '~',
-      os.homedir
-    )
-    const manylinuxVersion = '2014'
-    const tag = await buildManylinuxAndTag(manylinuxVersion)
-    await buildOneFlow(tag)
+    await Promise.all(TOOLS.map(t => mirrorToDownloads(t.url)))
   },
-  1000 * 60 * 15
+  MINUTES15
 )

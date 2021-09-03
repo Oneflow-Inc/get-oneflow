@@ -79,12 +79,14 @@ export async function mirrorToDownloads(url: string): Promise<void> {
   const client = staticBucketClient()
   const objectKey = GetDownloadsKey(fileName)
   try {
-    await client.get(objectKey)
-    core.info(`found mirrored: ${url}`)
+    await client.head(objectKey)
+    core.info(`[found]: ${url}`)
   } catch (error) {
+    core.info(`[absent-url]: ${url}`)
+    core.info(`[absent-key]: ${objectKey}`)
     const downloaded = await tc.downloadTool(url)
     await client.put(objectKey, downloaded)
-    core.info(`now mirrored: ${url}`)
+    core.info(`[mirrored]: ${url}`)
   }
 }
 
