@@ -9,7 +9,7 @@ import path from 'path'
 import {ensureConda} from './conda'
 import {buildManylinuxAndTag, buildOneFlow, DOCKER_TOOL_URLS} from './docker'
 import {isSelfHosted} from './util'
-import {TOOLS, ensureTool, mirrorToDownloads} from './ensure'
+import {TOOLS, mirrorToDownloads} from './ensure'
 
 async function condaRun(
   condaEnvName: string,
@@ -95,7 +95,7 @@ async function run(): Promise<void> {
     switch (action) {
       case 'mirror-tools':
         for (const t of TOOLS) {
-          await ensureTool(t)
+          await mirrorToDownloads(t.url)
         }
         for (const e of Object.entries(DOCKER_TOOL_URLS)) {
           await mirrorToDownloads(e[1])
