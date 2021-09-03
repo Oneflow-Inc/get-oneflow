@@ -428,19 +428,30 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.ensureTool = exports.GetOSSDownloadURL = exports.mirrorToDownloads = exports.TOOLS = exports.LLVM12 = void 0;
+exports.ensureCUDA102 = exports.ensureTool = exports.GetOSSDownloadURL = exports.mirrorToDownloads = exports.TOOLS = exports.CUDNN102 = exports.CUDA102 = exports.LLVM12 = void 0;
 const util_1 = __nccwpck_require__(64024);
 const ali_oss_1 = __importDefault(__nccwpck_require__(92399));
 const path_1 = __importDefault(__nccwpck_require__(85622));
 const tc = __importStar(__nccwpck_require__(27784));
-const os_1 = __importDefault(__nccwpck_require__(12087));
 const core = __importStar(__nccwpck_require__(42186));
 const io = __importStar(__nccwpck_require__(47351));
 exports.LLVM12 = {
     name: 'llvm',
     url: 'https://github.com/llvm/llvm-project/releases/download/llvmorg-12.0.1/clang+llvm-12.0.1-x86_64-linux-gnu-ubuntu-16.04.tar.xz',
     version: '12.0.1',
-    dirName: null
+    dirName: 'clang+llvm-12.0.1-x86_64-linux-gnu-ubuntu-16.04'
+};
+exports.CUDA102 = {
+    name: 'cuda',
+    url: 'https://developer.download.nvidia.com/compute/cuda/10.2/Prod/local_installers/cuda_10.2.89_440.33.01_linux.run',
+    version: '10.2',
+    dirName: 'cuda_10.2.89_440.33.01_linux'
+};
+exports.CUDNN102 = {
+    name: 'cudnn',
+    url: 'https://oneflow-static.oss-cn-beijing.aliyuncs.com/downloads/cudnn-10.2-linux-x64-v8.2.4.15.tgz',
+    version: 'cudnn-10.2-v8.2.4.15',
+    dirName: 'cudnn-10.2-linux-x64-v8.2.4.15'
 };
 exports.TOOLS = [
     exports.LLVM12,
@@ -448,32 +459,28 @@ exports.TOOLS = [
         name: 'llvm',
         url: 'https://github.com/llvm/llvm-project/releases/download/llvmorg-10.0.1/clang+llvm-10.0.1-x86_64-linux-sles12.4.tar.xz',
         version: '10.0.1',
-        dirName: null
+        dirName: 'clang+llvm-10.0.1-x86_64-linux-sles12.4'
     },
     {
         name: 'llvm',
         url: 'https://github.com/llvm/llvm-project/releases/download/llvmorg-9.0.1/clang+llvm-9.0.1-x86_64-linux-gnu-ubuntu-16.04.tar.xz',
         version: '9.0.1',
-        dirName: null
+        dirName: 'clang+llvm-9.0.1-x86_64-linux-gnu-ubuntu-16.04'
     },
     {
         name: 'cuda',
         url: 'https://developer.download.nvidia.com/compute/cuda/11.4.1/local_installers/cuda_11.4.1_470.57.02_linux.run',
         version: '11.4.1',
-        dirName: null
+        dirName: 'cuda_11.4.1_470.57.02_linux'
     },
-    {
-        name: 'cuda',
-        url: 'https://developer.download.nvidia.com/compute/cuda/10.2/Prod/local_installers/cuda_10.2.89_440.33.01_linux.run',
-        version: '10.2',
-        dirName: null
-    },
+    exports.CUDA102,
     {
         name: 'cuda',
         url: 'https://developer.download.nvidia.com/compute/cuda/10.1/Prod/local_installers/cuda_10.1.243_418.87.00_linux.run',
         version: '10.1',
-        dirName: null
-    }
+        dirName: 'cuda_10.1.243_418.87.00_linux'
+    },
+    exports.CUDNN102
 ];
 function ossStore() {
     const store = new ali_oss_1.default({
@@ -488,15 +495,14 @@ function staticBucketStore() {
     store.useBucket('oneflow-static');
     return store;
 }
-function downloadAndExtract(url, tool, version) {
+function downloadAndExtract(url) {
     return __awaiter(this, void 0, void 0, function* () {
         const downloaded = yield tc.downloadTool(url);
-        const dest = path_1.default.join(os_1.default.homedir(), 'ci-tools', tool, version);
         if (url.endsWith('tar.gz')) {
-            return yield tc.extractTar(downloaded, dest);
+            return yield tc.extractTar(downloaded);
         }
         else if (url.endsWith('tar.xz')) {
-            return yield util_1.extractTarX(downloaded, dest, ['xf']);
+            return yield util_1.extractTarX(downloaded);
         }
         else {
             throw new Error(`don't know how to handle ${url}`);
@@ -540,33 +546,47 @@ function GetOSSDownloadURL(url) {
     return store.getObjectUrl(objectKey);
 }
 exports.GetOSSDownloadURL = GetOSSDownloadURL;
-function ensureTool(tool, setup) {
+function ensureTool(tool) {
     return __awaiter(this, void 0, void 0, function* () {
         const cachedPath = tc.find(tool.name, tool.version);
         const parsedURL = new URL(tool.url);
         const fileName = path_1.default.basename(parsedURL.pathname);
         const store = staticBucketStore();
-        if (!cachedPath) {
+        const isCudaRun = tool.name === 'cuda' && tool.url.endsWith('.run');
+        if (cachedPath) {
+            return cachedPath;
+        }
+        else {
             let downloadURL = tool.url;
             if (util_1.isSelfHosted()) {
                 const objectKey = GetDownloadsKey(fileName);
                 downloadURL = store.getObjectUrl(objectKey);
             }
-            downloadAndExtract(downloadURL, tool.name, tool.version);
-            yield downloadAndExtract(downloadURL, tool.name, tool.version);
-            if (setup) {
-                setup();
+            if (isCudaRun) {
+                let cudaRunFile = tc.find('cuda-run', tool.version);
+                if (!cudaRunFile) {
+                    const downloaded = yield tc.downloadTool(downloadURL);
+                    cudaRunFile = yield tc.cacheFile(downloaded, 'cuda-run', 'cuda-run', tool.version);
+                }
+                const installedPath = path_1.default.join(util_1.getTempDirectory(), tool.dirName);
+                const installedPathCached = tc.cacheDir(installedPath, tool.name, tool.version);
+                return installedPathCached;
             }
-        }
-        if (tool.dirName) {
-            return path_1.default.join(cachedPath, tool.dirName);
-        }
-        else {
-            return path_1.default.join(cachedPath, fileName);
+            else {
+                const extractedDir = yield downloadAndExtract(downloadURL);
+                return yield tc.cacheDir(path_1.default.join(extractedDir, tool.dirName), tool.name, tool.version);
+            }
         }
     });
 }
 exports.ensureTool = ensureTool;
+function ensureCUDA102() {
+    return __awaiter(this, void 0, void 0, function* () {
+        yield ensureTool(exports.CUDA102);
+        yield ensureTool(exports.CUDNN102);
+    });
+}
+exports.ensureCUDA102 = ensureCUDA102;
 
 
 /***/ }),
@@ -857,7 +877,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.extractTarX = exports.isSelfHosted = exports.getPathInput = void 0;
+exports.extractTarX = exports.getTempDirectory = exports.isSelfHosted = exports.getPathInput = void 0;
 const core = __importStar(__nccwpck_require__(42186));
 const os_1 = __importDefault(__nccwpck_require__(12087));
 const exec = __importStar(__nccwpck_require__(71514));
@@ -877,16 +897,17 @@ function isSelfHosted() {
     return core.getBooleanInput('self-hosted');
 }
 exports.isSelfHosted = isSelfHosted;
-function _getTempDirectory() {
+function getTempDirectory() {
     const tempDirectory = process.env['RUNNER_TEMP'] || '';
     assert_1.ok(tempDirectory, 'Expected RUNNER_TEMP to be defined');
-    return tempDirectory;
+    return tempDirectory.replace('~', os_1.default.homedir);
 }
+exports.getTempDirectory = getTempDirectory;
 function _createExtractFolder(dest) {
     return __awaiter(this, void 0, void 0, function* () {
         if (!dest) {
             // create a temp dir
-            dest = path_1.default.join(_getTempDirectory(), uuid_1.v4());
+            dest = path_1.default.join(getTempDirectory(), uuid_1.v4());
         }
         yield io.mkdirP(dest);
         return dest;

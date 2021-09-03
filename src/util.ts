@@ -19,16 +19,16 @@ export function isSelfHosted(): boolean {
   return core.getBooleanInput('self-hosted')
 }
 
-function _getTempDirectory(): string {
+export function getTempDirectory(): string {
   const tempDirectory = process.env['RUNNER_TEMP'] || ''
   ok(tempDirectory, 'Expected RUNNER_TEMP to be defined')
-  return tempDirectory
+  return tempDirectory.replace('~', os.homedir)
 }
 
 async function _createExtractFolder(dest?: string): Promise<string> {
   if (!dest) {
     // create a temp dir
-    dest = path.join(_getTempDirectory(), uuidV4())
+    dest = path.join(getTempDirectory(), uuidV4())
   }
   await io.mkdirP(dest)
   return dest

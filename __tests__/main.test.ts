@@ -9,7 +9,7 @@ import {
   buildOneFlow,
   tagFromversion
 } from '../src/docker'
-import {TOOLS, mirrorToDownloads} from '../src/ensure'
+import {TOOLS, mirrorToDownloads, ensureCUDA102} from '../src/ensure'
 
 const MINUTES15 = 1000 * 60 * 15
 // shows how the runner will run a javascript action with env / stdout protocol
@@ -105,6 +105,7 @@ test(
       '~',
       os.homedir
     )
+    process.env['RUNNER_TEMP'] = '~/runner_temp'.replace('~', os.homedir)
     const manylinuxVersion = '2014'
     const tag = await buildManylinuxAndTag(manylinuxVersion)
     await buildOneFlow(tag)
@@ -116,6 +117,17 @@ test(
   'build mirror',
   async () => {
     await Promise.all(TOOLS.map(t => mirrorToDownloads(t.url)))
+  },
+  MINUTES15
+)
+
+test(
+  'ensure cuda',
+  async () => {
+    if (!process.env['TEST_MANYLINUX']) {
+      return
+    }
+    await ensureCUDA102()
   },
   MINUTES15
 )
