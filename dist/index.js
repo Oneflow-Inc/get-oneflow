@@ -436,7 +436,6 @@ const tc = __importStar(__nccwpck_require__(27784));
 const os_1 = __importDefault(__nccwpck_require__(12087));
 const core = __importStar(__nccwpck_require__(42186));
 const io = __importStar(__nccwpck_require__(47351));
-const fs_1 = __importDefault(__nccwpck_require__(35747));
 exports.LLVM12 = {
     name: 'llvm',
     url: 'https://github.com/llvm/llvm-project/releases/download/llvmorg-12.0.1/clang+llvm-12.0.1-x86_64-linux-gnu-ubuntu-16.04.tar.xz',
@@ -524,16 +523,9 @@ function mirrorToDownloads(url) {
                 return;
             }
             const downloaded = yield tc.downloadTool(url);
-            for (let i = 0; i <= 5; i++) {
-                try {
-                    const result = yield store.putStream(objectKey, fs_1.default.createReadStream(downloaded));
-                    core.info(JSON.stringify(result, null, 2));
-                    break; // break if success
-                }
-                catch (e) {
-                    core.info(e);
-                }
-            }
+            yield store.put(objectKey, downloaded, {
+                timeout: 60 * 1000 * 60
+            });
             yield io.rmRF(downloaded);
             core.info(`[mirrored] ${url}`);
         }

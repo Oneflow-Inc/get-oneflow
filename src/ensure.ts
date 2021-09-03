@@ -5,7 +5,6 @@ import * as tc from '@actions/tool-cache'
 import os from 'os'
 import * as core from '@actions/core'
 import * as io from '@actions/io'
-import fs from 'fs'
 
 type Tool = {
   name: string
@@ -111,18 +110,9 @@ export async function mirrorToDownloads(url: string): Promise<void> {
       return
     }
     const downloaded = await tc.downloadTool(url)
-    for (let i = 0; i <= 5; i++) {
-      try {
-        const result = await store.putStream(
-          objectKey,
-          fs.createReadStream(downloaded)
-        )
-        core.info(JSON.stringify(result, null, 2))
-        break // break if success
-      } catch (e) {
-        core.info(e)
-      }
-    }
+    await store.put(objectKey, downloaded, {
+      timeout: 60 * 1000 * 60
+    })
     await io.rmRF(downloaded)
     core.info(`[mirrored] ${url}`)
   }
