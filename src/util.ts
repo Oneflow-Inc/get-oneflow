@@ -25,7 +25,7 @@ export function getTempDirectory(): string {
   return tempDirectory.replace('~', os.homedir)
 }
 
-async function _createExtractFolder(dest?: string): Promise<string> {
+export async function createExtractFolder(dest?: string): Promise<string> {
   if (!dest) {
     // create a temp dir
     dest = path.join(getTempDirectory(), uuidV4())
@@ -44,7 +44,7 @@ export async function extractTarX(
   }
 
   // Create dest
-  dest = await _createExtractFolder(dest)
+  dest = await createExtractFolder(dest)
 
   // Determine whether GNU tar
   core.debug('Checking tar --version')

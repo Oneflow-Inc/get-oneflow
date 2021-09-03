@@ -1,10 +1,16 @@
-import {isSelfHosted, extractTarX, getTempDirectory} from './util'
+import {
+  isSelfHosted,
+  extractTarX,
+  getTempDirectory,
+  createExtractFolder
+} from './util'
 import OSS from 'ali-oss'
 import path from 'path'
 import * as tc from '@actions/tool-cache'
 import * as core from '@actions/core'
 import * as io from '@actions/io'
 import {ok} from 'assert'
+import * as exec from '@actions/exec'
 
 type Tool = {
   name: string
@@ -22,7 +28,7 @@ export const LLVM12 = {
 }
 
 export const CUDA102 = {
-  name: 'cuda',
+  name: 'cuda-toolkit',
   url:
     'https://developer.download.nvidia.com/compute/cuda/10.2/Prod/local_installers/cuda_10.2.89_440.33.01_linux.run',
   version: '10.2.89',
@@ -54,7 +60,7 @@ export const TOOLS: Tool[] = [
     dirName: 'clang+llvm-9.0.1-x86_64-linux-gnu-ubuntu-16.04'
   },
   {
-    name: 'cuda',
+    name: 'cuda-toolkit',
     url:
       'https://developer.download.nvidia.com/compute/cuda/11.4.1/local_installers/cuda_11.4.1_470.57.02_linux.run',
     version: '11.4.1',
@@ -62,7 +68,7 @@ export const TOOLS: Tool[] = [
   },
   CUDA102,
   {
-    name: 'cuda',
+    name: 'cuda-toolkit',
     url:
       'https://developer.download.nvidia.com/compute/cuda/10.1/Prod/local_installers/cuda_10.1.243_418.87.00_linux.run',
     version: '10.1.243',
@@ -138,7 +144,8 @@ export async function ensureTool(tool: Tool): Promise<string> {
   const fileName = path.basename(parsedURL.pathname)
   let archiveName = tool.name.concat('-archive')
   const store = staticBucketStore()
-  const isCudaRun: Boolean = tool.name === 'cuda' && tool.url.endsWith('.run')
+  const isCudaRun: Boolean =
+    tool.name === 'cuda-toolkit' && tool.url.endsWith('.run')
   if (isCudaRun) {
     archiveName = 'cuda-run'
   }
@@ -182,15 +189,20 @@ export async function ensureTool(tool: Tool): Promise<string> {
       archivePath = archivePathFound
     }
     if (isCudaRun) {
-      throw new Error('TODO')
-      // eslint-disable-next-line no-unreachable
-      const installedPath = path.join(getTempDirectory(), tool.dirName)
-      const installedPathCached = tc.cacheDir(
-        installedPath,
+      const cudaExtractDir = await createExtractFolder()
+      await exec.exec('bash', [
+        archivePath,
+        `--extract=${cudaExtractDir}`,
+        '--override'
+      ])
+      const cudaToolkitPathCached = await tc.cacheDir(
+        path.join(cudaExtractDir, 'cuda-toolkit'),
         tool.name,
         tool.version
       )
-      return installedPathCached
+      const cudaToolkitPathFound = tc.find(tool.name, tool.version)
+      ok(cudaToolkitPathCached === cudaToolkitPathFound)
+      return cudaToolkitPathCached
     } else {
       throw new Error('TODO')
       // eslint-disable-next-line no-unreachable
