@@ -37,7 +37,7 @@ export const CUDNN102 = {
   url:
     'https://oneflow-static.oss-cn-beijing.aliyuncs.com/downloads/cudnn-10.2-linux-x64-v8.2.4.15.tgz',
   version: '8.2.4-15-10.2',
-  dirName: 'cudnn-10.2-linux-x64-v8.2.4.15'
+  dirName: ''
 }
 
 export const TOOLS: Tool[] = [
@@ -89,14 +89,13 @@ function staticBucketStore(): OSS {
   return store
 }
 
-async function downloadAndExtract(url: string): Promise<string> {
-  const downloaded = await tc.downloadTool(url)
-  if (url.endsWith('tar.gz')) {
+async function extractArchive(downloaded: string): Promise<string> {
+  if (downloaded.endsWith('tar.gz') || downloaded.endsWith('tgz')) {
     return await tc.extractTar(downloaded)
-  } else if (url.endsWith('tar.xz')) {
+  } else if (downloaded.endsWith('tar.xz')) {
     return await extractTarX(downloaded)
   } else {
-    throw new Error(`don't know how to handle ${url}`)
+    throw new Error(`don't know how to handle ${downloaded}`)
   }
 }
 
@@ -143,6 +142,7 @@ export async function ensureTool(tool: Tool): Promise<string> {
   const store = staticBucketStore()
   const isCudaRun: Boolean =
     tool.name === 'cuda-toolkit' && tool.url.endsWith('.run')
+  const isCuDNN: Boolean = tool.name === 'cudnn'
   if (isCudaRun) {
     archiveName = 'cuda-run'
   }
@@ -193,19 +193,24 @@ export async function ensureTool(tool: Tool): Promise<string> {
       ok(cudaToolkitPathCached === cudaToolkitPathFound)
       cachedPath = cudaToolkitPathCached
     } else {
-      throw new Error('TODO')
-      // eslint-disable-next-line no-unreachable
-      const extractedDir = await downloadAndExtract(downloadURL)
-      return await tc.cacheDir(
+      const extractedDir = await extractArchive(
+        path.join(archivePath, fileName)
+      )
+      cachedPath = await tc.cacheDir(
         path.join(extractedDir, tool.dirName),
         tool.name,
         tool.version
       )
+      ok(cachedPath === tc.find(tool.name, tool.version))
     }
   }
   // CHECK
   if (isCudaRun) {
     ok(fs.existsSync(path.join(cachedPath, 'bin', 'nvcc')))
+  }
+  if (isCuDNN) {
+    ok(fs.existsSync(path.join(cachedPath, 'cuda/lib64/libcudnn.so')))
+    ok(fs.existsSync(path.join(cachedPath, 'cuda/lib64/libcudnn_static.a')))
   }
   return cachedPath
 }

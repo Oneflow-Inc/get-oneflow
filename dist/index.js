@@ -455,7 +455,7 @@ exports.CUDNN102 = {
     name: 'cudnn',
     url: 'https://oneflow-static.oss-cn-beijing.aliyuncs.com/downloads/cudnn-10.2-linux-x64-v8.2.4.15.tgz',
     version: '8.2.4-15-10.2',
-    dirName: 'cudnn-10.2-linux-x64-v8.2.4.15'
+    dirName: ''
 };
 exports.TOOLS = [
     exports.LLVM12,
@@ -499,17 +499,16 @@ function staticBucketStore() {
     store.useBucket('oneflow-static');
     return store;
 }
-function downloadAndExtract(url) {
+function extractArchive(downloaded) {
     return __awaiter(this, void 0, void 0, function* () {
-        const downloaded = yield tc.downloadTool(url);
-        if (url.endsWith('tar.gz')) {
+        if (downloaded.endsWith('tar.gz') || downloaded.endsWith('tgz')) {
             return yield tc.extractTar(downloaded);
         }
-        else if (url.endsWith('tar.xz')) {
+        else if (downloaded.endsWith('tar.xz')) {
             return yield util_1.extractTarX(downloaded);
         }
         else {
-            throw new Error(`don't know how to handle ${url}`);
+            throw new Error(`don't know how to handle ${downloaded}`);
         }
     });
 }
@@ -558,6 +557,7 @@ function ensureTool(tool) {
         let archiveName = tool.name.concat('-archive');
         const store = staticBucketStore();
         const isCudaRun = tool.name === 'cuda-toolkit' && tool.url.endsWith('.run');
+        const isCuDNN = tool.name === 'cudnn';
         if (isCudaRun) {
             archiveName = 'cuda-run';
         }
@@ -594,15 +594,18 @@ function ensureTool(tool) {
                 cachedPath = cudaToolkitPathCached;
             }
             else {
-                throw new Error('TODO');
-                // eslint-disable-next-line no-unreachable
-                const extractedDir = yield downloadAndExtract(downloadURL);
-                return yield tc.cacheDir(path_1.default.join(extractedDir, tool.dirName), tool.name, tool.version);
+                const extractedDir = yield extractArchive(path_1.default.join(archivePath, fileName));
+                cachedPath = yield tc.cacheDir(path_1.default.join(extractedDir, tool.dirName), tool.name, tool.version);
+                assert_1.ok(cachedPath === tc.find(tool.name, tool.version));
             }
         }
         // CHECK
         if (isCudaRun) {
             assert_1.ok(fs.existsSync(path_1.default.join(cachedPath, 'bin', 'nvcc')));
+        }
+        if (isCuDNN) {
+            assert_1.ok(fs.existsSync(path_1.default.join(cachedPath, 'cuda/lib64/libcudnn.so')));
+            assert_1.ok(fs.existsSync(path_1.default.join(cachedPath, 'cuda/lib64/libcudnn_static.a')));
         }
         return cachedPath;
     });
