@@ -5,6 +5,9 @@ on: # rebuild any PRs and main branch changes
     branches:
       - main
       - 'releases/*'
+env:
+  OSS_ACCESS_KEY_ID: ${{ secrets.OSS_ACCESS_KEY_ID }}
+  OSS_ACCESS_KEY_SECRET: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
 
 jobs:
   build: # make sure build/ci work properly
@@ -30,7 +33,7 @@ jobs:
 
   mirror-tools: # make sure the action works on a clean machine without building
     name: 'Mirror tools to OSS'
-    runs-on: [ubuntu-latest]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: ./
