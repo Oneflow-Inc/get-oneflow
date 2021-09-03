@@ -35,6 +35,27 @@ export const TOOLS: Tool[] = [
       'https://github.com/llvm/llvm-project/releases/download/llvmorg-9.0.1/clang+llvm-9.0.1-x86_64-linux-gnu-ubuntu-16.04.tar.xz',
     version: '9.0.1',
     dirName: null
+  },
+  {
+    name: 'cuda',
+    url:
+      'https://developer.download.nvidia.com/compute/cuda/11.4.1/local_installers/cuda_11.4.1_470.57.02_linux.run',
+    version: '11.4.1',
+    dirName: null
+  },
+  {
+    name: 'cuda',
+    url:
+      'https://developer.download.nvidia.com/compute/cuda/10.2/Prod/local_installers/cuda_10.2.89_440.33.01_linux.run',
+    version: '10.2',
+    dirName: null
+  },
+  {
+    name: 'cuda',
+    url:
+      'https://developer.download.nvidia.com/compute/cuda/10.1/Prod/local_installers/cuda_10.1.243_418.87.00_linux.run',
+    version: '10.1',
+    dirName: null
   }
 ]
 
@@ -84,6 +105,9 @@ export async function mirrorToDownloads(url: string): Promise<void> {
   } catch (error) {
     core.info(`[absent-url] ${url}`)
     core.info(`[absent-key] ${objectKey}`)
+    if (isSelfHosted()) {
+      return
+    }
     const downloaded = await tc.downloadTool(url)
     await client.put(objectKey, downloaded)
     core.info(`[mirrored] ${url}`)
