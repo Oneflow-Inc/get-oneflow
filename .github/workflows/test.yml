@@ -34,10 +34,10 @@ jobs:
   mirror-tools: # make sure the action works on a clean machine without building
     name: 'Mirror tools to OSS'
     runs-on: ubuntu-latest
-    if: ${{ env.OSS_ACCESS_KEY_ID }}
     steps:
       - uses: actions/checkout@v2
       - uses: ./
+        if: ${{ env.OSS_ACCESS_KEY_ID }}
         name: Mirror tools
         with:
           action: mirror-tools
