@@ -80,13 +80,13 @@ export async function mirrorToDownloads(url: string): Promise<void> {
   const objectKey = GetDownloadsKey(fileName)
   try {
     await client.head(objectKey)
-    core.info(`[found]: ${url}`)
+    core.info(`[found] ${url}`)
   } catch (error) {
-    core.info(`[absent-url]: ${url}`)
-    core.info(`[absent-key]: ${objectKey}`)
+    core.info(`[absent-url] ${url}`)
+    core.info(`[absent-key] ${objectKey}`)
     const downloaded = await tc.downloadTool(url)
     await client.put(objectKey, downloaded)
-    core.info(`[mirrored]: ${url}`)
+    core.info(`[mirrored] ${url}`)
   }
 }
 
