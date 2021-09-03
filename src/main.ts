@@ -7,8 +7,9 @@ import os from 'os'
 import {ExecOptions} from '@actions/exec'
 import path from 'path'
 import {ensureConda} from './conda'
-import {buildManylinuxAndTag, buildOneFlow} from './docker'
+import {buildManylinuxAndTag, buildOneFlow, DOCKER_TOOL_URLS} from './docker'
 import {isSelfHosted} from './util'
+import {TOOLS, ensureTool, mirrorToDownloads} from './ensure'
 
 async function condaRun(
   condaEnvName: string,
@@ -90,18 +91,33 @@ async function buildWithConda(): Promise<void> {
 async function run(): Promise<void> {
   try {
     const buildEnv: string = core.getInput('oneflow-build-env')
-    if (['conda', 'manylinux'].includes(buildEnv) === false) {
-      core.setFailed('oneflow-build-env must be conda or manylinux')
-    }
-    if (buildEnv === 'conda') {
-      await buildWithConda()
-    }
-    if (buildEnv === 'manylinux') {
-      const manylinuxVersion = '2014'
-      const tag = await buildManylinuxAndTag(manylinuxVersion)
-      if (isSelfHosted()) {
-        await buildOneFlow(tag)
-      }
+    const action: string = core.getInput('action')
+    switch (action) {
+      case 'mirror-tools':
+        for (const t of TOOLS) {
+          await ensureTool(t)
+        }
+        for (const e of Object.entries(DOCKER_TOOL_URLS)) {
+          await mirrorToDownloads(e[1])
+        }
+
+        break
+
+      default:
+        if (['conda', 'manylinux'].includes(buildEnv) === false) {
+          core.setFailed('oneflow-build-env must be conda or manylinux')
+        }
+        if (buildEnv === 'conda') {
+          await buildWithConda()
+        }
+        if (buildEnv === 'manylinux') {
+          const manylinuxVersion = '2014'
+          const tag = await buildManylinuxAndTag(manylinuxVersion)
+          if (isSelfHosted()) {
+            await buildOneFlow(tag)
+          }
+        }
+        break
     }
   } catch (error) {
     core.setFailed(error.message)

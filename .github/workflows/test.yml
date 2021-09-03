@@ -28,6 +28,16 @@ jobs:
           access_token: ${{ github.token }}
           all_but_latest: true
 
+  mirror-tools: # make sure the action works on a clean machine without building
+    name: 'Mirror tools to OSS'
+    runs-on: [ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./
+        name: Mirror tools
+        with:
+          action: mirror-tools
+
   test-build-oneflow: # make sure the action works on a clean machine without building
     name: 'Build OneFlow with Conda and Docker'
     runs-on: ${{ matrix.os }}

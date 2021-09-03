@@ -117,7 +117,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.buildOneFlow = exports.runExec = exports.buildManylinuxAndTag = exports.tagFromversion = exports.ensureDocker = void 0;
+exports.buildOneFlow = exports.runExec = exports.buildManylinuxAndTag = exports.DOCKER_TOOL_URLS = exports.tagFromversion = exports.ensureDocker = void 0;
 const core = __importStar(__nccwpck_require__(42186));
 const exec = __importStar(__nccwpck_require__(71514));
 const tc = __importStar(__nccwpck_require__(27784));
@@ -170,7 +170,7 @@ function tagFromversion(version) {
     }
 }
 exports.tagFromversion = tagFromversion;
-const URLS = {
+exports.DOCKER_TOOL_URLS = {
     sccache: 'https://github.com/mozilla/sccache/releases/download/v0.2.15/sccache-v0.2.15-x86_64-unknown-linux-musl.tar.gz',
     bazel: 'https://github.com/bazelbuild/bazel/releases/download/3.4.1/bazel-3.4.1-linux-x86_64',
     llvm1201src: 'https://github.com/llvm/llvm-project/releases/download/llvmorg-12.0.1/llvm-project-12.0.1.src.tar.xz'
@@ -190,9 +190,9 @@ function buildManylinuxAndTag(version) {
         };
         if (util_1.isSelfHosted()) {
             const selfHostedBuildArgs = {
-                SCCACHE_RELEASE_URL: ensure_1.GetOSSDownloadURL(URLS.sccache),
-                LLVM_SRC_URL: ensure_1.GetOSSDownloadURL(URLS.llvm1201src),
-                BAZEL_URL: ensure_1.GetOSSDownloadURL(URLS.bazel)
+                SCCACHE_RELEASE_URL: ensure_1.GetOSSDownloadURL(exports.DOCKER_TOOL_URLS.sccache),
+                LLVM_SRC_URL: ensure_1.GetOSSDownloadURL(exports.DOCKER_TOOL_URLS.llvm1201src),
+                BAZEL_URL: ensure_1.GetOSSDownloadURL(exports.DOCKER_TOOL_URLS.bazel)
             };
             buildArgs = Object.assign(Object.assign({}, buildArgs), selfHostedBuildArgs);
         }
@@ -495,11 +495,12 @@ function mirrorToDownloads(url) {
         const objectKey = GetDownloadsKey(fileName);
         try {
             yield client.get(objectKey);
+            core.info(`found mirrored: ${url}`);
         }
         catch (error) {
             const downloaded = yield tc.downloadTool(url);
             yield client.put(objectKey, downloaded);
-            core.info(`mirrored: ${url}`);
+            core.info(`now mirrored: ${url}`);
         }
     });
 }
@@ -679,6 +680,7 @@ const path_1 = __importDefault(__nccwpck_require__(85622));
 const conda_1 = __nccwpck_require__(64774);
 const docker_1 = __nccwpck_require__(3758);
 const util_1 = __nccwpck_require__(64024);
+const ensure_1 = __nccwpck_require__(21614);
 function condaRun(condaEnvName, commandLine, args, options) {
     return __awaiter(this, void 0, void 0, function* () {
         let condaCmd = 'conda';
@@ -754,18 +756,31 @@ function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const buildEnv = core.getInput('oneflow-build-env');
-            if (['conda', 'manylinux'].includes(buildEnv) === false) {
-                core.setFailed('oneflow-build-env must be conda or manylinux');
-            }
-            if (buildEnv === 'conda') {
-                yield buildWithConda();
-            }
-            if (buildEnv === 'manylinux') {
-                const manylinuxVersion = '2014';
-                const tag = yield docker_1.buildManylinuxAndTag(manylinuxVersion);
-                if (util_1.isSelfHosted()) {
-                    yield docker_1.buildOneFlow(tag);
-                }
+            const action = core.getInput('action');
+            switch (action) {
+                case 'mirror-tools':
+                    for (const t of ensure_1.TOOLS) {
+                        yield ensure_1.ensureTool(t);
+                    }
+                    for (const e of Object.entries(docker_1.DOCKER_TOOL_URLS)) {
+                        yield ensure_1.mirrorToDownloads(e[1]);
+                    }
+                    break;
+                default:
+                    if (['conda', 'manylinux'].includes(buildEnv) === false) {
+                        core.setFailed('oneflow-build-env must be conda or manylinux');
+                    }
+                    if (buildEnv === 'conda') {
+                        yield buildWithConda();
+                    }
+                    if (buildEnv === 'manylinux') {
+                        const manylinuxVersion = '2014';
+                        const tag = yield docker_1.buildManylinuxAndTag(manylinuxVersion);
+                        if (util_1.isSelfHosted()) {
+                            yield docker_1.buildOneFlow(tag);
+                        }
+                    }
+                    break;
             }
         }
         catch (error) {

@@ -1,6 +1,9 @@
 name: 'Build/Get OneFlow'
 description: ''
 inputs:
+  action:
+    description: 'build-oneflow|mirror-tools'
+    required: false
   # OneFlow args
   oneflow-build-env:
     description: 'environment to build OneFlow: conda, manylinux'

@@ -71,7 +71,7 @@ type StreamErr = {
 type StreamFrameData = {stream: string}
 type StreamFrame = StreamFrameData | StreamErr
 
-const URLS = {
+export const DOCKER_TOOL_URLS = {
   sccache:
     'https://github.com/mozilla/sccache/releases/download/v0.2.15/sccache-v0.2.15-x86_64-unknown-linux-musl.tar.gz',
   bazel:
@@ -96,9 +96,9 @@ export async function buildManylinuxAndTag(
   }
   if (isSelfHosted()) {
     const selfHostedBuildArgs = {
-      SCCACHE_RELEASE_URL: GetOSSDownloadURL(URLS.sccache),
-      LLVM_SRC_URL: GetOSSDownloadURL(URLS.llvm1201src),
-      BAZEL_URL: GetOSSDownloadURL(URLS.bazel)
+      SCCACHE_RELEASE_URL: GetOSSDownloadURL(DOCKER_TOOL_URLS.sccache),
+      LLVM_SRC_URL: GetOSSDownloadURL(DOCKER_TOOL_URLS.llvm1201src),
+      BAZEL_URL: GetOSSDownloadURL(DOCKER_TOOL_URLS.bazel)
     }
     buildArgs = {...buildArgs, ...selfHostedBuildArgs}
   }
