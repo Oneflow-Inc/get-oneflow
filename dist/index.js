@@ -281,21 +281,29 @@ function buildOneFlow(tag) {
             if (containerInfo.Names.includes(containerName) ||
                 containerInfo.Names.includes('/'.concat(containerName))) {
                 core.info(`removing docker container: ${containerInfo.Names}`);
-                yield docker.getContainer(containerInfo.Id).kill();
-                yield docker.getContainer(containerInfo.Id).wait({
-                    condition: 'removed'
-                });
+                try {
+                    yield docker.getContainer(containerInfo.Id).kill();
+                    yield docker.getContainer(containerInfo.Id).wait({
+                        condition: 'removed'
+                    });
+                }
+                catch (error) {
+                    core.info(JSON.stringify(error));
+                }
             }
         }
         let httpProxyEnvs = [];
-        const manylinuxCacheDir = util_1.getPathInput('manylinux-cache-dir');
+        let manylinuxCacheDir = util_1.getPathInput('manylinux-cache-dir');
+        manylinuxCacheDir = path_1.default.join(manylinuxCacheDir, `cuda-${cudaVersion}`);
         yield io.mkdirP(manylinuxCacheDir);
         if (core.getBooleanInput('use-system-http-proxy', { required: false })) {
             httpProxyEnvs = [
                 `HTTP_PROXY=${process.env.HTTP_PROXY}`,
                 `http_proxy=${process.env.http_proxy}`,
                 `HTTPS_PROXY=${process.env.HTTPS_PROXY}`,
-                `https_proxy=${process.env.https_proxy}`
+                `https_proxy=${process.env.https_proxy}`,
+                `CC=/usr/lib64/ccache/gcc`,
+                `CXX=/usr/lib64/ccache/g++`
             ];
         }
         let llvmDir = '';
@@ -323,7 +331,7 @@ function buildOneFlow(tag) {
                 Type: 'bind'
             });
         }
-        const buildDir = path_1.default.join(manylinuxCacheDir, `build-cuda-${cudaVersion}`);
+        const buildDir = path_1.default.join(manylinuxCacheDir, `build`);
         const container = yield docker.createContainer({
             Cmd: ['sleep', '3600'],
             Image: tag,
@@ -369,7 +377,19 @@ function buildOnePythonVersion(container, oneflowSrc, buildDir, pythonExe) {
         const argsExclude = ['-e', '!dist', '-e', '!dist/**'];
         yield runExec(container, ['git', 'clean', '-nXd'].concat(argsExclude), path_1.default.join(oneflowSrc, 'python'));
         yield runExec(container, ['git', 'clean', '-fXd'].concat(argsExclude), path_1.default.join(oneflowSrc, 'python'));
+        yield runExec(container, ['gcc', '--version']);
+        yield runExec(container, ['g++', '--version']);
+        yield runExec(container, ['nvcc', '--version']);
         yield runExec(container, ['mkdir', '-p', buildDir]);
+        // NOTE: removing top level CMakeCache.txt doesn't work for thirparty projects
+        // await runExec(container, ['rm', '-f', path.join(buildDir, 'CMakeCache.txt')])
+        yield runExec(container, [
+            'find',
+            buildDir,
+            '-name',
+            'CMakeCache.txt',
+            '-delete'
+        ]);
         yield runExec(container, [
             'cmake',
             '-S',

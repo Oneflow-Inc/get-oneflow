@@ -23,4 +23,13 @@ RUN mkdir /llvm-tmp && cd /llvm-tmp && \
     cd llvm-project-12.0.1.src && mkdir build && cd build && \
     cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PROJECTS=lld -DCMAKE_INSTALL_PREFIX=/usr/local ../llvm && ninja install && \
     rm -rf /llvm-tmp
+RUN yum install -y devtoolset-7-gcc*
+RUN rm -f /opt/rh/devtoolset-10/root/usr/bin/ld
+RUN ln -s $(which lld) /opt/rh/devtoolset-10/root/usr/bin/ld
+# RUN rm -f /opt/rh/devtoolset-7/root/usr/bin/ld
+# RUN ln -s $(which lld) /opt/rh/devtoolset-7/root/usr/bin/ld
+ENV PATH=/usr/local/cuda/bin:/usr/local/llvm/bin:/opt/rh/devtoolset-7/root/usr/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+RUN ln -s  $(which ccache) /usr/lib64/ccache/g++
 RUN ln -s  $(which ccache) /usr/lib64/ccache/nvcc
+RUN echo "source scl_source enable devtoolset-7" >> ~/.bashrc
+RUN echo 'export PATH=/usr/lib64/ccache:$PATH' >> ~/.bashrc

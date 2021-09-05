@@ -7,13 +7,7 @@ import * as io from '@actions/io'
 import path from 'path'
 import fs from 'fs'
 import {ok} from 'assert'
-import {
-  getOSSDownloadURL,
-  ensureTool,
-  LLVM12,
-  CUDA102,
-  ensureCUDA
-} from './ensure'
+import {getOSSDownloadURL, ensureTool, LLVM12, ensureCUDA} from './ensure'
 
 async function load_img(tag: string, url: string): Promise<void> {
   await exec.exec('docker', ['ps'], {silent: true})
@@ -199,21 +193,28 @@ export async function buildOneFlow(tag: string): Promise<void> {
       containerInfo.Names.includes('/'.concat(containerName))
     ) {
       core.info(`removing docker container: ${containerInfo.Names}`)
-      await docker.getContainer(containerInfo.Id).kill()
-      await docker.getContainer(containerInfo.Id).wait({
-        condition: 'removed'
-      })
+      try {
+        await docker.getContainer(containerInfo.Id).kill()
+        await docker.getContainer(containerInfo.Id).wait({
+          condition: 'removed'
+        })
+      } catch (error) {
+        core.info(JSON.stringify(error))
+      }
     }
   }
   let httpProxyEnvs: string[] = []
-  const manylinuxCacheDir = getPathInput('manylinux-cache-dir')
+  let manylinuxCacheDir = getPathInput('manylinux-cache-dir')
+  manylinuxCacheDir = path.join(manylinuxCacheDir, `cuda-${cudaVersion}`)
   await io.mkdirP(manylinuxCacheDir)
   if (core.getBooleanInput('use-system-http-proxy', {required: false})) {
     httpProxyEnvs = [
       `HTTP_PROXY=${process.env.HTTP_PROXY}`,
       `http_proxy=${process.env.http_proxy}`,
       `HTTPS_PROXY=${process.env.HTTPS_PROXY}`,
-      `https_proxy=${process.env.https_proxy}`
+      `https_proxy=${process.env.https_proxy}`,
+      `CC=/usr/lib64/ccache/gcc`,
+      `CXX=/usr/lib64/ccache/g++`
     ]
   }
   let llvmDir = ''
@@ -241,7 +242,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
       Type: 'bind'
     })
   }
-  const buildDir = path.join(manylinuxCacheDir, `build-cuda-${cudaVersion}`)
+  const buildDir = path.join(manylinuxCacheDir, `build`)
 
   const container = await docker.createContainer({
     Cmd: ['sleep', '3600'],
@@ -306,7 +307,19 @@ async function buildOnePythonVersion(
     ['git', 'clean', '-fXd'].concat(argsExclude),
     path.join(oneflowSrc, 'python')
   )
+  await runExec(container, ['gcc', '--version'])
+  await runExec(container, ['g++', '--version'])
+  await runExec(container, ['nvcc', '--version'])
   await runExec(container, ['mkdir', '-p', buildDir])
+  // NOTE: removing top level CMakeCache.txt doesn't work for thirparty projects
+  // await runExec(container, ['rm', '-f', path.join(buildDir, 'CMakeCache.txt')])
+  await runExec(container, [
+    'find',
+    buildDir,
+    '-name',
+    'CMakeCache.txt',
+    '-delete'
+  ])
   await runExec(container, [
     'cmake',
     '-S',
