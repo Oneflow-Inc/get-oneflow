@@ -136,7 +136,10 @@ export function getOSSDownloadURL(url: string): string {
   const store = staticBucketStore()
   const fileName = path.basename(parsedURL.pathname)
   const objectKey = getDownloadsKey(fileName)
-  return store.getObjectUrl(objectKey)
+  return store.getObjectUrl(
+    objectKey,
+    'https://oneflow-static.oss-cn-beijing.aliyuncs.com'
+  )
 }
 
 export async function ensureTool(tool: Tool): Promise<string> {
@@ -232,7 +235,7 @@ interface CUDATools {
 }
 
 export async function ensureCUDA(): Promise<CUDATools> {
-  const cudaVersion: string = getPathInput('cuda-version', {required: true})
+  const cudaVersion: string = core.getInput('cuda-version', {required: true})
   if (cudaVersion === '10.2') {
     return {
       cudaToolkit: await ensureTool(CUDA102),

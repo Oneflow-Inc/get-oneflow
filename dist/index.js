@@ -196,6 +196,7 @@ function buildManylinuxAndTag(version) {
             };
             buildArgs = Object.assign(Object.assign({}, buildArgs), selfHostedBuildArgs);
         }
+        core.info(JSON.stringify(buildArgs, null, 2));
         const stream = yield docker.buildImage({
             context: version === '2_24' ? 'manylinux/debian' : 'manylinux/centos',
             src: ['Dockerfile']
@@ -548,7 +549,7 @@ function getOSSDownloadURL(url) {
     const store = staticBucketStore();
     const fileName = path_1.default.basename(parsedURL.pathname);
     const objectKey = getDownloadsKey(fileName);
-    return store.getObjectUrl(objectKey);
+    return store.getObjectUrl(objectKey, 'https://oneflow-static.oss-cn-beijing.aliyuncs.com');
 }
 exports.getOSSDownloadURL = getOSSDownloadURL;
 function ensureTool(tool) {
@@ -622,7 +623,7 @@ function ensureCUDA102() {
 exports.ensureCUDA102 = ensureCUDA102;
 function ensureCUDA() {
     return __awaiter(this, void 0, void 0, function* () {
-        const cudaVersion = util_1.getPathInput('cuda-version', { required: true });
+        const cudaVersion = core.getInput('cuda-version', { required: true });
         if (cudaVersion === '10.2') {
             return {
                 cudaToolkit: yield ensureTool(exports.CUDA102),

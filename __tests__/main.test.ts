@@ -102,6 +102,7 @@ test(
     process.env['INPUT_WHEELHOUSE-DIR'] = '~/manylinux-wheelhouse'
     process.env['INPUT_PYTHON-VERSIONS'] = '3.6\n3.7'
     env.setInput('self-hosted', 'true')
+    env.setInput('cuda-version', '10.2')
     const manylinuxVersion = '2014'
     const tag = await buildManylinuxAndTag(manylinuxVersion)
     await buildOneFlow(tag)

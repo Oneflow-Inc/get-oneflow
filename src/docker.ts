@@ -108,6 +108,7 @@ export async function buildManylinuxAndTag(
     }
     buildArgs = {...buildArgs, ...selfHostedBuildArgs}
   }
+  core.info(JSON.stringify(buildArgs, null, 2))
   const stream = await docker.buildImage(
     {
       context: version === '2_24' ? 'manylinux/debian' : 'manylinux/centos',
