@@ -1,9 +1,4 @@
-import {
-  isSelfHosted,
-  extractTarX,
-  createExtractFolder,
-  getPathInput
-} from './util'
+import {isSelfHosted, extractTarX, createExtractFolder} from './util'
 import OSS from 'ali-oss'
 import path from 'path'
 import * as tc from '@actions/tool-cache'
