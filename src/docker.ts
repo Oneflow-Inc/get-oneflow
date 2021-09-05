@@ -7,7 +7,13 @@ import * as io from '@actions/io'
 import path from 'path'
 import fs from 'fs'
 import {ok} from 'assert'
-import {getOSSDownloadURL, ensureTool, LLVM12} from './ensure'
+import {
+  getOSSDownloadURL,
+  ensureTool,
+  LLVM12,
+  CUDA102,
+  ensureCUDA
+} from './ensure'
 
 async function load_img(tag: string, url: string): Promise<void> {
   await exec.exec('docker', ['ps'], {silent: true})
@@ -180,8 +186,10 @@ export async function buildOneFlow(tag: string): Promise<void> {
   const oneflowSrc: string = getPathInput('oneflow-src', {required: true})
   const wheelhouseDir: string = getPathInput('wheelhouse-dir', {required: true})
   const docker = new Docker({socketPath: '/var/run/docker.sock'})
-  const CUDA_TOOLKIT_ROOT_DIR = '/usr/local/cuda'
-  const CUDNN_ROOT_DIR = '/usr/local/cudnn'
+  const cudaTools = await ensureCUDA()
+  const cudaVersion = cudaTools.cudaVersion
+  const CUDA_TOOLKIT_ROOT_DIR = cudaTools.cudaToolkit
+  const CUDNN_ROOT_DIR = cudaTools.cudnn
   const containerName = 'ci-test-build-oneflow'
   const containerInfos = await docker.listContainers()
   for (const containerInfo of containerInfos) {
@@ -232,7 +240,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
       Type: 'bind'
     })
   }
-  const buildDir = path.join(manylinuxCacheDir, 'build')
+  const buildDir = path.join(manylinuxCacheDir, `build-cuda-${cudaVersion}`)
 
   const container = await docker.createContainer({
     Cmd: ['sleep', '3600'],

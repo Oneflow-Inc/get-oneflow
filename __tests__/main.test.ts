@@ -1,15 +1,11 @@
 import * as process from 'process'
 import * as cp from 'child_process'
 import * as path from 'path'
-import {expect, test} from '@jest/globals'
+import {test} from '@jest/globals'
 import os from 'os'
-import {
-  buildManylinuxAndTag,
-  ensureDocker,
-  buildOneFlow,
-  tagFromversion
-} from '../src/docker'
+import {buildManylinuxAndTag, ensureDocker, buildOneFlow} from '../src/docker'
 import {TOOLS, mirrorToDownloads, ensureCUDA102} from '../src/ensure'
+import * as env from '../src/env'
 
 process.env['RUNNER_TOOL_CACHE'] = '~/runner_tool_cache'.replace(
   '~',
@@ -105,6 +101,7 @@ test(
     process.env['INPUT_MANYLINUX-CACHE-DIR'] = '~/manylinux-cache-dirs/unittest'
     process.env['INPUT_WHEELHOUSE-DIR'] = '~/manylinux-wheelhouse'
     process.env['INPUT_PYTHON-VERSIONS'] = '3.6\n3.7'
+    env.setInput('self-hosted', 'true')
     const manylinuxVersion = '2014'
     const tag = await buildManylinuxAndTag(manylinuxVersion)
     await buildOneFlow(tag)

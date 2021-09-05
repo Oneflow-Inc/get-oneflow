@@ -1,4 +1,9 @@
-import {isSelfHosted, extractTarX, createExtractFolder} from './util'
+import {
+  isSelfHosted,
+  extractTarX,
+  createExtractFolder,
+  getPathInput
+} from './util'
 import OSS from 'ali-oss'
 import path from 'path'
 import * as tc from '@actions/tool-cache'
@@ -218,4 +223,23 @@ export async function ensureTool(tool: Tool): Promise<string> {
 export async function ensureCUDA102(): Promise<void> {
   await ensureTool(CUDA102)
   await ensureTool(CUDNN102)
+}
+
+interface CUDATools {
+  cudaToolkit: string
+  cudaVersion: string
+  cudnn: string
+}
+
+export async function ensureCUDA(): Promise<CUDATools> {
+  const cudaVersion: string = getPathInput('cuda-version', {required: true})
+  if (cudaVersion === '10.2') {
+    return {
+      cudaToolkit: await ensureTool(CUDA102),
+      cudnn: await ensureTool(CUDNN102),
+      cudaVersion
+    }
+  } else {
+    throw new Error(`unsupported cudaVersion: ${cudaVersion}`)
+  }
 }

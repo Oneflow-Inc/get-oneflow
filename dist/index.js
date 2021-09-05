@@ -270,8 +270,10 @@ function buildOneFlow(tag) {
         const oneflowSrc = util_1.getPathInput('oneflow-src', { required: true });
         const wheelhouseDir = util_1.getPathInput('wheelhouse-dir', { required: true });
         const docker = new dockerode_1.default({ socketPath: '/var/run/docker.sock' });
-        const CUDA_TOOLKIT_ROOT_DIR = '/usr/local/cuda';
-        const CUDNN_ROOT_DIR = '/usr/local/cudnn';
+        const cudaTools = yield ensure_1.ensureCUDA();
+        const cudaVersion = cudaTools.cudaVersion;
+        const CUDA_TOOLKIT_ROOT_DIR = cudaTools.cudaToolkit;
+        const CUDNN_ROOT_DIR = cudaTools.cudnn;
         const containerName = 'ci-test-build-oneflow';
         const containerInfos = yield docker.listContainers();
         for (const containerInfo of containerInfos) {
@@ -320,7 +322,7 @@ function buildOneFlow(tag) {
                 Type: 'bind'
             });
         }
-        const buildDir = path_1.default.join(manylinuxCacheDir, 'build');
+        const buildDir = path_1.default.join(manylinuxCacheDir, `build-cuda-${cudaVersion}`);
         const container = yield docker.createContainer({
             Cmd: ['sleep', '3600'],
             Image: tag,
@@ -428,7 +430,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.ensureCUDA102 = exports.ensureTool = exports.getOSSDownloadURL = exports.mirrorToDownloads = exports.TOOLS = exports.CUDNN102 = exports.CUDA102 = exports.LLVM12 = void 0;
+exports.ensureCUDA = exports.ensureCUDA102 = exports.ensureTool = exports.getOSSDownloadURL = exports.mirrorToDownloads = exports.TOOLS = exports.CUDNN102 = exports.CUDA102 = exports.LLVM12 = void 0;
 const util_1 = __nccwpck_require__(64024);
 const ali_oss_1 = __importDefault(__nccwpck_require__(92399));
 const path_1 = __importDefault(__nccwpck_require__(85622));
@@ -618,6 +620,22 @@ function ensureCUDA102() {
     });
 }
 exports.ensureCUDA102 = ensureCUDA102;
+function ensureCUDA() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const cudaVersion = util_1.getPathInput('cuda-version', { required: true });
+        if (cudaVersion === '10.2') {
+            return {
+                cudaToolkit: yield ensureTool(exports.CUDA102),
+                cudnn: yield ensureTool(exports.CUDNN102),
+                cudaVersion
+            };
+        }
+        else {
+            throw new Error(`unsupported cudaVersion: ${cudaVersion}`);
+        }
+    });
+}
+exports.ensureCUDA = ensureCUDA;
 
 
 /***/ }),
