@@ -43,7 +43,7 @@ jobs:
           action: mirror-tools
 
   test-build-oneflow: # make sure the action works on a clean machine without building
-    name: 'Build OneFlow with Conda and Docker'
+    name: 'Build OneFlow'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
