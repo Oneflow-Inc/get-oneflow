@@ -226,12 +226,18 @@ function buildManylinuxAndTag(version) {
                 const err = event;
                 const status = event;
                 const data = event;
-                if (err.error)
+                if (err.error) {
                     core.info(err.error);
-                if (status.status)
+                }
+                else if (status.status) {
                     core.info(`[${status.status}] ${status.progress}`);
-                if (data.stream)
-                    core.info(`[data] ${data.stream}`);
+                }
+                else if (data.stream) {
+                    core.info(data.stream);
+                }
+                else {
+                    core.info(JSON.stringify(event, null, 2));
+                }
             });
         });
         core.debug('done building docker img');

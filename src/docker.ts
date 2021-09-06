@@ -75,12 +75,12 @@ type StreamErr = {
 }
 type StreamStatus = {
   status: string
-  progressDetail: {
+  progressDetail?: {
     current: string
     total: string
   }
-  progress: string
-  id: string
+  progress?: string
+  id?: string
 }
 type StreamFrameData = {stream: string}
 type StreamFrame = StreamFrameData | StreamStatus | StreamErr
@@ -152,9 +152,15 @@ export async function buildManylinuxAndTag(
         const err = event as StreamErr
         const status = event as StreamStatus
         const data = event as StreamFrameData
-        if (err.error) core.info(err.error)
-        if (status.status) core.info(`[${status.status}] ${status.progress}`)
-        if (data.stream) core.info(`[data] ${data.stream}`)
+        if (err.error) {
+          core.info(err.error)
+        } else if (status.status) {
+          core.info(`[${status.status}] ${status.progress}`)
+        } else if (data.stream) {
+          core.info(data.stream)
+        } else {
+          core.info(JSON.stringify(event, null, 2))
+        }
       }
     )
   })
