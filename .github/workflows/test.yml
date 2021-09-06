@@ -42,7 +42,26 @@ jobs:
         with:
           action: mirror-tools
 
-  test-build-oneflow: # make sure the action works on a clean machine without building
+  test-build-img:
+    name: 'Build OneFlow'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        os: [['self-hosted', 'linux', 'provision'], [ubuntu-latest]]
+        action: ['build-img']
+    env:
+      ONEFLOW_SRC: oneflow-src-${{ matrix.oneflow-build-env }}
+      ACTION: build-oneflow
+    steps:
+      - uses: ./manylinux
+        name: Test build manylinux
+        with:
+          cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/cn/fast/cpu-clang.cmake
+          action: ${{ env.ACTION }}
+
+  test-build-oneflow:
     name: 'Build OneFlow'
     runs-on: ${{ matrix.os }}
     strategy:
@@ -53,6 +72,7 @@ jobs:
         oneflow-build-env: ['conda', 'manylinux']
     env:
       ONEFLOW_SRC: oneflow-src-${{ matrix.oneflow-build-env }}
+      ACTION: build-oneflow
     steps:
       - name: Fix permissions
         if: ${{ contains(matrix.os, 'self-hosted') }}
@@ -75,6 +95,7 @@ jobs:
         name: Test conda on gh-hosted
         if: ${{ contains(matrix.os, 'ubuntu-latest') && matrix.oneflow-build-env == 'conda'}}
         with:
+          action: ${{ env.ACTION }}
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/cn/fast/cpu-clang.cmake
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           oneflow-build-env: conda
@@ -83,6 +104,7 @@ jobs:
         name: Test conda on self-hosted
         if: ${{ contains(matrix.os, 'self-hosted') && matrix.oneflow-build-env == 'conda'}}
         with:
+          action: ${{ env.ACTION }}
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/cn/fast/cpu-clang.cmake
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           oneflow-build-env: conda
@@ -94,6 +116,7 @@ jobs:
         name: Test manylinux
         if: ${{ matrix.oneflow-build-env == 'manylinux'}}
         with:
+          action: ${{ env.ACTION }}
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/ci/cuda-75.cmake
           build-script: ${{ env.ONEFLOW_SRC }}/ci/manylinux/build-gcc7.sh
           oneflow-src: ${{ env.ONEFLOW_SRC }}

@@ -103,7 +103,20 @@ async function run(): Promise<void> {
 
         break
 
-      default:
+      case 'build-img':
+        {
+          const manylinuxVersion: string = core.getInput('manylinux-version', {
+            required: true
+          })
+          if (manylinuxVersion === '2014') {
+            const tag = await buildManylinuxAndTag(manylinuxVersion)
+            core.setOutput('tag', tag)
+          } else {
+            core.setFailed(`unsupported manylinuxVersion: ${manylinuxVersion}`)
+          }
+        }
+        break
+      case 'build-oneflow':
         if (['conda', 'manylinux'].includes(buildEnv) === false) {
           core.setFailed('oneflow-build-env must be conda or manylinux')
         }
@@ -112,11 +125,18 @@ async function run(): Promise<void> {
         }
         if (buildEnv === 'manylinux') {
           const manylinuxVersion = '2014'
+          // TODO: remove this
           const tag = await buildManylinuxAndTag(manylinuxVersion)
           if (isSelfHosted()) {
             await buildOneFlow(tag)
           }
         }
+        break
+      case 'do-nothing':
+        core.warning(`unsupported action: ${action}`)
+        break
+      default:
+        core.setFailed(`unsupported action: ${action}`)
         break
     }
   } catch (error) {

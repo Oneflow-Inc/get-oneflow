@@ -21,6 +21,7 @@ test('test runs', () => {
   process.env['INPUT_CMAKE-INIT-CACHE'] = 'dummy'
   process.env['INPUT_DRY-RUN'] = 'true'
   process.env['INPUT_SELF-HOSTED'] = 'true'
+  env.setInput('action', 'do-nothing')
   const np = process.execPath
   const ip = path.join(__dirname, '..', 'lib', 'main.js')
   const options: cp.ExecFileSyncOptions = {
@@ -107,10 +108,11 @@ test(
     )
     const manylinuxVersion = '2014'
     let tag = ''
-    if (process.env['TEST_MANYLINUX_IMG']) {
+    const TEST_MANYLINUX = process.env['TEST_MANYLINUX'] || ''
+    if (TEST_MANYLINUX.includes('img')) {
       tag = await buildManylinuxAndTag(manylinuxVersion)
     }
-    if (process.env['TEST_MANYLINUX_BUILD']) {
+    if (TEST_MANYLINUX.includes('build')) {
       await buildOneFlow(tag)
     }
   },

@@ -901,7 +901,21 @@ function run() {
                         yield ensure_1.mirrorToDownloads(e[1]);
                     }
                     break;
-                default:
+                case 'build-img':
+                    {
+                        const manylinuxVersion = core.getInput('manylinux-version', {
+                            required: true
+                        });
+                        if (manylinuxVersion === '2014') {
+                            const tag = yield docker_1.buildManylinuxAndTag(manylinuxVersion);
+                            core.setOutput('tag', tag);
+                        }
+                        else {
+                            core.setFailed(`unsupported manylinuxVersion: ${manylinuxVersion}`);
+                        }
+                    }
+                    break;
+                case 'build-oneflow':
                     if (['conda', 'manylinux'].includes(buildEnv) === false) {
                         core.setFailed('oneflow-build-env must be conda or manylinux');
                     }
@@ -910,11 +924,18 @@ function run() {
                     }
                     if (buildEnv === 'manylinux') {
                         const manylinuxVersion = '2014';
+                        // TODO: remove this
                         const tag = yield docker_1.buildManylinuxAndTag(manylinuxVersion);
                         if (util_1.isSelfHosted()) {
                             yield docker_1.buildOneFlow(tag);
                         }
                     }
+                    break;
+                case 'do-nothing':
+                    core.warning(`unsupported action: ${action}`);
+                    break;
+                default:
+                    core.setFailed(`unsupported action: ${action}`);
                     break;
             }
         }
