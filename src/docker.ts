@@ -108,7 +108,6 @@ export async function buildManylinuxAndTag(
     }
     buildArgs = {...buildArgs, ...selfHostedBuildArgs}
   }
-  core.info(JSON.stringify(buildArgs, null, 2))
   core.info(
     JSON.stringify(
       {
