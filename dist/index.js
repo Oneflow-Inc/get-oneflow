@@ -1,4 +1,4 @@
-/******/ (() => { // webpackBootstrap
+require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
 /***/ 64774:
@@ -388,7 +388,7 @@ function buildOneFlow(tag) {
         }
         for (const pythonVersion of pythonVersions) {
             const pythonExe = getPythonExe(pythonVersion);
-            yield buildOnePythonVersion(container, buildScript, oneflowSrc, pythonExe);
+            yield buildOnePythonVersion(container, buildScript, pythonExe);
         }
         const distDir = path_1.default.join(oneflowSrc, 'python', 'dist');
         const whlFiles = yield fs_1.default.promises.readdir(distDir);
@@ -399,16 +399,9 @@ function buildOneFlow(tag) {
     });
 }
 exports.buildOneFlow = buildOneFlow;
-function buildOnePythonVersion(container, buildScript, oneflowSrc, pythonExe) {
+function buildOnePythonVersion(container, buildScript, pythonExe) {
     return __awaiter(this, void 0, void 0, function* () {
         const cmakeInitCache = util_1.getPathInput('cmake-init-cache', { required: true });
-        const argsExclude = ['-e', '!dist', '-e', '!dist/**'];
-        yield runExec(container, ['git', 'clean', '-nXd'].concat(argsExclude), {
-            cwd: path_1.default.join(oneflowSrc, 'python')
-        });
-        yield runExec(container, ['git', 'clean', '-fXd'].concat(argsExclude), {
-            cwd: path_1.default.join(oneflowSrc, 'python')
-        });
         yield runExec(container, ['bash', '-l', buildScript], {
             env: [
                 `ONEFLOW_CI_PYTHON_EXE=${pythonExe}`,
@@ -106752,3 +106745,4 @@ module.exports = require("zlib");
 /******/ 	
 /******/ })()
 ;
+//# sourceMappingURL=index.js.map

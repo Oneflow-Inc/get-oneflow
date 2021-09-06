@@ -1,20 +1,14 @@
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import * as tc from '@actions/tool-cache'
-import Docker, {
-  Container,
-  ContainerCreateOptions,
-  MountSettings
-} from 'dockerode'
+import Docker, {Container, MountSettings} from 'dockerode'
 import {getPathInput, isSelfHosted} from './util'
 import * as io from '@actions/io'
 import path from 'path'
 import fs from 'fs'
 import {ok} from 'assert'
 import {getOSSDownloadURL, ensureTool, LLVM12, ensureCUDA} from './ensure'
-import * as semver from 'semver'
 import os from 'os'
-import {env} from 'process'
 
 async function load_img(tag: string, url: string): Promise<void> {
   if (isSelfHosted()) {
@@ -328,7 +322,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
   }
   for (const pythonVersion of pythonVersions) {
     const pythonExe = getPythonExe(pythonVersion)
-    await buildOnePythonVersion(container, buildScript, oneflowSrc, pythonExe)
+    await buildOnePythonVersion(container, buildScript, pythonExe)
   }
   const distDir = path.join(oneflowSrc, 'python', 'dist')
   const whlFiles = await fs.promises.readdir(distDir)
@@ -347,17 +341,9 @@ export async function buildOneFlow(tag: string): Promise<void> {
 async function buildOnePythonVersion(
   container: Docker.Container,
   buildScript: string,
-  oneflowSrc: string,
   pythonExe: string
 ): Promise<void> {
   const cmakeInitCache = getPathInput('cmake-init-cache', {required: true})
-  const argsExclude = ['-e', '!dist', '-e', '!dist/**']
-  await runExec(container, ['git', 'clean', '-nXd'].concat(argsExclude), {
-    cwd: path.join(oneflowSrc, 'python')
-  })
-  await runExec(container, ['git', 'clean', '-fXd'].concat(argsExclude), {
-    cwd: path.join(oneflowSrc, 'python')
-  })
   await runExec(container, ['bash', '-l', buildScript], {
     env: [
       `ONEFLOW_CI_PYTHON_EXE=${pythonExe}`,
