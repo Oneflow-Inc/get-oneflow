@@ -73,7 +73,7 @@ jobs:
           path: conda-env
       - uses: ./
         name: Test conda on hosted
-        if: ${{ contains(matrix.os, 'ubuntu-latest') }} && ${{ matrix.os.oneflow-build-env == 'conda'}}
+        if: ${{ contains(matrix.os, 'ubuntu-latest') }} && ${{ matrix.oneflow-build-env == 'conda'}}
         with:
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/cn/fast/cpu-clang.cmake
           oneflow-src: ${{ env.ONEFLOW_SRC }}
@@ -81,7 +81,7 @@ jobs:
           conda-env-file: conda-env/dev/clang10/environment-v2.yml
       - uses: ./
         name: Test conda on self-hosted
-        if: ${{ contains(matrix.os, 'self-hosted') }} && ${{ matrix.os.oneflow-build-env == 'conda'}}
+        if: ${{ contains(matrix.os, 'self-hosted') }} && ${{ matrix.oneflow-build-env == 'conda'}}
         with:
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/cn/fast/cpu-clang.cmake
           oneflow-src: ${{ env.ONEFLOW_SRC }}
@@ -92,7 +92,7 @@ jobs:
           self-hosted: ${{ contains(matrix.os, 'self-hosted') }}
       - uses: ./
         name: Test manylinux
-        if: ${{ matrix.os.oneflow-build-env == 'manylinux'}}
+        if: ${{ matrix.oneflow-build-env == 'manylinux'}}
         with:
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/ci/cuda-75.cmake
           oneflow-src: ${{ env.ONEFLOW_SRC }}
