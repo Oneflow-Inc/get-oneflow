@@ -73,8 +73,17 @@ type StreamErr = {
   }
   error: string
 }
+type StreamStatus = {
+  status: string
+  progressDetail: {
+    current: string
+    total: string
+  }
+  progress: string
+  id: string
+}
 type StreamFrameData = {stream: string}
-type StreamFrame = StreamFrameData | StreamErr
+type StreamFrame = StreamFrameData | StreamStatus | StreamErr
 
 export const DOCKER_TOOL_URLS = {
   sccache:
@@ -132,11 +141,22 @@ export async function buildManylinuxAndTag(
   core.debug('started building docker img')
   new Docker().modem.demuxStream(stream, process.stdout, process.stderr)
   await new Promise((resolve, reject) => {
-    new Docker().modem.followProgress(stream, (err, res: StreamFrame[]) => {
-      const lastFrame = res[res.length - 1] as StreamErr
-      lastFrame.error ? reject(res) : resolve(res)
-      err ? reject(err) : resolve(res)
-    })
+    new Docker().modem.followProgress(
+      stream,
+      (err, res: StreamFrame[]) => {
+        const lastFrame = res[res.length - 1] as StreamErr
+        lastFrame.error ? reject(lastFrame) : resolve(res)
+        err ? reject(err) : resolve(res)
+      },
+      (event: StreamFrame) => {
+        const err = event as StreamErr
+        const status = event as StreamStatus
+        const data = event as StreamFrameData
+        if (err.error) core.info(err.error)
+        if (status.status) core.info(`[${status.status}] ${status.progress}`)
+        if (data.stream) core.info(`[data] ${data.stream}`)
+      }
+    )
   })
   core.debug('done building docker img')
   return toTag

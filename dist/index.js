@@ -220,8 +220,18 @@ function buildManylinuxAndTag(version) {
         yield new Promise((resolve, reject) => {
             new dockerode_1.default().modem.followProgress(stream, (err, res) => {
                 const lastFrame = res[res.length - 1];
-                lastFrame.error ? reject(res) : resolve(res);
+                lastFrame.error ? reject(lastFrame) : resolve(res);
                 err ? reject(err) : resolve(res);
+            }, (event) => {
+                const err = event;
+                const status = event;
+                const data = event;
+                if (err.error)
+                    core.info(err.error);
+                if (status.status)
+                    core.info(`[${status.status}] ${status.progress}`);
+                if (data.stream)
+                    core.info(`[data] ${data.stream}`);
             });
         });
         core.debug('done building docker img');
