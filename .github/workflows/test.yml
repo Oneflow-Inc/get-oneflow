@@ -52,7 +52,7 @@ jobs:
         os: [['self-hosted', 'linux', 'provision'], [ubuntu-latest]]
         oneflow-build-env: ['conda', 'manylinux']
     env:
-      ONEFLOW_SRC: oneflow-src-${{ matrix.os.oneflow-build-env }}
+      ONEFLOW_SRC: oneflow-src-${{ matrix.oneflow-build-env }}
     steps:
       - name: Fix permissions
         if: ${{ contains(matrix.os, 'self-hosted') }}
