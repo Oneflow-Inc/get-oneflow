@@ -157,7 +157,7 @@ function ensureDocker() {
             yield load_img('quay.io/pypa/manylinux_2_24_x86_64', 'https://oneflow-static.oss-cn-beijing.aliyuncs.com/img/quay.iopypamanylinux_2_24_x86_64.tar.gz');
         }
         catch (error) {
-            core.warning(JSON.stringify(error, null, 2));
+            core.setFailed(JSON.stringify(error, null, 2));
         }
     });
 }
@@ -203,7 +203,6 @@ function buildManylinuxAndTag(version) {
             };
             buildArgs = Object.assign(Object.assign({}, buildArgs), selfHostedBuildArgs);
         }
-        core.info(JSON.stringify(buildArgs, null, 2));
         core.info(JSON.stringify({
             toTag,
             buildArgs
@@ -216,6 +215,7 @@ function buildManylinuxAndTag(version) {
             networkmode: 'host',
             buildargs: buildArgs
         });
+        core.debug('started building docker img');
         new dockerode_1.default().modem.demuxStream(stream, process.stdout, process.stderr);
         yield new Promise((resolve, reject) => {
             new dockerode_1.default().modem.followProgress(stream, (err, res) => {
@@ -224,6 +224,7 @@ function buildManylinuxAndTag(version) {
                 err ? reject(err) : resolve(res);
             });
         });
+        core.debug('done building docker img');
         return toTag;
     });
 }
@@ -902,7 +903,7 @@ function run() {
             }
         }
         catch (error) {
-            core.setFailed(error.message);
+            core.setFailed(JSON.stringify(error, null, 2));
         }
     });
 }

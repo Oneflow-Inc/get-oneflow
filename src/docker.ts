@@ -129,6 +129,7 @@ export async function buildManylinuxAndTag(
       buildargs: buildArgs
     }
   )
+  core.debug('started building docker img')
   new Docker().modem.demuxStream(stream, process.stdout, process.stderr)
   await new Promise((resolve, reject) => {
     new Docker().modem.followProgress(stream, (err, res: StreamFrame[]) => {
@@ -137,6 +138,7 @@ export async function buildManylinuxAndTag(
       err ? reject(err) : resolve(res)
     })
   })
+  core.debug('done building docker img')
   return toTag
 }
 
