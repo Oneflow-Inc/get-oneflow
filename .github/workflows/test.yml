@@ -99,7 +99,9 @@ jobs:
           oneflow-build-env: manylinux
           wheelhouse-dir: manylinux-wheelhouse
           self-hosted: ${{ contains(matrix.os, 'self-hosted') }}
+          cuda-version: 10.2
           python-versions: |
             - 3.6
             - 3.7
             - 3.8
+            - 3.9
