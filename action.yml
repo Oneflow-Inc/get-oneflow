@@ -23,7 +23,6 @@ inputs:
   cuda-version:
     description: 'default is none, format: 10.1, 10.2'
     required: false
-    default: 'none'
   # Conda args
   conda-env-file:
     description: 'can be a url or a path'
@@ -51,6 +50,9 @@ inputs:
   python-versions:
     description: ''
     required: true
+  wheelhouse-dir:
+    description: 'where to put the produced .whl files'
+    required: false
 outputs:
   pip-index-url:
     description: 'pip index url could be use to install oneflow'
