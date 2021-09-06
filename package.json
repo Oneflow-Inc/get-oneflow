@@ -12,7 +12,7 @@
         "package": "ncc build --source-map --license licenses.txt",
         "test": "jest",
         "all": "npm run build && npm run format && npm run lint && npm run package && npm test",
-        "fast": "npm run build && npm run package && npm test",
+        "fast": "npm run build && ncc build && npm test",
         "pub": "npm run all && git add . && git commit -m publishing && git push"
     },
     "repository": {

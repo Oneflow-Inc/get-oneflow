@@ -1,4 +1,4 @@
-require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
+/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
 /***/ 64774:
@@ -117,7 +117,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.buildOneFlow = exports.runExec = exports.buildManylinuxAndTag = exports.DOCKER_TOOL_URLS = exports.tagFromversion = exports.ensureDocker = void 0;
+exports.buildOneFlow = exports.runBash = exports.runExec = exports.buildManylinuxAndTag = exports.DOCKER_TOOL_URLS = exports.tagFromversion = exports.ensureDocker = void 0;
 const core = __importStar(__nccwpck_require__(42186));
 const exec = __importStar(__nccwpck_require__(71514));
 const tc = __importStar(__nccwpck_require__(27784));
@@ -128,16 +128,23 @@ const path_1 = __importDefault(__nccwpck_require__(85622));
 const fs_1 = __importDefault(__nccwpck_require__(35747));
 const assert_1 = __nccwpck_require__(42357);
 const ensure_1 = __nccwpck_require__(21614);
+const semver = __importStar(__nccwpck_require__(85911));
+const os_1 = __importDefault(__nccwpck_require__(12087));
 function load_img(tag, url) {
     return __awaiter(this, void 0, void 0, function* () {
-        yield exec.exec('docker', ['ps'], { silent: true });
-        const inspect = yield exec.exec('docker', ['inspect', tag], {
-            ignoreReturnCode: true,
-            silent: true
-        });
-        if (inspect !== 0) {
-            const imgPath = yield tc.downloadTool(url);
-            yield exec.exec('docker', ['load', '-i', imgPath]);
+        if (util_1.isSelfHosted()) {
+            yield exec.exec('docker', ['ps'], { silent: true });
+            const inspect = yield exec.exec('docker', ['inspect', tag], {
+                ignoreReturnCode: true,
+                silent: true
+            });
+            if (inspect !== 0) {
+                const imgPath = yield tc.downloadTool(url);
+                yield exec.exec('docker', ['load', '-i', imgPath]);
+            }
+        }
+        else {
+            yield exec.exec('docker', ['pull', tag], { silent: false });
         }
     });
 }
@@ -151,7 +158,7 @@ function ensureDocker() {
             yield load_img('quay.io/pypa/manylinux_2_24_x86_64', 'https://oneflow-static.oss-cn-beijing.aliyuncs.com/img/quay.iopypamanylinux_2_24_x86_64.tar.gz');
         }
         catch (error) {
-            core.warning(error.message);
+            core.warning(JSON.stringify(error, null, 2));
         }
     });
 }
@@ -179,7 +186,8 @@ function buildManylinuxAndTag(version) {
     return __awaiter(this, void 0, void 0, function* () {
         const fromTag = tagFromversion(version);
         const splits = fromTag.split('/');
-        const toTag = 'oneflowinc/'.concat(splits[splits.length - 1]);
+        let toTag = 'oneflowinc/'.concat(splits[splits.length - 1]);
+        toTag = [toTag, os_1.default.userInfo().username].join(':');
         const docker = new dockerode_1.default({ socketPath: '/var/run/docker.sock' });
         let buildArgs = {
             from: fromTag,
@@ -197,6 +205,10 @@ function buildManylinuxAndTag(version) {
             buildArgs = Object.assign(Object.assign({}, buildArgs), selfHostedBuildArgs);
         }
         core.info(JSON.stringify(buildArgs, null, 2));
+        core.info(JSON.stringify({
+            toTag,
+            buildArgs
+        }, null, 2));
         const stream = yield docker.buildImage({
             context: version === '2_24' ? 'manylinux/debian' : 'manylinux/centos',
             src: ['Dockerfile']
@@ -254,6 +266,12 @@ function runExec(container, cmd, cwd) {
     });
 }
 exports.runExec = runExec;
+function runBash(container, cmd, cwd) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return yield runExec(container, ['bash', '-lc', `source /root/.bashrc && ${cmd}`], cwd);
+    });
+}
+exports.runBash = runBash;
 const PythonExeMap = new Map([
     ['3.6', '/opt/python/cp36-cp36m/bin/python3'],
     ['3.7', '/opt/python/cp37-cp37m/bin/python3'],
@@ -277,6 +295,11 @@ function buildOneFlow(tag) {
         const CUDNN_ROOT_DIR = cudaTools.cudnn;
         const containerName = 'ci-test-build-oneflow';
         const containerInfos = yield docker.listContainers();
+        let shouldEnableGCC7 = false;
+        const shouldSymbolicLinkLld = false;
+        if (semver.major(cudaTools.cudaSemver) === 10) {
+            shouldEnableGCC7 = true;
+        }
         for (const containerInfo of containerInfos) {
             if (containerInfo.Names.includes(containerName) ||
                 containerInfo.Names.includes('/'.concat(containerName))) {
@@ -294,6 +317,7 @@ function buildOneFlow(tag) {
         }
         let httpProxyEnvs = [];
         let manylinuxCacheDir = util_1.getPathInput('manylinux-cache-dir');
+        // TODO: don't do any sub-directory appending, leave action caller to decide the cache dir?
         manylinuxCacheDir = path_1.default.join(manylinuxCacheDir, `cuda-${cudaVersion}`);
         yield io.mkdirP(manylinuxCacheDir);
         if (core.getBooleanInput('use-system-http-proxy', { required: false })) {
@@ -333,7 +357,7 @@ function buildOneFlow(tag) {
         }
         const buildDir = path_1.default.join(manylinuxCacheDir, `build`);
         const container = yield docker.createContainer({
-            Cmd: ['sleep', '3600'],
+            Cmd: ['sleep', '3000'],
             Image: tag,
             name: containerName,
             HostConfig: {
@@ -358,6 +382,16 @@ function buildOneFlow(tag) {
         const pythonVersions = core.getMultilineInput('python-versions', {
             required: true
         });
+        if (shouldEnableGCC7) {
+            yield runBash(container, "echo 'source scl_source enable devtoolset-7' >> ~/.bashrc");
+            yield runBash(container, "echo 'export PATH=/usr/lib64/ccache:$PATH' >> ~/.bashrc");
+        }
+        if (shouldSymbolicLinkLld) {
+            for (const gccVersion of ['7', '10']) {
+                yield runBash(container, `rm -f /opt/rh/devtoolset--${gccVersion}/root/usr/bin/ld`);
+                yield runBash(container, `ln -s $(which lld) /opt/rh/devtoolset-${gccVersion}/root/usr/bin/ld`);
+            }
+        }
         for (const pythonVersion of pythonVersions) {
             const pythonExe = getPythonExe(pythonVersion);
             yield buildOnePythonVersion(container, oneflowSrc, buildDir, pythonExe);
@@ -648,7 +682,8 @@ function ensureCUDA() {
             return {
                 cudaToolkit: yield ensureTool(exports.CUDA102),
                 cudnn: yield ensureTool(exports.CUDNN102),
-                cudaVersion
+                cudaVersion,
+                cudaSemver: exports.CUDA102.version
             };
         }
         else {
@@ -106744,4 +106779,3 @@ module.exports = require("zlib");
 /******/ 	
 /******/ })()
 ;
-//# sourceMappingURL=index.js.map

@@ -1,23 +1,33 @@
 import * as core from '@actions/core'
 import * as exec from '@actions/exec'
 import * as tc from '@actions/tool-cache'
-import Docker, {Container, MountSettings} from 'dockerode'
+import Docker, {
+  Container,
+  ContainerCreateOptions,
+  MountSettings
+} from 'dockerode'
 import {getPathInput, isSelfHosted} from './util'
 import * as io from '@actions/io'
 import path from 'path'
 import fs from 'fs'
 import {ok} from 'assert'
 import {getOSSDownloadURL, ensureTool, LLVM12, ensureCUDA} from './ensure'
+import * as semver from 'semver'
+import os from 'os'
 
 async function load_img(tag: string, url: string): Promise<void> {
-  await exec.exec('docker', ['ps'], {silent: true})
-  const inspect = await exec.exec('docker', ['inspect', tag], {
-    ignoreReturnCode: true,
-    silent: true
-  })
-  if (inspect !== 0) {
-    const imgPath = await tc.downloadTool(url)
-    await exec.exec('docker', ['load', '-i', imgPath])
+  if (isSelfHosted()) {
+    await exec.exec('docker', ['ps'], {silent: true})
+    const inspect = await exec.exec('docker', ['inspect', tag], {
+      ignoreReturnCode: true,
+      silent: true
+    })
+    if (inspect !== 0) {
+      const imgPath = await tc.downloadTool(url)
+      await exec.exec('docker', ['load', '-i', imgPath])
+    }
+  } else {
+    await exec.exec('docker', ['pull', tag], {silent: false})
   }
 }
 
@@ -41,7 +51,7 @@ export async function ensureDocker(): Promise<void> {
       'https://oneflow-static.oss-cn-beijing.aliyuncs.com/img/quay.iopypamanylinux_2_24_x86_64.tar.gz'
     )
   } catch (error) {
-    core.warning(error.message)
+    core.warning(JSON.stringify(error, null, 2))
   }
 }
 
@@ -85,7 +95,8 @@ export async function buildManylinuxAndTag(
 ): Promise<string> {
   const fromTag = tagFromversion(version)
   const splits = fromTag.split('/')
-  const toTag: string = 'oneflowinc/'.concat(splits[splits.length - 1])
+  let toTag: string = 'oneflowinc/'.concat(splits[splits.length - 1])
+  toTag = [toTag, os.userInfo().username].join(':')
   const docker = new Docker({socketPath: '/var/run/docker.sock'})
   let buildArgs = {
     from: fromTag,
@@ -103,6 +114,16 @@ export async function buildManylinuxAndTag(
     buildArgs = {...buildArgs, ...selfHostedBuildArgs}
   }
   core.info(JSON.stringify(buildArgs, null, 2))
+  core.info(
+    JSON.stringify(
+      {
+        toTag,
+        buildArgs
+      },
+      null,
+      2
+    )
+  )
   const stream = await docker.buildImage(
     {
       context: version === '2_24' ? 'manylinux/debian' : 'manylinux/centos',
@@ -163,6 +184,18 @@ export async function runExec(
   })
 }
 
+export async function runBash(
+  container: Container,
+  cmd: string,
+  cwd?: string
+): Promise<void> {
+  return await runExec(
+    container,
+    ['bash', '-lc', `source /root/.bashrc && ${cmd}`],
+    cwd
+  )
+}
+
 const PythonExeMap = new Map([
   ['3.6', '/opt/python/cp36-cp36m/bin/python3'],
   ['3.7', '/opt/python/cp37-cp37m/bin/python3'],
@@ -187,6 +220,11 @@ export async function buildOneFlow(tag: string): Promise<void> {
   const CUDNN_ROOT_DIR = cudaTools.cudnn
   const containerName = 'ci-test-build-oneflow'
   const containerInfos = await docker.listContainers()
+  let shouldEnableGCC7 = false
+  const shouldSymbolicLinkLld = false
+  if (semver.major(cudaTools.cudaSemver) === 10) {
+    shouldEnableGCC7 = true
+  }
   for (const containerInfo of containerInfos) {
     if (
       containerInfo.Names.includes(containerName) ||
@@ -205,6 +243,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
   }
   let httpProxyEnvs: string[] = []
   let manylinuxCacheDir = getPathInput('manylinux-cache-dir')
+  // TODO: don't do any sub-directory appending, leave action caller to decide the cache dir?
   manylinuxCacheDir = path.join(manylinuxCacheDir, `cuda-${cudaVersion}`)
   await io.mkdirP(manylinuxCacheDir)
   if (core.getBooleanInput('use-system-http-proxy', {required: false})) {
@@ -245,7 +284,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
   const buildDir = path.join(manylinuxCacheDir, `build`)
 
   const container = await docker.createContainer({
-    Cmd: ['sleep', '3600'],
+    Cmd: ['sleep', '3000'],
     Image: tag,
     name: containerName,
     HostConfig: {
@@ -267,10 +306,31 @@ export async function buildOneFlow(tag: string): Promise<void> {
     ].concat(httpProxyEnvs)
   })
   await container.start()
-
   const pythonVersions: string[] = core.getMultilineInput('python-versions', {
     required: true
   })
+  if (shouldEnableGCC7) {
+    await runBash(
+      container,
+      "echo 'source scl_source enable devtoolset-7' >> ~/.bashrc"
+    )
+    await runBash(
+      container,
+      "echo 'export PATH=/usr/lib64/ccache:$PATH' >> ~/.bashrc"
+    )
+  }
+  if (shouldSymbolicLinkLld) {
+    for (const gccVersion of ['7', '10']) {
+      await runBash(
+        container,
+        `rm -f /opt/rh/devtoolset--${gccVersion}/root/usr/bin/ld`
+      )
+      await runBash(
+        container,
+        `ln -s $(which lld) /opt/rh/devtoolset-${gccVersion}/root/usr/bin/ld`
+      )
+    }
+  }
   for (const pythonVersion of pythonVersions) {
     const pythonExe = getPythonExe(pythonVersion)
     await buildOnePythonVersion(container, oneflowSrc, buildDir, pythonExe)

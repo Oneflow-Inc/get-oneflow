@@ -227,6 +227,7 @@ interface CUDATools {
   cudaToolkit: string
   cudaVersion: string
   cudnn: string
+  cudaSemver: string
 }
 
 export async function ensureCUDA(): Promise<CUDATools> {
@@ -235,7 +236,8 @@ export async function ensureCUDA(): Promise<CUDATools> {
     return {
       cudaToolkit: await ensureTool(CUDA102),
       cudnn: await ensureTool(CUDNN102),
-      cudaVersion
+      cudaVersion,
+      cudaSemver: CUDA102.version
     }
   } else {
     throw new Error(`unsupported cudaVersion: ${cudaVersion}`)
