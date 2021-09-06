@@ -120,7 +120,7 @@ async function run(): Promise<void> {
         break
     }
   } catch (error) {
-    core.setFailed(error.message)
+    core.setFailed(JSON.stringify(error, null, 2))
   }
 }
 
