@@ -53,6 +53,9 @@ inputs:
   wheelhouse-dir:
     description: 'where to put the produced .whl files'
     required: false
+  build-script:
+    description: 'a bash script to build oneflow'
+    required: true
 outputs:
   pip-index-url:
     description: 'pip index url could be use to install oneflow'
