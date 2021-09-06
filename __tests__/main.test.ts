@@ -97,12 +97,17 @@ test(
     process.env['INPUT_USE-SYSTEM-HTTP-PROXY'] = 'false'
     process.env['INPUT_CMAKE-INIT-CACHE'] =
       '~/oneflow/cmake/caches/ci/cuda-75.cmake'
-    process.env['INPUT_ONEFLOW-SRC'] = '~/oneflow'
+    const sourceDir = '~/oneflow'
+    process.env['INPUT_ONEFLOW-SRC'] = sourceDir
     process.env['INPUT_MANYLINUX-CACHE-DIR'] = '~/manylinux-cache-dirs/unittest'
     process.env['INPUT_WHEELHOUSE-DIR'] = '~/manylinux-wheelhouse'
     process.env['INPUT_PYTHON-VERSIONS'] = '3.6\n3.7'
     env.setInput('self-hosted', 'true')
     env.setInput('cuda-version', '10.2')
+    env.setInput(
+      'build-script',
+      path.join(sourceDir, 'ci/manylinux/build-gcc7.sh')
+    )
     const manylinuxVersion = '2014'
     const tag = await buildManylinuxAndTag(manylinuxVersion)
     await buildOneFlow(tag)

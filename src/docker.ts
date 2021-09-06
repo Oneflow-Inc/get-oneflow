@@ -14,6 +14,7 @@ import {ok} from 'assert'
 import {getOSSDownloadURL, ensureTool, LLVM12, ensureCUDA} from './ensure'
 import * as semver from 'semver'
 import os from 'os'
+import {env} from 'process'
 
 async function load_img(tag: string, url: string): Promise<void> {
   if (isSelfHosted()) {
@@ -146,17 +147,24 @@ export async function buildManylinuxAndTag(
   return toTag
 }
 
+interface RunExecOptions {
+  env?: string[] | undefined
+  cwd?: string | undefined
+}
+
 export async function runExec(
   container: Container,
   cmd: string[],
-  cwd?: string
+  options?: RunExecOptions
 ): Promise<void> {
   const exec_ = await container.exec({
     Cmd: cmd,
     AttachStdout: true,
     AttachStderr: true,
-    WorkingDir: cwd
+    WorkingDir: options?.cwd,
+    Env: options?.env
   })
+  core.info(cmd.join(' '))
   const stream = await exec_.start({Tty: false, Detach: false})
   await container.modem.demuxStream(stream, process.stdout, process.stderr)
   await new Promise((resolve, reject) => {
@@ -192,7 +200,7 @@ export async function runBash(
   return await runExec(
     container,
     ['bash', '-lc', `source /root/.bashrc && ${cmd}`],
-    cwd
+    {cwd}
   )
 }
 
@@ -213,6 +221,9 @@ function getPythonExe(pythonVersion: string): string {
 export async function buildOneFlow(tag: string): Promise<void> {
   const oneflowSrc: string = getPathInput('oneflow-src', {required: true})
   const wheelhouseDir: string = getPathInput('wheelhouse-dir', {required: true})
+  const buildScript: string = getPathInput('build-script', {
+    required: true
+  })
   const docker = new Docker({socketPath: '/var/run/docker.sock'})
   const cudaTools = await ensureCUDA()
   const cudaVersion = cudaTools.cudaVersion
@@ -220,11 +231,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
   const CUDNN_ROOT_DIR = cudaTools.cudnn
   const containerName = 'ci-test-build-oneflow'
   const containerInfos = await docker.listContainers()
-  let shouldEnableGCC7 = false
   const shouldSymbolicLinkLld = false
-  if (semver.major(cudaTools.cudaSemver) === 10) {
-    shouldEnableGCC7 = true
-  }
   for (const containerInfo of containerInfos) {
     if (
       containerInfo.Names.includes(containerName) ||
@@ -251,9 +258,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
       `HTTP_PROXY=${process.env.HTTP_PROXY}`,
       `http_proxy=${process.env.http_proxy}`,
       `HTTPS_PROXY=${process.env.HTTPS_PROXY}`,
-      `https_proxy=${process.env.https_proxy}`,
-      `CC=/usr/lib64/ccache/gcc`,
-      `CXX=/usr/lib64/ccache/g++`
+      `https_proxy=${process.env.https_proxy}`
     ]
   }
   let llvmDir = ''
@@ -309,16 +314,6 @@ export async function buildOneFlow(tag: string): Promise<void> {
   const pythonVersions: string[] = core.getMultilineInput('python-versions', {
     required: true
   })
-  if (shouldEnableGCC7) {
-    await runBash(
-      container,
-      "echo 'source scl_source enable devtoolset-7' >> ~/.bashrc"
-    )
-    await runBash(
-      container,
-      "echo 'export PATH=/usr/lib64/ccache:$PATH' >> ~/.bashrc"
-    )
-  }
   if (shouldSymbolicLinkLld) {
     for (const gccVersion of ['7', '10']) {
       await runBash(
@@ -333,7 +328,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
   }
   for (const pythonVersion of pythonVersions) {
     const pythonExe = getPythonExe(pythonVersion)
-    await buildOnePythonVersion(container, oneflowSrc, buildDir, pythonExe)
+    await buildOnePythonVersion(container, buildScript, oneflowSrc, pythonExe)
   }
   const distDir = path.join(oneflowSrc, 'python', 'dist')
   const whlFiles = await fs.promises.readdir(distDir)
@@ -343,7 +338,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
       runExec(
         container,
         ['auditwheel', 'repair', whl, '--wheel-dir', wheelhouseDir],
-        distDir
+        {cwd: distDir}
       )
     )
   )
@@ -351,55 +346,22 @@ export async function buildOneFlow(tag: string): Promise<void> {
 
 async function buildOnePythonVersion(
   container: Docker.Container,
+  buildScript: string,
   oneflowSrc: string,
-  buildDir: string,
   pythonExe: string
 ): Promise<void> {
-  const cmakeInitCache = getPathInput('cmake-init-cache')
+  const cmakeInitCache = getPathInput('cmake-init-cache', {required: true})
   const argsExclude = ['-e', '!dist', '-e', '!dist/**']
-  await runExec(
-    container,
-    ['git', 'clean', '-nXd'].concat(argsExclude),
-    path.join(oneflowSrc, 'python')
-  )
-  await runExec(
-    container,
-    ['git', 'clean', '-fXd'].concat(argsExclude),
-    path.join(oneflowSrc, 'python')
-  )
-  await runExec(container, ['gcc', '--version'])
-  await runExec(container, ['g++', '--version'])
-  await runExec(container, ['nvcc', '--version'])
-  await runExec(container, ['mkdir', '-p', buildDir])
-  // NOTE: removing top level CMakeCache.txt doesn't work for thirparty projects
-  // await runExec(container, ['rm', '-f', path.join(buildDir, 'CMakeCache.txt')])
-  await runExec(container, [
-    'find',
-    buildDir,
-    '-name',
-    'CMakeCache.txt',
-    '-delete'
-  ])
-  await runExec(container, [
-    'cmake',
-    '-S',
-    oneflowSrc,
-    '-C',
-    cmakeInitCache,
-    '-B',
-    buildDir,
-    `-DPython3_EXECUTABLE=${pythonExe}`
-  ])
-  await runExec(container, [
-    'cmake',
-    '--build',
-    buildDir,
-    '--parallel',
-    (await exec.getExecOutput('nproc')).stdout.trim()
-  ])
-  await runExec(
-    container,
-    [pythonExe, 'setup.py', 'bdist_wheel'],
-    path.join(oneflowSrc, 'python')
-  )
+  await runExec(container, ['git', 'clean', '-nXd'].concat(argsExclude), {
+    cwd: path.join(oneflowSrc, 'python')
+  })
+  await runExec(container, ['git', 'clean', '-fXd'].concat(argsExclude), {
+    cwd: path.join(oneflowSrc, 'python')
+  })
+  await runExec(container, ['bash', '-l', buildScript], {
+    env: [
+      `ONEFLOW_CI_PYTHON_EXE=${pythonExe}`,
+      `ONEFLOW_CI_CMAKE_INIT_CACHE=${cmakeInitCache}`
+    ]
+  })
 }

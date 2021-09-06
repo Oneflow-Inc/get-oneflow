@@ -128,7 +128,6 @@ const path_1 = __importDefault(__nccwpck_require__(85622));
 const fs_1 = __importDefault(__nccwpck_require__(35747));
 const assert_1 = __nccwpck_require__(42357);
 const ensure_1 = __nccwpck_require__(21614);
-const semver = __importStar(__nccwpck_require__(85911));
 const os_1 = __importDefault(__nccwpck_require__(12087));
 function load_img(tag, url) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -229,14 +228,16 @@ function buildManylinuxAndTag(version) {
     });
 }
 exports.buildManylinuxAndTag = buildManylinuxAndTag;
-function runExec(container, cmd, cwd) {
+function runExec(container, cmd, options) {
     return __awaiter(this, void 0, void 0, function* () {
         const exec_ = yield container.exec({
             Cmd: cmd,
             AttachStdout: true,
             AttachStderr: true,
-            WorkingDir: cwd
+            WorkingDir: options === null || options === void 0 ? void 0 : options.cwd,
+            Env: options === null || options === void 0 ? void 0 : options.env
         });
+        core.info(cmd.join(' '));
         const stream = yield exec_.start({ Tty: false, Detach: false });
         yield container.modem.demuxStream(stream, process.stdout, process.stderr);
         yield new Promise((resolve, reject) => {
@@ -268,7 +269,7 @@ function runExec(container, cmd, cwd) {
 exports.runExec = runExec;
 function runBash(container, cmd, cwd) {
     return __awaiter(this, void 0, void 0, function* () {
-        return yield runExec(container, ['bash', '-lc', `source /root/.bashrc && ${cmd}`], cwd);
+        return yield runExec(container, ['bash', '-lc', `source /root/.bashrc && ${cmd}`], { cwd });
     });
 }
 exports.runBash = runBash;
@@ -288,6 +289,9 @@ function buildOneFlow(tag) {
     return __awaiter(this, void 0, void 0, function* () {
         const oneflowSrc = util_1.getPathInput('oneflow-src', { required: true });
         const wheelhouseDir = util_1.getPathInput('wheelhouse-dir', { required: true });
+        const buildScript = util_1.getPathInput('build-script', {
+            required: true
+        });
         const docker = new dockerode_1.default({ socketPath: '/var/run/docker.sock' });
         const cudaTools = yield ensure_1.ensureCUDA();
         const cudaVersion = cudaTools.cudaVersion;
@@ -295,11 +299,7 @@ function buildOneFlow(tag) {
         const CUDNN_ROOT_DIR = cudaTools.cudnn;
         const containerName = 'ci-test-build-oneflow';
         const containerInfos = yield docker.listContainers();
-        let shouldEnableGCC7 = false;
         const shouldSymbolicLinkLld = false;
-        if (semver.major(cudaTools.cudaSemver) === 10) {
-            shouldEnableGCC7 = true;
-        }
         for (const containerInfo of containerInfos) {
             if (containerInfo.Names.includes(containerName) ||
                 containerInfo.Names.includes('/'.concat(containerName))) {
@@ -325,9 +325,7 @@ function buildOneFlow(tag) {
                 `HTTP_PROXY=${process.env.HTTP_PROXY}`,
                 `http_proxy=${process.env.http_proxy}`,
                 `HTTPS_PROXY=${process.env.HTTPS_PROXY}`,
-                `https_proxy=${process.env.https_proxy}`,
-                `CC=/usr/lib64/ccache/gcc`,
-                `CXX=/usr/lib64/ccache/g++`
+                `https_proxy=${process.env.https_proxy}`
             ];
         }
         let llvmDir = '';
@@ -382,10 +380,6 @@ function buildOneFlow(tag) {
         const pythonVersions = core.getMultilineInput('python-versions', {
             required: true
         });
-        if (shouldEnableGCC7) {
-            yield runBash(container, "echo 'source scl_source enable devtoolset-7' >> ~/.bashrc");
-            yield runBash(container, "echo 'export PATH=/usr/lib64/ccache:$PATH' >> ~/.bashrc");
-        }
         if (shouldSymbolicLinkLld) {
             for (const gccVersion of ['7', '10']) {
                 yield runBash(container, `rm -f /opt/rh/devtoolset--${gccVersion}/root/usr/bin/ld`);
@@ -394,54 +388,33 @@ function buildOneFlow(tag) {
         }
         for (const pythonVersion of pythonVersions) {
             const pythonExe = getPythonExe(pythonVersion);
-            yield buildOnePythonVersion(container, oneflowSrc, buildDir, pythonExe);
+            yield buildOnePythonVersion(container, buildScript, oneflowSrc, pythonExe);
         }
         const distDir = path_1.default.join(oneflowSrc, 'python', 'dist');
         const whlFiles = yield fs_1.default.promises.readdir(distDir);
         assert_1.ok(whlFiles.length);
         yield Promise.all(whlFiles.map((whl) => __awaiter(this, void 0, void 0, function* () {
-            return runExec(container, ['auditwheel', 'repair', whl, '--wheel-dir', wheelhouseDir], distDir);
+            return runExec(container, ['auditwheel', 'repair', whl, '--wheel-dir', wheelhouseDir], { cwd: distDir });
         })));
     });
 }
 exports.buildOneFlow = buildOneFlow;
-function buildOnePythonVersion(container, oneflowSrc, buildDir, pythonExe) {
+function buildOnePythonVersion(container, buildScript, oneflowSrc, pythonExe) {
     return __awaiter(this, void 0, void 0, function* () {
-        const cmakeInitCache = util_1.getPathInput('cmake-init-cache');
+        const cmakeInitCache = util_1.getPathInput('cmake-init-cache', { required: true });
         const argsExclude = ['-e', '!dist', '-e', '!dist/**'];
-        yield runExec(container, ['git', 'clean', '-nXd'].concat(argsExclude), path_1.default.join(oneflowSrc, 'python'));
-        yield runExec(container, ['git', 'clean', '-fXd'].concat(argsExclude), path_1.default.join(oneflowSrc, 'python'));
-        yield runExec(container, ['gcc', '--version']);
-        yield runExec(container, ['g++', '--version']);
-        yield runExec(container, ['nvcc', '--version']);
-        yield runExec(container, ['mkdir', '-p', buildDir]);
-        // NOTE: removing top level CMakeCache.txt doesn't work for thirparty projects
-        // await runExec(container, ['rm', '-f', path.join(buildDir, 'CMakeCache.txt')])
-        yield runExec(container, [
-            'find',
-            buildDir,
-            '-name',
-            'CMakeCache.txt',
-            '-delete'
-        ]);
-        yield runExec(container, [
-            'cmake',
-            '-S',
-            oneflowSrc,
-            '-C',
-            cmakeInitCache,
-            '-B',
-            buildDir,
-            `-DPython3_EXECUTABLE=${pythonExe}`
-        ]);
-        yield runExec(container, [
-            'cmake',
-            '--build',
-            buildDir,
-            '--parallel',
-            (yield exec.getExecOutput('nproc')).stdout.trim()
-        ]);
-        yield runExec(container, [pythonExe, 'setup.py', 'bdist_wheel'], path_1.default.join(oneflowSrc, 'python'));
+        yield runExec(container, ['git', 'clean', '-nXd'].concat(argsExclude), {
+            cwd: path_1.default.join(oneflowSrc, 'python')
+        });
+        yield runExec(container, ['git', 'clean', '-fXd'].concat(argsExclude), {
+            cwd: path_1.default.join(oneflowSrc, 'python')
+        });
+        yield runExec(container, ['bash', '-l', buildScript], {
+            env: [
+                `ONEFLOW_CI_PYTHON_EXE=${pythonExe}`,
+                `ONEFLOW_CI_CMAKE_INIT_CACHE=${cmakeInitCache}`
+            ]
+        });
     });
 }
 
