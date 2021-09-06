@@ -91,9 +91,6 @@ test(
 test(
   'build manylinux pip',
   async () => {
-    if (!process.env['TEST_MANYLINUX']) {
-      return
-    }
     process.env['INPUT_USE-SYSTEM-HTTP-PROXY'] = 'false'
     process.env['INPUT_CMAKE-INIT-CACHE'] =
       '~/oneflow/cmake/caches/ci/cuda-75.cmake'
@@ -109,8 +106,13 @@ test(
       path.join(sourceDir, 'ci/manylinux/build-gcc7.sh')
     )
     const manylinuxVersion = '2014'
-    const tag = await buildManylinuxAndTag(manylinuxVersion)
-    // await buildOneFlow(tag)
+    let tag = ''
+    if (!process.env['TEST_MANYLINUX_IMG']) {
+      tag = await buildManylinuxAndTag(manylinuxVersion)
+    }
+    if (!process.env['TEST_MANYLINUX_BUILD']) {
+      await buildOneFlow(tag)
+    }
   },
   MINUTES15
 )
