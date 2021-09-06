@@ -107,10 +107,10 @@ test(
     )
     const manylinuxVersion = '2014'
     let tag = ''
-    if (!process.env['TEST_MANYLINUX_IMG']) {
+    if (process.env['TEST_MANYLINUX_IMG']) {
       tag = await buildManylinuxAndTag(manylinuxVersion)
     }
-    if (!process.env['TEST_MANYLINUX_BUILD']) {
+    if (process.env['TEST_MANYLINUX_BUILD']) {
       await buildOneFlow(tag)
     }
   },

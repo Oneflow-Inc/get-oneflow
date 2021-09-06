@@ -1,28 +1,23 @@
 ARG from
 FROM ${from}
-ARG SCCACHE_RELEASE_URL="https://github.com/mozilla/sccache/releases/download/v0.2.15/sccache-v0.2.15-x86_64-unknown-linux-musl.tar.gz"
-RUN curl ${SCCACHE_RELEASE_URL} -o sccache.tar.gz && \
-    tar zxvf sccache.tar.gz && \
-    mv sccache-*/sccache /tmp && \
-    chmod +x /tmp/sccache
-ARG BAZEL_URL="https://github.com/bazelbuild/bazel/releases/download/3.4.1/bazel-3.4.1-linux-x86_64"
-RUN curl -L $BAZEL_URL -o /tmp/bazel \
-    && chmod +x /tmp/bazel
-
-ARG from
-FROM ${from}
-ENV PATH="/usr/local/cuda/bin:/usr/local/llvm/bin:${PATH}"
-COPY --from=0 /tmp/sccache /usr/local/bin
-COPY --from=0 /tmp/bazel /usr/local/bin
-
 ARG LLVM_SRC_URL="https://github.com/llvm/llvm-project/releases/download/llvmorg-12.0.1/llvm-project-12.0.1.src.tar.xz"
-RUN yum install -y nasm rdma-core-devel rsync gdb ninja-build openblas-static autoconf libtool wget ccache
-RUN mkdir /llvm-tmp && cd /llvm-tmp && \
-    curl ${LLVM_SRC_URL} -o llvm.src.tar.xz && \
-    tar xvf llvm.src.tar.xz && \
-    cd llvm-project-12.0.1.src && mkdir build && cd build && \
-    cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PROJECTS=lld -DCMAKE_INSTALL_PREFIX=/usr/local ../llvm && ninja install && \
-    rm -rf /llvm-tmp
-RUN yum install -y devtoolset-7-gcc*
+RUN mkdir /llvm-tmp && cd /llvm-tmp \
+    && curl -L ${LLVM_SRC_URL} -o llvm.src.tar.xz \
+    && tar xvf llvm.src.tar.xz \
+    && cd llvm-project-12.0.1.src && mkdir build && cd build \
+    && cmake -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_PROJECTS=lld -DCMAKE_INSTALL_PREFIX=/usr/local ../llvm && make install -j$(nproc) \
+    && rm -rf /llvm-tmp
+ARG SCCACHE_RELEASE_URL="https://github.com/mozilla/sccache/releases/download/v0.2.15/sccache-v0.2.15-x86_64-unknown-linux-musl.tar.gz"
+RUN mkdir /sccache-tmp && cd /sccache-tmp && curl -L ${SCCACHE_RELEASE_URL} -o sccache.tar.gz \
+    && tar zxvf sccache.tar.gz \
+    && mv sccache-*/sccache /usr/local/bin \
+    && chmod +x /usr/local/bin/sccache \
+    && rm -rf /sccache-tmp
+ARG BAZEL_URL="https://github.com/bazelbuild/bazel/releases/download/3.4.1/bazel-3.4.1-linux-x86_64"
+RUN curl -L $BAZEL_URL -o /usr/local/bin/bazel \
+    && chmod +x /usr/local/bin/bazel
+RUN yum install -y wget nasm rdma-core-devel rsync gdb ninja-build openblas-static autoconf libtool wget ccache devtoolset-7-gcc*
+ENV PATH="/usr/local/cuda/bin:/usr/local/llvm/bin:${PATH}"
+ENV PATH=/usr/lib64/ccache:$PATH
 RUN ln -s  $(which ccache) /usr/lib64/ccache/g++
 RUN ln -s  $(which ccache) /usr/lib64/ccache/nvcc
