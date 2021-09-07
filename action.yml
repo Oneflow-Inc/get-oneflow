@@ -56,6 +56,10 @@ inputs:
   build-script:
     description: 'a bash script to build oneflow'
     required: true
+  docker-build-use-system-http-proxy:
+    description: 'a bash script to build oneflow'
+    required: false
+    default: false
 outputs:
   pip-index-url:
     description: 'pip index url could be use to install oneflow'

@@ -337,7 +337,9 @@ function buildOneFlow(tag) {
         // TODO: don't do any sub-directory appending, leave action caller to decide the cache dir?
         manylinuxCacheDir = path_1.default.join(manylinuxCacheDir, `cuda-${cudaVersion}`);
         yield io.mkdirP(manylinuxCacheDir);
-        if (core.getBooleanInput('use-system-http-proxy', { required: false })) {
+        if (core.getBooleanInput('docker-build-use-system-http-proxy', {
+            required: false
+        })) {
             httpProxyEnvs = [
                 `HTTP_PROXY=${process.env.HTTP_PROXY}`,
                 `http_proxy=${process.env.http_proxy}`,

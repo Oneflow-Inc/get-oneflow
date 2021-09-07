@@ -92,7 +92,7 @@ test(
 test(
   'build manylinux pip',
   async () => {
-    process.env['INPUT_USE-SYSTEM-HTTP-PROXY'] = 'false'
+    env.setBooleanInput('docker-build-use-system-http-proxy', false)
     process.env['INPUT_CMAKE-INIT-CACHE'] =
       '~/oneflow/cmake/caches/ci/cuda-75.cmake'
     const sourceDir = '~/oneflow'
