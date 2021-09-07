@@ -16,7 +16,7 @@ RUN mkdir /sccache-tmp && cd /sccache-tmp && curl -L ${SCCACHE_RELEASE_URL} -o s
 ARG BAZEL_URL="https://github.com/bazelbuild/bazel/releases/download/3.4.1/bazel-3.4.1-linux-x86_64"
 RUN curl -L $BAZEL_URL -o /usr/local/bin/bazel \
     && chmod +x /usr/local/bin/bazel
-RUN yum install -y wget nasm rdma-core-devel rsync gdb ninja-build openblas-static autoconf libtool wget ccache devtoolset-7-gcc*
+RUN yum install -y wget nasm rdma-core-devel rsync gdb ninja-build openblas-static autoconf libtool wget ccache devtoolset-7-gcc* vim
 ENV PATH="/usr/local/cuda/bin:/usr/local/llvm/bin:${PATH}"
 ENV PATH=/usr/lib64/ccache:$PATH
 RUN ln -s  $(which ccache) /usr/lib64/ccache/g++
