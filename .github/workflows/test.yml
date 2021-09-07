@@ -43,7 +43,7 @@ jobs:
           action: mirror-tools
 
   test-build-img:
-    name: 'Build OneFlow'
+    name: 'Build image'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
