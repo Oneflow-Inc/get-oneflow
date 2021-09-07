@@ -70,8 +70,14 @@ jobs:
         os: [['self-hosted', 'linux', 'provision'], [ubuntu-latest]]
         oneflow-build-env: ['conda', 'manylinux']
         include:
-          - test_suite: manylinux
-            cuda-version: [10.2, 11.4]
+          - oneflow-build-env: manylinux
+            cuda-version: 10.2
+            cmake-init-cache: cmake/caches/ci/cuda-75.cmake
+            build-script: ci/manylinux/build-gcc7.sh
+          - oneflow-build-env: manylinux
+            cuda-version: 11.4
+            cmake-init-cache: cmake/caches/ci/cuda-75-lld.cmake
+            build-script: ci/manylinux/build.sh
 
     env:
       ONEFLOW_SRC: oneflow-src-${{ matrix.oneflow-build-env }}
@@ -125,14 +131,14 @@ jobs:
         if: ${{ matrix.oneflow-build-env == 'manylinux'}}
         with:
           action: ${{ env.ACTION }}
-          cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/ci/cuda-75.cmake
-          build-script: ${{ env.ONEFLOW_SRC }}/ci/manylinux/build-gcc7.sh
+          cmake-init-cache: ${{ env.ONEFLOW_SRC }}/${{ matrix.cmake-init-cache }}
+          build-script: ${{ env.ONEFLOW_SRC }}/${{ matrix.build-script }}
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           oneflow-build-env: manylinux
           wheelhouse-dir: manylinux-wheelhouse
           self-hosted: ${{ contains(matrix.os, 'self-hosted') }}
-          cuda-version: 10.2
-          manylinux-cache-dir: ~/manylinux-cache-dir/10.2
+          cuda-version: ${{ matrix.cuda-version }}
+          manylinux-cache-dir: ~/manylinux-cache-dir/${{ matrix.cuda-version }}
           python-versions: |
             3.6
             3.7

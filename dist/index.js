@@ -377,7 +377,7 @@ function buildOneFlow(tag) {
             });
         }
         const buildDir = path_1.default.join(manylinuxCacheDir, `build`);
-        const container = yield docker.createContainer({
+        const createOptions = {
             Cmd: ['sleep', '3000'],
             Image: tag,
             name: containerName,
@@ -398,14 +398,16 @@ function buildOneFlow(tag) {
                 `ONEFLOW_CI_SRC_DIR=${oneflowSrc}`,
                 `ONEFLOW_CI_LLVM_DIR=${llvmDir}`
             ].concat(httpProxyEnvs)
-        });
+        };
+        core.info(JSON.stringify(createOptions, null, 2));
+        const container = yield docker.createContainer(createOptions);
         yield container.start();
         const pythonVersions = core.getMultilineInput('python-versions', {
             required: true
         });
         if (shouldSymbolicLinkLld) {
             for (const gccVersion of ['7', '10']) {
-                yield runBash(container, `rm -f /opt/rh/devtoolset--${gccVersion}/root/usr/bin/ld`);
+                yield runBash(container, `rm -f /opt/rh/devtoolset-${gccVersion}/root/usr/bin/ld`);
                 yield runBash(container, `ln -s $(which lld) /opt/rh/devtoolset-${gccVersion}/root/usr/bin/ld`);
             }
         }
@@ -646,17 +648,16 @@ function ensureTool(tool) {
             }
             // Extract and cache
             if (isCUDAToolkit) {
-                const cudaExtractDir = yield util_1.createExtractFolder();
-                const cudaExtractTmpDir = yield util_1.createExtractFolder();
+                const cudatoolkitPath = yield util_1.createExtractFolder();
                 yield exec.exec('bash', [
                     path_1.default.join(archivePath, fileName),
-                    `--extract=${cudaExtractDir}`,
+                    `--toolkitpath=${cudatoolkitPath}`,
                     '--override',
-                    `--tmpdir=${cudaExtractTmpDir}`,
                     '--silent',
-                    '--samples'
+                    '--toolkit'
                 ]);
-                const cudaToolkitPathCached = yield tc.cacheDir(path_1.default.join(cudaExtractDir, 'cuda-toolkit'), tool.name, tool.version);
+                assert_1.ok(fs.existsSync(path_1.default.join(cudatoolkitPath, 'bin', 'nvcc')));
+                const cudaToolkitPathCached = yield tc.cacheDir(cudatoolkitPath, tool.name, tool.version);
                 const cudaToolkitPathFound = tc.find(tool.name, tool.version);
                 assert_1.ok(cudaToolkitPathCached === cudaToolkitPathFound);
                 cachedPath = cudaToolkitPathCached;

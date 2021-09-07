@@ -316,8 +316,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
     })
   }
   const buildDir = path.join(manylinuxCacheDir, `build`)
-
-  const container = await docker.createContainer({
+  const createOptions = {
     Cmd: ['sleep', '3000'],
     Image: tag,
     name: containerName,
@@ -338,7 +337,9 @@ export async function buildOneFlow(tag: string): Promise<void> {
       `ONEFLOW_CI_SRC_DIR=${oneflowSrc}`,
       `ONEFLOW_CI_LLVM_DIR=${llvmDir}`
     ].concat(httpProxyEnvs)
-  })
+  }
+  core.info(JSON.stringify(createOptions, null, 2))
+  const container = await docker.createContainer(createOptions)
   await container.start()
   const pythonVersions: string[] = core.getMultilineInput('python-versions', {
     required: true
@@ -347,7 +348,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
     for (const gccVersion of ['7', '10']) {
       await runBash(
         container,
-        `rm -f /opt/rh/devtoolset--${gccVersion}/root/usr/bin/ld`
+        `rm -f /opt/rh/devtoolset-${gccVersion}/root/usr/bin/ld`
       )
       await runBash(
         container,

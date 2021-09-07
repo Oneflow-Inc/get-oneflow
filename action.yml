@@ -15,6 +15,7 @@ inputs:
     description: 'the key to check if two builds are equivalent to each other, usually is hash value of non-test cpp and python files'
     required: true
     default: 'none'
+  # TODO: make it optional, build-script can include a cmake-init-cache there is no reuse needed
   # CMake args
   cmake-init-cache:
     description: 'path to CMake initial cache file to build OneFlow'

@@ -6,6 +6,7 @@ import os from 'os'
 import {buildManylinuxAndTag, ensureDocker, buildOneFlow} from '../src/docker'
 import {TOOLS, mirrorToDownloads, ensureCUDA102} from '../src/ensure'
 import * as env from '../src/env'
+import {ok} from 'assert'
 
 process.env['RUNNER_TOOL_CACHE'] = '~/runner_tool_cache'.replace(
   '~',
@@ -97,15 +98,28 @@ test(
       '~/oneflow/cmake/caches/ci/cuda-75.cmake'
     const sourceDir = '~/oneflow'
     process.env['INPUT_ONEFLOW-SRC'] = sourceDir
-    process.env['INPUT_MANYLINUX-CACHE-DIR'] = '~/manylinux-cache-dirs/unittest'
+    const cudaVersion = '11.4'
+    process.env[
+      'INPUT_MANYLINUX-CACHE-DIR'
+    ] = '~/manylinux-cache-dirs/unittest-'.concat(cudaVersion)
     process.env['INPUT_WHEELHOUSE-DIR'] = '~/manylinux-wheelhouse'
     process.env['INPUT_PYTHON-VERSIONS'] = '3.6\n3.7'
     env.setInput('self-hosted', 'true')
-    env.setInput('cuda-version', '10.2')
+    env.setInput('cuda-version', cudaVersion)
     env.setInput(
       'build-script',
       path.join(sourceDir, 'ci/manylinux/build-gcc7.sh')
     )
+    if (cudaVersion === '11.4') {
+      env.setInput(
+        'build-script',
+        path.join(sourceDir, 'ci/manylinux/build.sh')
+      )
+      env.setInput(
+        'cmake-init-cache',
+        '~/oneflow/cmake/caches/ci/cuda-75-lld.cmake'
+      )
+    }
     const manylinuxVersion = '2014'
     let tag = ''
     const TEST_MANYLINUX = process.env['TEST_MANYLINUX'] || ''
@@ -113,6 +127,7 @@ test(
       tag = await buildManylinuxAndTag(manylinuxVersion)
     }
     if (TEST_MANYLINUX.includes('build')) {
+      ok(tag)
       await buildOneFlow(tag)
     }
   },
