@@ -76,7 +76,7 @@ jobs:
       - name: Fix permissions
         if: ${{ contains(matrix.os, 'self-hosted') }}
         run: |
-          docker run --rm -v $PWD:/p -w /p busybox chmod -R o+w .
+          docker run --rm -v $PWD:/p -w /p busybox chown -R $(id -u):$(id -g) .
       - name: remove leftover cuda-installer.log
         if: ${{ contains(matrix.os, 'self-hosted') }}
         run: |
