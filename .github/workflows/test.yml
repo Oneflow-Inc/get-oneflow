@@ -76,10 +76,12 @@ jobs:
       - name: Fix permissions
         if: ${{ contains(matrix.os, 'self-hosted') }}
         run: |
+          set -x
           docker run --rm -v $PWD:/p -w /p busybox chown -R $(id -u):$(id -g) .
-      - name: remove leftover cuda-installer.log
+      - name: Remove leftover cuda-installer.log
         if: ${{ contains(matrix.os, 'self-hosted') }}
         run: |
+          set -x
           docker run --rm -v /tmp:/host/tmp -w /p busybox rm -f /host/tmp/cuda-installer.log
       - uses: actions/checkout@v2
       - name: Checkout Oneflow-Inc/oneflow
