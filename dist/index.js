@@ -1,4 +1,4 @@
-require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
+/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
 /***/ 64774:
@@ -179,6 +179,7 @@ function tagFromversion(version) {
 exports.tagFromversion = tagFromversion;
 exports.DOCKER_TOOL_URLS = {
     sccache: 'https://github.com/mozilla/sccache/releases/download/v0.2.15/sccache-v0.2.15-x86_64-unknown-linux-musl.tar.gz',
+    ccache: 'https://github.com/ccache/ccache/releases/download/v4.4/ccache-4.4.tar.gz',
     bazel: 'https://github.com/bazelbuild/bazel/releases/download/3.4.1/bazel-3.4.1-linux-x86_64',
     llvm1201src: 'https://github.com/llvm/llvm-project/releases/download/llvmorg-12.0.1/llvm-project-12.0.1.src.tar.xz'
 };
@@ -199,6 +200,7 @@ function buildManylinuxAndTag(version) {
         if (util_1.isSelfHosted()) {
             const selfHostedBuildArgs = {
                 SCCACHE_RELEASE_URL: ensure_1.getOSSDownloadURL(exports.DOCKER_TOOL_URLS.sccache),
+                CCACHE_RELEASE_URL: ensure_1.getOSSDownloadURL(exports.DOCKER_TOOL_URLS.ccache),
                 LLVM_SRC_URL: ensure_1.getOSSDownloadURL(exports.DOCKER_TOOL_URLS.llvm1201src),
                 BAZEL_URL: ensure_1.getOSSDownloadURL(exports.DOCKER_TOOL_URLS.bazel)
             };
@@ -106820,4 +106822,3 @@ module.exports = require("zlib");
 /******/ 	
 /******/ })()
 ;
-//# sourceMappingURL=index.js.map

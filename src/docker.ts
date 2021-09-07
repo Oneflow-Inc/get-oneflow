@@ -89,6 +89,8 @@ type StreamFrame = StreamFrameData | StreamStatus | StreamErr
 export const DOCKER_TOOL_URLS = {
   sccache:
     'https://github.com/mozilla/sccache/releases/download/v0.2.15/sccache-v0.2.15-x86_64-unknown-linux-musl.tar.gz',
+  ccache:
+    'https://github.com/ccache/ccache/releases/download/v4.4/ccache-4.4.tar.gz',
   bazel:
     'https://github.com/bazelbuild/bazel/releases/download/3.4.1/bazel-3.4.1-linux-x86_64',
   llvm1201src:
@@ -113,6 +115,7 @@ export async function buildManylinuxAndTag(
   if (isSelfHosted()) {
     const selfHostedBuildArgs = {
       SCCACHE_RELEASE_URL: getOSSDownloadURL(DOCKER_TOOL_URLS.sccache),
+      CCACHE_RELEASE_URL: getOSSDownloadURL(DOCKER_TOOL_URLS.ccache),
       LLVM_SRC_URL: getOSSDownloadURL(DOCKER_TOOL_URLS.llvm1201src),
       BAZEL_URL: getOSSDownloadURL(DOCKER_TOOL_URLS.bazel)
     }

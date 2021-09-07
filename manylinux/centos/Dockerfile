@@ -13,11 +13,26 @@ RUN mkdir /sccache-tmp && cd /sccache-tmp && curl -L ${SCCACHE_RELEASE_URL} -o s
     && mv sccache-*/sccache /usr/local/bin \
     && chmod +x /usr/local/bin/sccache \
     && rm -rf /sccache-tmp
+ARG CCACHE_RELEASE_URL="https://github.com/ccache/ccache/releases/download/v4.4/ccache-4.4.tar.gz"
+RUN yum install -y libzstd-devel
+RUN mkdir /ccache-tmp && cd /ccache-tmp && curl -L ${CCACHE_RELEASE_URL} -o ccache.tar.gz \
+    && tar zxf ccache.tar.gz \
+    && cd ccache-4.4 \
+    && mkdir build \
+    && cd build \
+    && cmake -DCMAKE_BUILD_TYPE=Release -DREDIS_STORAGE_BACKEND=OFF .. \
+    && make -j$(nproc) \
+    && make install -j$(nproc) \
+    && rm -rf /ccache-tmp
 ARG BAZEL_URL="https://github.com/bazelbuild/bazel/releases/download/3.4.1/bazel-3.4.1-linux-x86_64"
 RUN curl -L $BAZEL_URL -o /usr/local/bin/bazel \
     && chmod +x /usr/local/bin/bazel
-RUN yum install -y wget nasm rdma-core-devel rsync gdb ninja-build openblas-static autoconf libtool wget ccache devtoolset-7-gcc* vim
+RUN yum install -y wget nasm rdma-core-devel rsync gdb ninja-build openblas-static autoconf libtool wget devtoolset-7-gcc* vim
 ENV PATH="/usr/local/cuda/bin:/usr/local/llvm/bin:${PATH}"
+RUN mkdir -p /usr/lib64/ccache
 ENV PATH=/usr/lib64/ccache:$PATH
-RUN ln -s  $(which ccache) /usr/lib64/ccache/g++
-RUN ln -s  $(which ccache) /usr/lib64/ccache/nvcc
+RUN ln -sf $(which ccache) /usr/lib64/ccache/gcc
+RUN ln -sf $(which ccache) /usr/lib64/ccache/g++
+RUN ln -sf $(which ccache) /usr/lib64/ccache/cc
+RUN ln -sf $(which ccache) /usr/lib64/ccache/c++
+RUN ln -sf $(which ccache) /usr/lib64/ccache/nvcc
