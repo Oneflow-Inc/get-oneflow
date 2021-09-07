@@ -55,6 +55,7 @@ jobs:
       ONEFLOW_SRC: oneflow-src-${{ matrix.oneflow-build-env }}
       ACTION: build-oneflow
     steps:
+      - uses: actions/checkout@v2
       - uses: ./manylinux
         name: Test build manylinux
         with:
