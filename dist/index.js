@@ -311,7 +311,6 @@ function buildOneFlow(tag) {
         });
         const docker = new dockerode_1.default({ socketPath: '/var/run/docker.sock' });
         const cudaTools = yield ensure_1.ensureCUDA();
-        const cudaVersion = cudaTools.cudaVersion;
         const CUDA_TOOLKIT_ROOT_DIR = cudaTools.cudaToolkit;
         const CUDNN_ROOT_DIR = cudaTools.cudnn;
         const containerName = 'ci-test-build-oneflow';
@@ -333,9 +332,10 @@ function buildOneFlow(tag) {
             }
         }
         let httpProxyEnvs = [];
-        let manylinuxCacheDir = util_1.getPathInput('manylinux-cache-dir', { required: true });
+        const manylinuxCacheDir = util_1.getPathInput('manylinux-cache-dir', {
+            required: true
+        });
         // TODO: don't do any sub-directory appending, leave action caller to decide the cache dir?
-        manylinuxCacheDir = path_1.default.join(manylinuxCacheDir, `cuda-${cudaVersion}`);
         yield io.mkdirP(manylinuxCacheDir);
         if (core.getBooleanInput('docker-build-use-system-http-proxy', {
             required: false
