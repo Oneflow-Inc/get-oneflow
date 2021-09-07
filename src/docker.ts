@@ -250,7 +250,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
   const cudaTools = await ensureCUDA()
   const CUDA_TOOLKIT_ROOT_DIR = cudaTools.cudaToolkit
   const CUDNN_ROOT_DIR = cudaTools.cudnn
-  const containerName = 'ci-test-build-oneflow'
+  const containerName = 'oneflow-manylinux-'.concat(os.userInfo().username)
   const containerInfos = await docker.listContainers()
   let shouldSymbolicLinkLld = false
   if (semver.major(cudaTools.cudaSemver) >= 11) {

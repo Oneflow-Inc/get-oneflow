@@ -314,7 +314,7 @@ function buildOneFlow(tag) {
         const cudaTools = yield ensure_1.ensureCUDA();
         const CUDA_TOOLKIT_ROOT_DIR = cudaTools.cudaToolkit;
         const CUDNN_ROOT_DIR = cudaTools.cudnn;
-        const containerName = 'ci-test-build-oneflow';
+        const containerName = 'oneflow-manylinux-'.concat(os_1.default.userInfo().username);
         const containerInfos = yield docker.listContainers();
         let shouldSymbolicLinkLld = false;
         if (semver.major(cudaTools.cudaSemver) >= 11) {
