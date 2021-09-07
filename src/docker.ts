@@ -235,7 +235,7 @@ const PythonExeMap = new Map([
 
 function getPythonExe(pythonVersion: string): string {
   const exe = PythonExeMap.get(pythonVersion)
-  ok(exe)
+  ok(exe, pythonVersion)
   return exe
 }
 

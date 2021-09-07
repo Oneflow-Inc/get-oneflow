@@ -299,7 +299,7 @@ const PythonExeMap = new Map([
 ]);
 function getPythonExe(pythonVersion) {
     const exe = PythonExeMap.get(pythonVersion);
-    assert_1.ok(exe);
+    assert_1.ok(exe, pythonVersion);
     return exe;
 }
 function buildOneFlow(tag) {
