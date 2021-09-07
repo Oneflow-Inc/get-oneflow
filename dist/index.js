@@ -318,7 +318,7 @@ function buildOneFlow(tag) {
         const containerInfos = yield docker.listContainers();
         let shouldSymbolicLinkLld = false;
         if (semver.major(cudaTools.cudaSemver) >= 11) {
-            shouldSymbolicLinkLld = false;
+            shouldSymbolicLinkLld = true;
         }
         for (const containerInfo of containerInfos) {
             if (containerInfo.Names.includes(containerName) ||

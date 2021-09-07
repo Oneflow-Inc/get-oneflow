@@ -254,7 +254,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
   const containerInfos = await docker.listContainers()
   let shouldSymbolicLinkLld = false
   if (semver.major(cudaTools.cudaSemver) >= 11) {
-    shouldSymbolicLinkLld = false
+    shouldSymbolicLinkLld = true
   }
   for (const containerInfo of containerInfos) {
     if (
