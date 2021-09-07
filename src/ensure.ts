@@ -187,7 +187,9 @@ export async function ensureTool(tool: Tool): Promise<string> {
         path.join(archivePath, fileName),
         `--extract=${cudaExtractDir}`,
         '--override',
-        `--tmpdir=${cudaExtractTmpDir}`
+        `--tmpdir=${cudaExtractTmpDir}`,
+        '--silent',
+        '--samples'
       ])
       const cudaToolkitPathCached = await tc.cacheDir(
         path.join(cudaExtractDir, 'cuda-toolkit'),

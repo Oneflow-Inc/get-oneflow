@@ -628,7 +628,9 @@ function ensureTool(tool) {
                     path_1.default.join(archivePath, fileName),
                     `--extract=${cudaExtractDir}`,
                     '--override',
-                    `--tmpdir=${cudaExtractTmpDir}`
+                    `--tmpdir=${cudaExtractTmpDir}`,
+                    '--silent',
+                    '--samples'
                 ]);
                 const cudaToolkitPathCached = yield tc.cacheDir(path_1.default.join(cudaExtractDir, 'cuda-toolkit'), tool.name, tool.version);
                 const cudaToolkitPathFound = tc.find(tool.name, tool.version);
