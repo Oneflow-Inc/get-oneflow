@@ -182,12 +182,12 @@ export async function ensureTool(tool: Tool): Promise<string> {
     // Extract and cache
     if (isCUDAToolkit) {
       const cudaExtractDir = await createExtractFolder()
+      const cudaExtractTmpDir = await createExtractFolder()
       await exec.exec('bash', [
         path.join(archivePath, fileName),
         `--extract=${cudaExtractDir}`,
         '--override',
-        '--silent',
-        '--samples'
+        `--tmpdir=${cudaExtractTmpDir}`
       ])
       const cudaToolkitPathCached = await tc.cacheDir(
         path.join(cudaExtractDir, 'cuda-toolkit'),

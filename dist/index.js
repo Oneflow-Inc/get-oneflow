@@ -623,12 +623,12 @@ function ensureTool(tool) {
             // Extract and cache
             if (isCUDAToolkit) {
                 const cudaExtractDir = yield util_1.createExtractFolder();
+                const cudaExtractTmpDir = yield util_1.createExtractFolder();
                 yield exec.exec('bash', [
                     path_1.default.join(archivePath, fileName),
                     `--extract=${cudaExtractDir}`,
                     '--override',
-                    '--silent',
-                    '--samples'
+                    `--tmpdir=${cudaExtractTmpDir}`
                 ]);
                 const cudaToolkitPathCached = yield tc.cacheDir(path_1.default.join(cudaExtractDir, 'cuda-toolkit'), tool.name, tool.version);
                 const cudaToolkitPathFound = tc.find(tool.name, tool.version);
