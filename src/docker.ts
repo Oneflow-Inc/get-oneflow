@@ -46,7 +46,7 @@ export async function ensureDocker(): Promise<void> {
       'https://oneflow-static.oss-cn-beijing.aliyuncs.com/img/quay.iopypamanylinux_2_24_x86_64.tar.gz'
     )
   } catch (error) {
-    core.setFailed(JSON.stringify(error, null, 2))
+    core.setFailed(error.message)
   }
 }
 
