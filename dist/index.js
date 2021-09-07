@@ -129,6 +129,7 @@ const fs_1 = __importDefault(__nccwpck_require__(35747));
 const assert_1 = __nccwpck_require__(42357);
 const ensure_1 = __nccwpck_require__(21614);
 const os_1 = __importDefault(__nccwpck_require__(12087));
+const semver = __importStar(__nccwpck_require__(85911));
 function load_img(tag, url) {
     return __awaiter(this, void 0, void 0, function* () {
         if (util_1.isSelfHosted()) {
@@ -315,7 +316,10 @@ function buildOneFlow(tag) {
         const CUDNN_ROOT_DIR = cudaTools.cudnn;
         const containerName = 'ci-test-build-oneflow';
         const containerInfos = yield docker.listContainers();
-        const shouldSymbolicLinkLld = false;
+        let shouldSymbolicLinkLld = false;
+        if (semver.major(cudaTools.cudaSemver) >= 11) {
+            shouldSymbolicLinkLld = true;
+        }
         for (const containerInfo of containerInfos) {
             if (containerInfo.Names.includes(containerName) ||
                 containerInfo.Names.includes('/'.concat(containerName))) {
@@ -470,7 +474,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.ensureCUDA = exports.ensureCUDA102 = exports.ensureTool = exports.getOSSDownloadURL = exports.mirrorToDownloads = exports.TOOLS = exports.CUDNN102 = exports.CUDA102 = exports.LLVM12 = void 0;
+exports.ensureCUDA = exports.ensureCUDA102 = exports.ensureTool = exports.getOSSDownloadURL = exports.mirrorToDownloads = exports.TOOLS = exports.CUDNN114 = exports.CUDNN102 = exports.CUDA11_4_1 = exports.CUDA11_1_1 = exports.CUDA102 = exports.LLVM12 = void 0;
 const util_1 = __nccwpck_require__(64024);
 const ali_oss_1 = __importDefault(__nccwpck_require__(92399));
 const path_1 = __importDefault(__nccwpck_require__(85622));
@@ -491,12 +495,30 @@ exports.CUDA102 = {
     name: 'cuda-toolkit',
     url: 'https://developer.download.nvidia.com/compute/cuda/10.2/Prod/local_installers/cuda_10.2.89_440.33.01_linux.run',
     version: '10.2.89',
-    dirName: 'cuda_10.2.89_440.33.01_linux'
+    dirName: ''
+};
+exports.CUDA11_1_1 = {
+    name: 'cuda-toolkit',
+    url: 'https://developer.download.nvidia.com/compute/cuda/11.1.1/local_installers/cuda_11.1.1_455.32.00_linux.run',
+    version: '11.1.1',
+    dirName: ''
+};
+exports.CUDA11_4_1 = {
+    name: 'cuda-toolkit',
+    url: 'https://developer.download.nvidia.com/compute/cuda/11.4.1/local_installers/cuda_11.4.1_470.57.02_linux.run',
+    version: '11.4.1',
+    dirName: ''
 };
 exports.CUDNN102 = {
     name: 'cudnn',
     url: 'https://oneflow-static.oss-cn-beijing.aliyuncs.com/downloads/cudnn-10.2-linux-x64-v8.2.4.15.tgz',
     version: '8.2.4-15-10.2',
+    dirName: ''
+};
+exports.CUDNN114 = {
+    name: 'cudnn',
+    url: 'https://oneflow-static.oss-cn-beijing.aliyuncs.com/downloads/cudnn-11.4-linux-x64-v8.2.4.15.tgz',
+    version: '8.2.4-15-11.4',
     dirName: ''
 };
 exports.TOOLS = [
@@ -673,6 +695,14 @@ function ensureCUDA() {
                 cudnn: yield ensureTool(exports.CUDNN102),
                 cudaVersion,
                 cudaSemver: exports.CUDA102.version
+            };
+        }
+        else if (cudaVersion === '11.4') {
+            return {
+                cudaToolkit: yield ensureTool(exports.CUDA11_4_1),
+                cudnn: yield ensureTool(exports.CUDNN114),
+                cudaVersion,
+                cudaSemver: exports.CUDA11_1_1.version
             };
         }
         else {

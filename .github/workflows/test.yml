@@ -69,6 +69,10 @@ jobs:
       matrix:
         os: [['self-hosted', 'linux', 'provision'], [ubuntu-latest]]
         oneflow-build-env: ['conda', 'manylinux']
+        include:
+          - test_suite: manylinux
+            cuda-version: [10.2, 11.4]
+
     env:
       ONEFLOW_SRC: oneflow-src-${{ matrix.oneflow-build-env }}
       ACTION: build-oneflow

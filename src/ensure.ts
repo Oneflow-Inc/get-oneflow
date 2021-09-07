@@ -29,7 +29,23 @@ export const CUDA102 = {
   url:
     'https://developer.download.nvidia.com/compute/cuda/10.2/Prod/local_installers/cuda_10.2.89_440.33.01_linux.run',
   version: '10.2.89',
-  dirName: 'cuda_10.2.89_440.33.01_linux'
+  dirName: ''
+}
+
+export const CUDA11_1_1 = {
+  name: 'cuda-toolkit',
+  url:
+    'https://developer.download.nvidia.com/compute/cuda/11.1.1/local_installers/cuda_11.1.1_455.32.00_linux.run',
+  version: '11.1.1',
+  dirName: ''
+}
+
+export const CUDA11_4_1 = {
+  name: 'cuda-toolkit',
+  url:
+    'https://developer.download.nvidia.com/compute/cuda/11.4.1/local_installers/cuda_11.4.1_470.57.02_linux.run',
+  version: '11.4.1',
+  dirName: ''
 }
 
 export const CUDNN102 = {
@@ -37,6 +53,14 @@ export const CUDNN102 = {
   url:
     'https://oneflow-static.oss-cn-beijing.aliyuncs.com/downloads/cudnn-10.2-linux-x64-v8.2.4.15.tgz',
   version: '8.2.4-15-10.2',
+  dirName: ''
+}
+
+export const CUDNN114 = {
+  name: 'cudnn',
+  url:
+    'https://oneflow-static.oss-cn-beijing.aliyuncs.com/downloads/cudnn-11.4-linux-x64-v8.2.4.15.tgz',
+  version: '8.2.4-15-11.4',
   dirName: ''
 }
 
@@ -242,6 +266,13 @@ export async function ensureCUDA(): Promise<CUDATools> {
       cudnn: await ensureTool(CUDNN102),
       cudaVersion,
       cudaSemver: CUDA102.version
+    }
+  } else if (cudaVersion === '11.4') {
+    return {
+      cudaToolkit: await ensureTool(CUDA11_4_1),
+      cudnn: await ensureTool(CUDNN114),
+      cudaVersion,
+      cudaSemver: CUDA11_1_1.version
     }
   } else {
     throw new Error(`unsupported cudaVersion: ${cudaVersion}`)

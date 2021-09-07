@@ -9,6 +9,7 @@ import fs from 'fs'
 import {ok} from 'assert'
 import {getOSSDownloadURL, ensureTool, LLVM12, ensureCUDA} from './ensure'
 import os from 'os'
+import * as semver from 'semver'
 
 async function load_img(tag: string, url: string): Promise<void> {
   if (isSelfHosted()) {
@@ -251,7 +252,10 @@ export async function buildOneFlow(tag: string): Promise<void> {
   const CUDNN_ROOT_DIR = cudaTools.cudnn
   const containerName = 'ci-test-build-oneflow'
   const containerInfos = await docker.listContainers()
-  const shouldSymbolicLinkLld = false
+  let shouldSymbolicLinkLld = false
+  if (semver.major(cudaTools.cudaSemver) >= 11) {
+    shouldSymbolicLinkLld = true
+  }
   for (const containerInfo of containerInfos) {
     if (
       containerInfo.Names.includes(containerName) ||
