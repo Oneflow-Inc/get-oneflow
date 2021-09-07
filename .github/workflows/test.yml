@@ -57,7 +57,6 @@ jobs:
       - uses: ./manylinux
         name: Test build manylinux
         with:
-          cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/cn/fast/cpu-clang.cmake
           action: ${{ env.ACTION }}
 
   test-build-oneflow:
