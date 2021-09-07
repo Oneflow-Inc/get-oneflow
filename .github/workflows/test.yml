@@ -71,10 +71,12 @@ jobs:
         oneflow-build-env: ['conda', 'manylinux']
         include:
           - oneflow-build-env: manylinux
+            os: ['self-hosted', 'linux', 'provision']
             cuda-version: 10.2
             cmake-init-cache: cmake/caches/ci/cuda-75.cmake
             build-script: ci/manylinux/build-gcc7.sh
           - oneflow-build-env: manylinux
+            os: ['self-hosted', 'linux', 'provision']
             cuda-version: 11.4
             cmake-init-cache: cmake/caches/ci/cuda-75-lld.cmake
             build-script: ci/manylinux/build.sh
