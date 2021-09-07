@@ -333,7 +333,7 @@ function buildOneFlow(tag) {
             }
         }
         let httpProxyEnvs = [];
-        let manylinuxCacheDir = util_1.getPathInput('manylinux-cache-dir');
+        let manylinuxCacheDir = util_1.getPathInput('manylinux-cache-dir', { required: true });
         // TODO: don't do any sub-directory appending, leave action caller to decide the cache dir?
         manylinuxCacheDir = path_1.default.join(manylinuxCacheDir, `cuda-${cudaVersion}`);
         yield io.mkdirP(manylinuxCacheDir);

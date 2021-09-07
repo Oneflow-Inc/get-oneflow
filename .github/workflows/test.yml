@@ -127,6 +127,7 @@ jobs:
           wheelhouse-dir: manylinux-wheelhouse
           self-hosted: ${{ contains(matrix.os, 'self-hosted') }}
           cuda-version: 10.2
+          manylinux-cache-dir: ~/manylinux-cache-dir/10.2
           python-versions: |
             3.6
             3.7

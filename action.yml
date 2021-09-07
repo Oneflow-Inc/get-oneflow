@@ -34,6 +34,9 @@ inputs:
     description: 'If conda not installed, use this url to download installer'
     required: false
     default: 'https://repo.anaconda.com/miniconda/Miniconda3-py39_4.10.3-Linux-x86_64.sh'
+  manylinux-cache-dir:
+    description: 'path to store manylinux build's cache, build dir, .ccache dir, python .local'
+    required: true
   # Other args
   force-rebuild:
     description: 'rebuild even package with same key found'

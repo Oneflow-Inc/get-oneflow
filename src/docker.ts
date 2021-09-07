@@ -270,7 +270,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
     }
   }
   let httpProxyEnvs: string[] = []
-  let manylinuxCacheDir = getPathInput('manylinux-cache-dir')
+  let manylinuxCacheDir = getPathInput('manylinux-cache-dir', {required: true})
   // TODO: don't do any sub-directory appending, leave action caller to decide the cache dir?
   manylinuxCacheDir = path.join(manylinuxCacheDir, `cuda-${cudaVersion}`)
   await io.mkdirP(manylinuxCacheDir)
