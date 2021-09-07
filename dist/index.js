@@ -1,4 +1,4 @@
-require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
+/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
 /***/ 64774:
@@ -129,7 +129,6 @@ const fs_1 = __importDefault(__nccwpck_require__(35747));
 const assert_1 = __nccwpck_require__(42357);
 const ensure_1 = __nccwpck_require__(21614);
 const os_1 = __importDefault(__nccwpck_require__(12087));
-const semver = __importStar(__nccwpck_require__(85911));
 function load_img(tag, url) {
     return __awaiter(this, void 0, void 0, function* () {
         if (util_1.isSelfHosted()) {
@@ -317,9 +316,9 @@ function buildOneFlow(tag) {
         const containerName = 'oneflow-manylinux-'.concat(os_1.default.userInfo().username);
         const containerInfos = yield docker.listContainers();
         let shouldSymbolicLinkLld = false;
-        if (semver.major(cudaTools.cudaSemver) >= 11) {
-            shouldSymbolicLinkLld = true;
-        }
+        // if (semver.major(cudaTools.cudaSemver) >= 11) {
+        //   shouldSymbolicLinkLld = true
+        // }
         for (const containerInfo of containerInfos) {
             if (containerInfo.Names.includes(containerName) ||
                 containerInfo.Names.includes('/'.concat(containerName))) {
@@ -106820,4 +106819,3 @@ module.exports = require("zlib");
 /******/ 	
 /******/ })()
 ;
-//# sourceMappingURL=index.js.map

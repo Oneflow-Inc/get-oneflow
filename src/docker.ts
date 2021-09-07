@@ -252,10 +252,10 @@ export async function buildOneFlow(tag: string): Promise<void> {
   const CUDNN_ROOT_DIR = cudaTools.cudnn
   const containerName = 'oneflow-manylinux-'.concat(os.userInfo().username)
   const containerInfos = await docker.listContainers()
-  let shouldSymbolicLinkLld = false
-  if (semver.major(cudaTools.cudaSemver) >= 11) {
-    shouldSymbolicLinkLld = true
-  }
+  // let shouldSymbolicLinkLld = false
+  // if (semver.major(cudaTools.cudaSemver) >= 11) {
+  //   shouldSymbolicLinkLld = true
+  // }
   for (const containerInfo of containerInfos) {
     if (
       containerInfo.Names.includes(containerName) ||
