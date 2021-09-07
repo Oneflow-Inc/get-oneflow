@@ -58,6 +58,7 @@ jobs:
         name: Test build manylinux
         with:
           action: ${{ env.ACTION }}
+          self-hosted: ${{ contains(matrix.os, 'self-hosted') }}
 
   test-build-oneflow:
     name: 'Build OneFlow'
