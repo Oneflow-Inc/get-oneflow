@@ -53,6 +53,11 @@ jobs:
     env:
       ACTION: build-img
     steps:
+      - name: Fix permissions
+        if: ${{ contains(matrix.os, 'self-hosted') }}
+        run: |
+          set -x
+          docker run --rm -v $PWD:/p -w /p busybox chown -R $(id -u):$(id -g) .
       - uses: actions/checkout@v2
       - uses: ./manylinux
         name: Test build manylinux
