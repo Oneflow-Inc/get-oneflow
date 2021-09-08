@@ -28,6 +28,11 @@ ARG BAZEL_URL="https://github.com/bazelbuild/bazel/releases/download/3.4.1/bazel
 RUN curl -L $BAZEL_URL -o /usr/local/bin/bazel \
     && chmod +x /usr/local/bin/bazel
 RUN yum install -y wget nasm rdma-core-devel rsync gdb ninja-build openblas-static autoconf libtool wget devtoolset-7-gcc* vim
+RUN mkdir -p /patchelf-tmp && cd /patchelf-tmp && \
+    curl -L -o patchelf-src.zip \
+    https://github.com/Oneflow-Inc/patchelf/archive/64bf5388ef7d45d3697c4aadbd3f5d7d68a22aa3.zip && \
+    unzip patchelf-src.zip && cd patchelf-* && ./bootstrap.sh && ./configure && make -j`nproc` && \
+    make install && rm -rf /patchelf-tmp
 ENV PATH="/usr/local/cuda/bin:/usr/local/llvm/bin:${PATH}"
 RUN mkdir -p /usr/lib64/ccache
 ENV PATH=/usr/lib64/ccache:$PATH
