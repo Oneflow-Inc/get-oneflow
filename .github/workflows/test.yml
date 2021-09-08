@@ -151,6 +151,7 @@ jobs:
           self-hosted: ${{ contains(matrix.os, 'self-hosted') }}
           cuda-version: ${{ matrix.cuda-version }}
           manylinux-cache-dir: ~/manylinux-cache-dir/${{ matrix.cuda-version }}
+          docker-run-use-system-http-proxy: ${{ matrix.docker-run-use-system-http-proxy }}
           python-versions: |
             3.6
             3.7
