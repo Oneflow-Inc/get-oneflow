@@ -60,8 +60,8 @@ inputs:
   build-script:
     description: 'a bash script to build oneflow'
     required: true
-  docker-build-use-system-http-proxy:
-    description: 'a bash script to build oneflow'
+  docker-run-use-system-http-proxy:
+    description: ''
     required: false
     default: false
 outputs:

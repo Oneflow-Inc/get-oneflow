@@ -280,7 +280,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
   // TODO: don't do any sub-directory appending, leave action caller to decide the cache dir?
   await io.mkdirP(manylinuxCacheDir)
   if (
-    core.getBooleanInput('docker-build-use-system-http-proxy', {
+    core.getBooleanInput('docker-run-use-system-http-proxy', {
       required: false
     })
   ) {
@@ -296,7 +296,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
   let mounts: MountSettings[] = []
   if (cudaTools) {
     const CUDA_TOOLKIT_ROOT_DIR = cudaTools.cudaToolkit
-    const CUDNN_ROOT_DIR = cudaTools.cudnn
+    const CUDNN_ROOT_DIR = path.join(cudaTools.cudnn, 'cuda')
     mounts = mounts.concat([
       {
         Source: CUDA_TOOLKIT_ROOT_DIR,

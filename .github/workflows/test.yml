@@ -79,8 +79,9 @@ jobs:
           - oneflow-build-env: manylinux
             os: ['self-hosted', 'linux', 'provision']
             cuda-version: 10.2
-            cmake-init-cache: cmake/caches/ci/cuda-75.cmake
+            cmake-init-cache: cmake/caches/ci/cuda-xla.cmake
             build-script: ci/manylinux/build-gcc7.sh
+            docker-run-use-system-http-proxy: true
           - oneflow-build-env: manylinux
             os: ['self-hosted', 'linux', 'provision']
             cuda-version: 11.4

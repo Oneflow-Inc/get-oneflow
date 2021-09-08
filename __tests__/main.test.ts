@@ -91,9 +91,9 @@ test(
 )
 
 async function testOneCUDA(cudaVersion: string): Promise<void> {
-  env.setBooleanInput('docker-build-use-system-http-proxy', false)
+  env.setBooleanInput('docker-run-use-system-http-proxy', true) // xla needs it to download nested pkgs
   process.env['INPUT_CMAKE-INIT-CACHE'] =
-    '~/oneflow/cmake/caches/ci/cuda-75.cmake'
+    '~/oneflow/cmake/caches/ci/cuda-xla.cmake'
   const sourceDir = '~/oneflow'
   process.env['INPUT_ONEFLOW-SRC'] = sourceDir
   process.env[
@@ -108,6 +108,7 @@ async function testOneCUDA(cudaVersion: string): Promise<void> {
     path.join(sourceDir, 'ci/manylinux/build-gcc7.sh')
   )
   if (cudaVersion === '11.4') {
+    env.setBooleanInput('docker-run-use-system-http-proxy', false)
     env.setInput('build-script', path.join(sourceDir, 'ci/manylinux/build.sh'))
     env.setInput(
       'cmake-init-cache',
@@ -128,7 +129,7 @@ async function testOneCUDA(cudaVersion: string): Promise<void> {
 test(
   'build manylinux pip',
   async () => {
-    await testOneCUDA('11.4')
+    await testOneCUDA('10.2')
   },
   MINUTES15
 )

@@ -341,7 +341,7 @@ function buildOneFlow(tag) {
         });
         // TODO: don't do any sub-directory appending, leave action caller to decide the cache dir?
         yield io.mkdirP(manylinuxCacheDir);
-        if (core.getBooleanInput('docker-build-use-system-http-proxy', {
+        if (core.getBooleanInput('docker-run-use-system-http-proxy', {
             required: false
         })) {
             httpProxyEnvs = [
@@ -356,7 +356,7 @@ function buildOneFlow(tag) {
         let mounts = [];
         if (cudaTools) {
             const CUDA_TOOLKIT_ROOT_DIR = cudaTools.cudaToolkit;
-            const CUDNN_ROOT_DIR = cudaTools.cudnn;
+            const CUDNN_ROOT_DIR = path_1.default.join(cudaTools.cudnn, 'cuda');
             mounts = mounts.concat([
                 {
                     Source: CUDA_TOOLKIT_ROOT_DIR,
@@ -655,14 +655,16 @@ function ensureTool(tool) {
             // Extract and cache
             if (isCUDAToolkit) {
                 const cudatoolkitPath = yield util_1.createExtractFolder();
+                yield exec.exec('rm', ['-f', '/tmp/cuda-installer.log']);
                 yield exec.exec('bash', [
                     path_1.default.join(archivePath, fileName),
                     `--toolkitpath=${cudatoolkitPath}`,
-                    `--librarypath=${path_1.default.join(cudatoolkitPath, 'lib64')}`,
+                    `--librarypath=${cudatoolkitPath}`,
                     '--override',
                     '--silent',
                     '--toolkit'
                 ]);
+                assert_1.ok(fs.existsSync(path_1.default.join(cudatoolkitPath, 'lib64/libcublas.so')));
                 assert_1.ok(fs.existsSync(path_1.default.join(cudatoolkitPath, 'bin', 'nvcc')));
                 const cudaToolkitPathCached = yield tc.cacheDir(cudatoolkitPath, tool.name, tool.version);
                 const cudaToolkitPathFound = tc.find(tool.name, tool.version);
@@ -677,6 +679,7 @@ function ensureTool(tool) {
         }
         // Check
         if (isCUDAToolkit) {
+            assert_1.ok(fs.existsSync(path_1.default.join(cachedPath, 'lib64/libcublas.so')));
             assert_1.ok(fs.existsSync(path_1.default.join(cachedPath, 'bin', 'nvcc')));
         }
         if (isCuDNN) {

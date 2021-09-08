@@ -206,14 +206,16 @@ export async function ensureTool(tool: Tool): Promise<string> {
     // Extract and cache
     if (isCUDAToolkit) {
       const cudatoolkitPath = await createExtractFolder()
+      await exec.exec('rm', ['-f', '/tmp/cuda-installer.log'])
       await exec.exec('bash', [
         path.join(archivePath, fileName),
         `--toolkitpath=${cudatoolkitPath}`,
-        `--librarypath=${path.join(cudatoolkitPath, 'lib64')}`,
+        `--librarypath=${cudatoolkitPath}`,
         '--override',
         '--silent',
         '--toolkit'
       ])
+      ok(fs.existsSync(path.join(cudatoolkitPath, 'lib64/libcublas.so')))
       ok(fs.existsSync(path.join(cudatoolkitPath, 'bin', 'nvcc')))
       const cudaToolkitPathCached = await tc.cacheDir(
         cudatoolkitPath,
@@ -237,6 +239,7 @@ export async function ensureTool(tool: Tool): Promise<string> {
   }
   // Check
   if (isCUDAToolkit) {
+    ok(fs.existsSync(path.join(cachedPath, 'lib64/libcublas.so')))
     ok(fs.existsSync(path.join(cachedPath, 'bin', 'nvcc')))
   }
   if (isCuDNN) {
