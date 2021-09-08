@@ -1,4 +1,4 @@
-require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
+/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
 /***/ 64774:
@@ -655,6 +655,7 @@ function ensureTool(tool) {
                 yield exec.exec('bash', [
                     path_1.default.join(archivePath, fileName),
                     `--toolkitpath=${cudatoolkitPath}`,
+                    `--librarypath=${path_1.default.join(cudatoolkitPath, 'lib64')}`,
                     '--override',
                     '--silent',
                     '--toolkit'
@@ -106823,4 +106824,3 @@ module.exports = require("zlib");
 /******/ 	
 /******/ })()
 ;
-//# sourceMappingURL=index.js.map

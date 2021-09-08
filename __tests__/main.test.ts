@@ -90,46 +90,45 @@ test(
   MINUTES15
 )
 
+async function testOneCUDA(cudaVersion: string): Promise<void> {
+  env.setBooleanInput('docker-build-use-system-http-proxy', false)
+  process.env['INPUT_CMAKE-INIT-CACHE'] =
+    '~/oneflow/cmake/caches/ci/cuda-75.cmake'
+  const sourceDir = '~/oneflow'
+  process.env['INPUT_ONEFLOW-SRC'] = sourceDir
+  process.env[
+    'INPUT_MANYLINUX-CACHE-DIR'
+  ] = '~/manylinux-cache-dirs/unittest-'.concat(cudaVersion)
+  process.env['INPUT_WHEELHOUSE-DIR'] = '~/manylinux-wheelhouse'
+  process.env['INPUT_PYTHON-VERSIONS'] = '3.6\n3.7'
+  env.setInput('self-hosted', 'true')
+  env.setInput('cuda-version', cudaVersion)
+  env.setInput(
+    'build-script',
+    path.join(sourceDir, 'ci/manylinux/build-gcc7.sh')
+  )
+  if (cudaVersion === '11.4') {
+    env.setInput('build-script', path.join(sourceDir, 'ci/manylinux/build.sh'))
+    env.setInput(
+      'cmake-init-cache',
+      '~/oneflow/cmake/caches/ci/cuda-75-lld.cmake'
+    )
+  }
+  const manylinuxVersion = '2014'
+  let tag = ''
+  const TEST_MANYLINUX = process.env['TEST_MANYLINUX'] || ''
+  if (TEST_MANYLINUX.includes('img')) {
+    tag = await buildManylinuxAndTag(manylinuxVersion)
+  }
+  if (TEST_MANYLINUX.includes('build')) {
+    ok(tag)
+    await buildOneFlow(tag)
+  }
+}
 test(
   'build manylinux pip',
   async () => {
-    env.setBooleanInput('docker-build-use-system-http-proxy', false)
-    process.env['INPUT_CMAKE-INIT-CACHE'] =
-      '~/oneflow/cmake/caches/ci/cuda-75.cmake'
-    const sourceDir = '~/oneflow'
-    process.env['INPUT_ONEFLOW-SRC'] = sourceDir
-    const cudaVersion = '11.4'
-    process.env[
-      'INPUT_MANYLINUX-CACHE-DIR'
-    ] = '~/manylinux-cache-dirs/unittest-'.concat(cudaVersion)
-    process.env['INPUT_WHEELHOUSE-DIR'] = '~/manylinux-wheelhouse'
-    process.env['INPUT_PYTHON-VERSIONS'] = '3.6\n3.7'
-    env.setInput('self-hosted', 'true')
-    env.setInput('cuda-version', cudaVersion)
-    env.setInput(
-      'build-script',
-      path.join(sourceDir, 'ci/manylinux/build-gcc7.sh')
-    )
-    if (cudaVersion === '11.4') {
-      env.setInput(
-        'build-script',
-        path.join(sourceDir, 'ci/manylinux/build.sh')
-      )
-      env.setInput(
-        'cmake-init-cache',
-        '~/oneflow/cmake/caches/ci/cuda-75-lld.cmake'
-      )
-    }
-    const manylinuxVersion = '2014'
-    let tag = ''
-    const TEST_MANYLINUX = process.env['TEST_MANYLINUX'] || ''
-    if (TEST_MANYLINUX.includes('img')) {
-      tag = await buildManylinuxAndTag(manylinuxVersion)
-    }
-    if (TEST_MANYLINUX.includes('build')) {
-      ok(tag)
-      await buildOneFlow(tag)
-    }
+    await testOneCUDA('10.2')
   },
   MINUTES15
 )

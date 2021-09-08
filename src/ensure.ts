@@ -209,6 +209,7 @@ export async function ensureTool(tool: Tool): Promise<string> {
       await exec.exec('bash', [
         path.join(archivePath, fileName),
         `--toolkitpath=${cudatoolkitPath}`,
+        `--librarypath=${path.join(cudatoolkitPath, 'lib64')}`,
         '--override',
         '--silent',
         '--toolkit'
