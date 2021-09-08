@@ -258,8 +258,8 @@ interface CUDATools {
   cudaSemver: string
 }
 
-export async function ensureCUDA(): Promise<CUDATools> {
-  const cudaVersion: string = core.getInput('cuda-version', {required: true})
+export async function ensureCUDA(): Promise<CUDATools | null> {
+  const cudaVersion: string = core.getInput('cuda-version', {required: false})
   if (cudaVersion === '10.2') {
     return {
       cudaToolkit: await ensureTool(CUDA102),
@@ -275,6 +275,9 @@ export async function ensureCUDA(): Promise<CUDATools> {
       cudaSemver: CUDA11_1_1.version
     }
   } else {
-    throw new Error(`unsupported cudaVersion: ${cudaVersion}`)
+    if (parseInt(cudaVersion)) {
+      throw new Error(`unsupported cudaVersion: ${cudaVersion}`)
+    }
+    return null
   }
 }

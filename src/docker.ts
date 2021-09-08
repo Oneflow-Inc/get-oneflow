@@ -251,12 +251,10 @@ export async function buildOneFlow(tag: string): Promise<void> {
   })
   const docker = new Docker({socketPath: '/var/run/docker.sock'})
   const cudaTools = await ensureCUDA()
-  const CUDA_TOOLKIT_ROOT_DIR = cudaTools.cudaToolkit
-  const CUDNN_ROOT_DIR = cudaTools.cudnn
   const containerName = 'oneflow-manylinux-'.concat(os.userInfo().username)
   const containerInfos = await docker.listContainers()
   let shouldSymbolicLinkLld = false
-  if (semver.major(cudaTools.cudaSemver) >= 11) {
+  if (cudaTools && semver.major(cudaTools.cudaSemver) >= 11) {
     shouldSymbolicLinkLld = true
   }
   for (const containerInfo of containerInfos) {
@@ -295,20 +293,25 @@ export async function buildOneFlow(tag: string): Promise<void> {
   }
   let llvmDir = ''
   const shouldMountLLVM = false
-  const mounts: MountSettings[] = [
-    {
-      Source: CUDA_TOOLKIT_ROOT_DIR,
-      Target: '/usr/local/cuda',
-      ReadOnly: true,
-      Type: 'bind'
-    },
-    {
-      Source: CUDNN_ROOT_DIR,
-      Target: '/usr/local/cudnn',
-      ReadOnly: true,
-      Type: 'bind'
-    }
-  ]
+  let mounts: MountSettings[] = []
+  if (cudaTools) {
+    const CUDA_TOOLKIT_ROOT_DIR = cudaTools.cudaToolkit
+    const CUDNN_ROOT_DIR = cudaTools.cudnn
+    mounts = mounts.concat([
+      {
+        Source: CUDA_TOOLKIT_ROOT_DIR,
+        Target: '/usr/local/cuda',
+        ReadOnly: true,
+        Type: 'bind'
+      },
+      {
+        Source: CUDNN_ROOT_DIR,
+        Target: '/usr/local/cudnn',
+        ReadOnly: true,
+        Type: 'bind'
+      }
+    ])
+  }
   if (shouldMountLLVM) {
     llvmDir = await ensureTool(LLVM12)
     mounts.push({

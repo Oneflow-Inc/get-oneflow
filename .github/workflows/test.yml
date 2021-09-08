@@ -86,6 +86,10 @@ jobs:
             cuda-version: 11.4
             cmake-init-cache: cmake/caches/ci/cuda-75-lld.cmake
             build-script: ci/manylinux/build.sh
+          - oneflow-build-env: manylinux
+            os: ['self-hosted', 'linux', 'provision']
+            cmake-init-cache: cmake/caches/ci/cpu-only.cmake
+            build-script: ci/manylinux/build.sh
     env:
       ONEFLOW_SRC: oneflow-src-${{ matrix.oneflow-build-env }}
       ACTION: build-oneflow

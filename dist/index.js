@@ -314,12 +314,10 @@ function buildOneFlow(tag) {
         });
         const docker = new dockerode_1.default({ socketPath: '/var/run/docker.sock' });
         const cudaTools = yield ensure_1.ensureCUDA();
-        const CUDA_TOOLKIT_ROOT_DIR = cudaTools.cudaToolkit;
-        const CUDNN_ROOT_DIR = cudaTools.cudnn;
         const containerName = 'oneflow-manylinux-'.concat(os_1.default.userInfo().username);
         const containerInfos = yield docker.listContainers();
         let shouldSymbolicLinkLld = false;
-        if (semver.major(cudaTools.cudaSemver) >= 11) {
+        if (cudaTools && semver.major(cudaTools.cudaSemver) >= 11) {
             shouldSymbolicLinkLld = true;
         }
         for (const containerInfo of containerInfos) {
@@ -355,20 +353,25 @@ function buildOneFlow(tag) {
         }
         let llvmDir = '';
         const shouldMountLLVM = false;
-        const mounts = [
-            {
-                Source: CUDA_TOOLKIT_ROOT_DIR,
-                Target: '/usr/local/cuda',
-                ReadOnly: true,
-                Type: 'bind'
-            },
-            {
-                Source: CUDNN_ROOT_DIR,
-                Target: '/usr/local/cudnn',
-                ReadOnly: true,
-                Type: 'bind'
-            }
-        ];
+        let mounts = [];
+        if (cudaTools) {
+            const CUDA_TOOLKIT_ROOT_DIR = cudaTools.cudaToolkit;
+            const CUDNN_ROOT_DIR = cudaTools.cudnn;
+            mounts = mounts.concat([
+                {
+                    Source: CUDA_TOOLKIT_ROOT_DIR,
+                    Target: '/usr/local/cuda',
+                    ReadOnly: true,
+                    Type: 'bind'
+                },
+                {
+                    Source: CUDNN_ROOT_DIR,
+                    Target: '/usr/local/cudnn',
+                    ReadOnly: true,
+                    Type: 'bind'
+                }
+            ]);
+        }
         if (shouldMountLLVM) {
             llvmDir = yield ensure_1.ensureTool(ensure_1.LLVM12);
             mounts.push({
@@ -693,7 +696,7 @@ function ensureCUDA102() {
 exports.ensureCUDA102 = ensureCUDA102;
 function ensureCUDA() {
     return __awaiter(this, void 0, void 0, function* () {
-        const cudaVersion = core.getInput('cuda-version', { required: true });
+        const cudaVersion = core.getInput('cuda-version', { required: false });
         if (cudaVersion === '10.2') {
             return {
                 cudaToolkit: yield ensureTool(exports.CUDA102),
@@ -711,7 +714,10 @@ function ensureCUDA() {
             };
         }
         else {
-            throw new Error(`unsupported cudaVersion: ${cudaVersion}`);
+            if (parseInt(cudaVersion)) {
+                throw new Error(`unsupported cudaVersion: ${cudaVersion}`);
+            }
+            return null;
         }
     });
 }
