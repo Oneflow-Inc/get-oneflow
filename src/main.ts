@@ -124,10 +124,10 @@ async function run(): Promise<void> {
           await buildWithConda()
         }
         if (buildEnv === 'manylinux') {
-          const manylinuxVersion = '2014'
-          // TODO: remove this
-          const tag = await buildManylinuxAndTag(manylinuxVersion)
           if (isSelfHosted()) {
+            const tag =
+              'registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64:0.1'
+            await exec.exec('docker', ['pull', tag])
             await buildOneFlow(tag)
           }
         }

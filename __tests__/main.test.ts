@@ -128,7 +128,7 @@ async function testOneCUDA(cudaVersion: string): Promise<void> {
 test(
   'build manylinux pip',
   async () => {
-    await testOneCUDA('10.2')
+    await testOneCUDA('11.4')
   },
   MINUTES15
 )

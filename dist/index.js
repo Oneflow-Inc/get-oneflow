@@ -964,10 +964,9 @@ function run() {
                         yield buildWithConda();
                     }
                     if (buildEnv === 'manylinux') {
-                        const manylinuxVersion = '2014';
-                        // TODO: remove this
-                        const tag = yield docker_1.buildManylinuxAndTag(manylinuxVersion);
                         if (util_1.isSelfHosted()) {
+                            const tag = 'registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64:0.1';
+                            yield exec.exec('docker', ['pull', tag]);
                             yield docker_1.buildOneFlow(tag);
                         }
                     }
