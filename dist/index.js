@@ -413,11 +413,12 @@ function buildOneFlow(tag) {
                 yield runBash(container, `ln -s $(which lld) /opt/rh/devtoolset-${gccVersion}/root/usr/bin/ld`);
             }
         }
+        const distDir = path_1.default.join(oneflowSrc, 'python', 'dist');
+        runExec(container, ['rm', '-rf', distDir]);
         for (const pythonVersion of pythonVersions) {
             const pythonExe = getPythonExe(pythonVersion);
             yield buildOnePythonVersion(container, buildScript, pythonExe);
         }
-        const distDir = path_1.default.join(oneflowSrc, 'python', 'dist');
         const whlFiles = yield fs_1.default.promises.readdir(distDir);
         assert_1.ok(whlFiles.length);
         yield Promise.all(whlFiles.map((whl) => __awaiter(this, void 0, void 0, function* () {

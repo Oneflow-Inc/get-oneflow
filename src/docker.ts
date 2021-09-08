@@ -359,11 +359,12 @@ export async function buildOneFlow(tag: string): Promise<void> {
       )
     }
   }
+  const distDir = path.join(oneflowSrc, 'python', 'dist')
+  runExec(container, ['rm', '-rf', distDir])
   for (const pythonVersion of pythonVersions) {
     const pythonExe = getPythonExe(pythonVersion)
     await buildOnePythonVersion(container, buildScript, pythonExe)
   }
-  const distDir = path.join(oneflowSrc, 'python', 'dist')
   const whlFiles = await fs.promises.readdir(distDir)
   ok(whlFiles.length)
   await Promise.all(
