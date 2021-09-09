@@ -253,10 +253,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
   const cudaTools = await ensureCUDA()
   const containerName = 'oneflow-manylinux-'.concat(os.userInfo().username)
   const containerInfos = await docker.listContainers()
-  let shouldSymbolicLinkLld = false
-  if (cudaTools && semver.major(cudaTools.cudaSemver) >= 11) {
-    shouldSymbolicLinkLld = true
-  }
+  let shouldSymbolicLinkLld = core.getBooleanInput('use-lld')
   for (const containerInfo of containerInfos) {
     if (
       containerInfo.Names.includes(containerName) ||
