@@ -57,7 +57,7 @@ function ensureConda() {
                 return 'conda';
             }
             catch (error) {
-                core.warning(`conda not found, start looking for: ${cmdFromPrefix}`);
+                core.info(`conda not found, start looking for: ${cmdFromPrefix}`);
             }
             try {
                 yield exec.exec(cmdFromPrefix, ['--version']);

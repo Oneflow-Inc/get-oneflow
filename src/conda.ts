@@ -15,7 +15,7 @@ export async function ensureConda(): Promise<string> {
       await io.which('conda', true)
       return 'conda'
     } catch (error) {
-      core.warning(`conda not found, start looking for: ${cmdFromPrefix}`)
+      core.info(`conda not found, start looking for: ${cmdFromPrefix}`)
     }
     try {
       await exec.exec(cmdFromPrefix, ['--version'])
