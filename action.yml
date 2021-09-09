@@ -64,6 +64,10 @@ inputs:
     description: ''
     required: false
     default: false
+  docker-run-use-lld:
+    description: ''
+    required: false
+    default: false
 outputs:
   pip-index-url:
     description: 'pip index url could be use to install oneflow'

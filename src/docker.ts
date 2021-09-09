@@ -9,7 +9,6 @@ import fs from 'fs'
 import {ok} from 'assert'
 import {getOSSDownloadURL, ensureTool, LLVM12, ensureCUDA} from './ensure'
 import os from 'os'
-import * as semver from 'semver'
 
 async function load_img(tag: string, url: string): Promise<void> {
   if (isSelfHosted()) {
@@ -253,7 +252,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
   const cudaTools = await ensureCUDA()
   const containerName = 'oneflow-manylinux-'.concat(os.userInfo().username)
   const containerInfos = await docker.listContainers()
-  const shouldSymbolicLinkLld = core.getBooleanInput('use-lld')
+  const shouldSymbolicLinkLld = core.getBooleanInput('docker-run-use-lld')
   for (const containerInfo of containerInfos) {
     if (
       containerInfo.Names.includes(containerName) ||

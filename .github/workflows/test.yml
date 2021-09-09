@@ -155,6 +155,7 @@ jobs:
           cuda-version: ${{ matrix.cuda-version }}
           manylinux-cache-dir: ~/manylinux-cache-dir/${{ matrix.cuda-version }}
           docker-run-use-system-http-proxy: ${{ matrix.docker-run-use-system-http-proxy }}
+          docker-run-use-lld: true
           python-versions: |
             3.6
             3.7
