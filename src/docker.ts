@@ -333,6 +333,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
         `${manylinuxCacheDir}:${manylinuxCacheDir}`,
         `${path.join(manylinuxCacheDir, 'ccache')}:/root/.ccache`,
         `${path.join(manylinuxCacheDir, 'local')}:/root/.local`,
+        `${path.join(manylinuxCacheDir, 'cache')}:/root/.cache`,
         `${oneflowSrc}:${oneflowSrc}`,
         `${wheelhouseDir}:${wheelhouseDir}`
       ],

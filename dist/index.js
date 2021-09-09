@@ -393,6 +393,7 @@ function buildOneFlow(tag) {
                     `${manylinuxCacheDir}:${manylinuxCacheDir}`,
                     `${path_1.default.join(manylinuxCacheDir, 'ccache')}:/root/.ccache`,
                     `${path_1.default.join(manylinuxCacheDir, 'local')}:/root/.local`,
+                    `${path_1.default.join(manylinuxCacheDir, 'cache')}:/root/.cache`,
                     `${oneflowSrc}:${oneflowSrc}`,
                     `${wheelhouseDir}:${wheelhouseDir}`
                 ],
