@@ -75,6 +75,7 @@ jobs:
         oneflow-build-env: ['conda', 'manylinux']
         os: [['self-hosted', 'linux', 'provision'], [ubuntu-latest]]
         cuda-version: ['none']
+        docker-run-use-system-http-proxy: false
         include:
           - oneflow-build-env: manylinux
             os: ['self-hosted', 'linux', 'provision']
