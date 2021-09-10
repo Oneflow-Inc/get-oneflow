@@ -76,12 +76,20 @@ inputs:
     description: ''
     required: false
     default: false
-  prefixes:
+  cache-key-oss-bucket:
+    description: 'OSS bucket to save cache keys for build outputs and test results'
+    required: false
+    default: 'oneflow-ci-cache'
+  cache-key-prefixes:
     description: |
-      Prefix of keys used to save and find artifacts,
+      Prefix of keys used to save and find artifacts.
       For instance: pr/[commit], degist/[hash of files].
       Later you can get artifact with keys to inventory files like pr/[commit]/wheelhouse.json.
-      Currently backed by aliyun OSS
+      If key found, build will be skipped.
+      Currently backed by OSS
+    required: false
+  always-reabuild:
+    description: rebuild even cache keys are found
     required: false
 
 outputs:
