@@ -68,14 +68,17 @@ inputs:
     description: ''
     required: false
     default: false
-  tank-path:
+  ssh-tank-path:
     description: ''
     required: false
     default: false
-  tank-host:
+  ssh-tank-host:
     description: ''
     required: false
     default: false
+  prefixes:
+    description: 'prefix of keys used to save and find artifacts, for instance: pr/[commit], degist/[hash of files]. Later you can get artifact like pr/[commit]/wheelhouse.json. currently backed by aliyun OSS'
+    required: false
 
 outputs:
   pip-index-url:
