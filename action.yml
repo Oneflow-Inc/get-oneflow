@@ -68,6 +68,15 @@ inputs:
     description: ''
     required: false
     default: false
+  tank-path:
+    description: ''
+    required: false
+    default: false
+  tank-host:
+    description: ''
+    required: false
+    default: false
+
 outputs:
   pip-index-url:
     description: 'pip index url could be use to install oneflow'

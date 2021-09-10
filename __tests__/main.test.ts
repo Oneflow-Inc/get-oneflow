@@ -6,6 +6,7 @@ import os from 'os'
 import {buildManylinuxAndTag, ensureDocker, buildOneFlow} from '../src/docker'
 import {TOOLS, mirrorToDownloads, ensureCUDA102} from '../src/ensure'
 import * as env from '../src/env'
+import * as ssh from '../src/ssh'
 import {ok} from 'assert'
 
 process.env['RUNNER_TOOL_CACHE'] = '~/runner_tool_cache'.replace(
@@ -147,6 +148,14 @@ test(
       return
     }
     await ensureCUDA102()
+  },
+  MINUTES15
+)
+
+test(
+  'ssh tank',
+  async () => {
+    await ssh.uploadWheelhouse()
   },
   MINUTES15
 )
