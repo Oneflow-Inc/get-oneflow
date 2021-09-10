@@ -7,24 +7,18 @@ import {saveKey} from './cache'
 
 export async function uploadWheelhouse(): Promise<void> {
   const wheelhouseDir = util.getPathInput('wheelhouse-dir')
-  const tankDir = path.join(
-    os.userInfo().homedir,
-    'tank',
-    'pr',
-    'test-pr-no',
-    'test-pr-commit'
-  )
   const ssh = new NodeSSH()
-  const host = '192.168.1.23'
+  const sshTankHost = core.getInput('ssh-tank-host', {required: true})
+  const sshTankPath = core.getInput('ssh-tank-path', {required: true})
   await ssh.connect({
-    host,
+    host: sshTankHost,
     username: os.userInfo().username,
     privateKey: path.join(os.userInfo().homedir, '.ssh/id_rsa')
   })
   // TODO: check the directory doesn't exist
   const failed: string[] = []
   const successful: string[] = []
-  const isSuccessful = await ssh.putDirectory(wheelhouseDir, tankDir, {
+  const isSuccessful = await ssh.putDirectory(wheelhouseDir, sshTankPath, {
     recursive: true,
     concurrency: 10,
     tick(localPath, remotePath, error) {
@@ -38,14 +32,14 @@ export async function uploadWheelhouse(): Promise<void> {
   failed.map(core.setFailed)
   successful.map(core.info)
   if (!isSuccessful) {
-    throw Error(`failed to upload to: ${tankDir}`)
+    throw Error(`failed to upload to: ${sshTankPath}`)
     // TODO: remove the directory
   }
   ssh.dispose()
   await saveKey(
     path.join('pr', 'test-pr-no', 'test-pr-commit', 'wheelhouse.json'),
     {
-      python36WheelURL: tankDir
+      python36WheelURL: path.join(sshTankPath, 'py36.whl')
     }
   )
 }

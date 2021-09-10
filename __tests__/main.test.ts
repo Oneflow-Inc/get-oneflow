@@ -156,6 +156,8 @@ test(
   'ssh tank',
   async () => {
     env.setInput('wheelhouse-dir', '~/manylinux-wheelhouse')
+    env.setInput('ssh-tank-host', '127.0.0.1')
+    env.setInput('ssh-tank-path', '~/tank'.replace('~', os.homedir))
     await ssh.uploadWheelhouse()
   },
   MINUTES15
