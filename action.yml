@@ -76,6 +76,10 @@ inputs:
     description: ''
     required: false
     default: false
+  ssh-tank-path:
+    description: ''
+    required: false
+    default: false
   cache-key-oss-bucket:
     description: 'OSS bucket to save cache keys for build outputs and test results'
     required: false
