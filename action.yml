@@ -92,7 +92,7 @@ inputs:
       If key found, build will be skipped.
       Currently backed by OSS
     required: false
-  always-reabuild:
+  always-rebuild:
     description: rebuild even cache keys are found
     required: false
 
