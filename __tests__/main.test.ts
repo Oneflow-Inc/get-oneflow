@@ -155,6 +155,7 @@ test(
 test(
   'ssh tank',
   async () => {
+    env.setInput('wheelhouse-dir', '~/manylinux-wheelhouse')
     await ssh.uploadWheelhouse()
   },
   MINUTES15
