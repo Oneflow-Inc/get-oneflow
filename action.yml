@@ -80,7 +80,7 @@ inputs:
     description: |
       Prefix of keys used to save and find artifacts,
       For instance: pr/[commit], degist/[hash of files].
-      Later you can get artifact like pr/[commit]/wheelhouse.json.
+      Later you can get artifact with keys to inventory files like pr/[commit]/wheelhouse.json.
       Currently backed by aliyun OSS
     required: false
 
