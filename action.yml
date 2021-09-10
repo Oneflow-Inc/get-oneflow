@@ -77,7 +77,11 @@ inputs:
     required: false
     default: false
   prefixes:
-    description: 'prefix of keys used to save and find artifacts, for instance: pr/[commit], degist/[hash of files]. Later you can get artifact like pr/[commit]/wheelhouse.json. currently backed by aliyun OSS'
+    description: |
+      Prefix of keys used to save and find artifacts,
+      For instance: pr/[commit], degist/[hash of files].
+      Later you can get artifact like pr/[commit]/wheelhouse.json.
+      Currently backed by aliyun OSS
     required: false
 
 outputs:
