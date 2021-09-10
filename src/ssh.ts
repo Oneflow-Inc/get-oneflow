@@ -6,14 +6,12 @@ import * as core from '@actions/core'
 
 export async function uploadWheelhouse(): Promise<void> {
   const wheelhouseDir = util.getPathInput('wheelhouse-dir')
-  const tankDir = util.getPathInput(
-    path.join(
-      os.userInfo().homedir,
-      'tank',
-      'pr',
-      'test-pr-no',
-      'test-pr-commit'
-    )
+  const tankDir = path.join(
+    os.userInfo().homedir,
+    'tank',
+    'pr',
+    'test-pr-no',
+    'test-pr-commit'
   )
   const ssh = new NodeSSH()
   const host = '192.168.1.23'
