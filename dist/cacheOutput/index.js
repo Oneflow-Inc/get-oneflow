@@ -632,17 +632,9 @@ function run() {
             // if (runnerLabels.includes('self-hosted') === false) {
             //   runnerLabels.concat('self-hosted')
             // }
-            const found = true;
+            const found = false;
             if (found) {
                 runnerLabels = ['ubuntu-latest'];
-            }
-            else {
-                if (runnerLabels.includes('self-hosted') === false) {
-                    runnerLabels = runnerLabels.concat(['self-hosted']);
-                }
-                if (runnerLabels.includes('linux') === false) {
-                    runnerLabels = runnerLabels.concat(['linux']);
-                }
             }
             _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('runs-on', runnerLabels);
             _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('prefixes', prefixes);

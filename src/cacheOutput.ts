@@ -12,7 +12,7 @@ async function run(): Promise<void> {
     // if (runnerLabels.includes('self-hosted') === false) {
     //   runnerLabels.concat('self-hosted')
     // }
-    const found = true
+    const found = false
     if (found) {
       runnerLabels = ['ubuntu-latest']
     }
