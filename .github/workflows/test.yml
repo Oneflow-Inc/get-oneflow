@@ -166,13 +166,13 @@ jobs:
         with:
           repository: Oneflow-Inc/oneflow
           ref: refine_for_new_ci
-          path: ${{ env.ONEFLOW_SRC }}
+          path: oneflow_src
       - uses: ./cache
         name: find cache
         with:
           prefixes: |
             ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/whl
-            ${{ github.repository }}/digest/${{ hashFiles('**/*.cpp') }}
+            ${{ github.repository }}/digest/${{ hashFiles('oneflow_src/**/*.cpp') }}
           keys: |
             wheelhouse.json
 
