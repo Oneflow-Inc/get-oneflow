@@ -7,9 +7,11 @@ import {saveKey} from './cache'
 
 export async function uploadWheelhouse(): Promise<void> {
   const wheelhouseDir = util.getPathInput('wheelhouse-dir')
+  const cacheKeyPrefixes = core.getMultilineInput('cache-key-prefixes')
   const ssh = new NodeSSH()
   const sshTankHost = core.getInput('ssh-tank-host', {required: true})
   const sshTankPath = core.getInput('ssh-tank-path', {required: true})
+  const sshTankBaseURL = core.getInput('ssh-tank-base-url', {required: true})
   await ssh.connect({
     host: sshTankHost,
     username: os.userInfo().username,
@@ -36,10 +38,9 @@ export async function uploadWheelhouse(): Promise<void> {
     // TODO: remove the directory
   }
   ssh.dispose()
-  await saveKey(
-    path.join('pr', 'test-pr-no', 'test-pr-commit', 'wheelhouse.json'),
-    {
-      python36WheelURL: path.join(sshTankPath, 'py36.whl')
-    }
-  )
+  for (const prefix of cacheKeyPrefixes) {
+    await saveKey(path.join(prefix, 'wheelhouse.json'), {
+      pipIndex: path.join(sshTankBaseURL)
+    })
+  }
 }

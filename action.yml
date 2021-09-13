@@ -80,6 +80,9 @@ inputs:
     description: ''
     required: false
     default: '/tank'
+  ssh-tank-base-url:
+    description: ''
+    required: true
   cache-key-oss-bucket:
     description: 'OSS bucket to save cache keys for build outputs and test results'
     required: false
@@ -91,9 +94,6 @@ inputs:
       Later you can get artifact with keys to inventory files like pr/[commit]/wheelhouse.json.
       If key found, build will be skipped.
       Currently backed by OSS
-    required: false
-  always-rebuild:
-    description: rebuild even cache keys are found
     required: false
 
 outputs:

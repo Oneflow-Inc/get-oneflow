@@ -156,8 +156,15 @@ test(
   'ssh tank',
   async () => {
     env.setInput('wheelhouse-dir', '~/manylinux-wheelhouse')
+    // TODO: create file if test dir is empty
     env.setInput('ssh-tank-host', '127.0.0.1')
     env.setInput('ssh-tank-path', '~/tank'.replace('~', os.homedir))
+    // TODO: start a python simple http server for testing and shut it down later
+    env.setInput('ssh-tank-base-url', 'http://127.0.0.1:8000')
+    env.setMultilineInput('cache-key-prefixes', [
+      'pr/test-commit/test-build-type',
+      'degist/test-hash/test-build-type'
+    ])
     await ssh.uploadWheelhouse()
   },
   MINUTES15
