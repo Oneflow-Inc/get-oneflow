@@ -173,7 +173,7 @@ jobs:
         name: find cache
         id: find-cache
         with:
-          prefixes: |
+          runner-labels: |
             self-hosted
             linux
             provision

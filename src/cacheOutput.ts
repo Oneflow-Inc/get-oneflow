@@ -15,13 +15,6 @@ async function run(): Promise<void> {
     const found = true
     if (found) {
       runnerLabels = ['ubuntu-latest']
-    } else {
-      if (runnerLabels.includes('self-hosted') === false) {
-        runnerLabels = runnerLabels.concat(['self-hosted'])
-      }
-      if (runnerLabels.includes('linux') === false) {
-        runnerLabels = runnerLabels.concat(['linux'])
-      }
     }
     core.setOutput('runs-on', runnerLabels)
     core.setOutput('prefixes', prefixes)
