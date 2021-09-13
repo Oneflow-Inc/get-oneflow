@@ -162,6 +162,10 @@ test(
     if (isOnPremise() == false) {
       return
     }
+    const TEST_SSH = process.env['TEST_SSH'] || ''
+    if (!TEST_SSH) {
+      return
+    }
     // TODO: generate credential to run the test on gh hosted
     env.setInput('wheelhouse-dir', '~/manylinux-wheelhouse')
     // TODO: create file if test dir is empty
