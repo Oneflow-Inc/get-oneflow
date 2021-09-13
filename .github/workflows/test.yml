@@ -190,7 +190,7 @@ jobs:
       ACTION: build-oneflow
     steps:
       - name: Fix permissions
-        if: ${{ contains(matrix.os, 'self-hosted') }}
+        if: ${{ contains(fromJson(needs.test-build-cpu-only-cache.outputs.runs-on), 'self-hosted') }}
         run: |
           set -x
           docker run --rm -v $PWD:/p -w /p busybox chown -R $(id -u):$(id -g) .
@@ -202,7 +202,7 @@ jobs:
           ref: refine_for_new_ci
           path: ${{ env.ONEFLOW_SRC }}
       - name: Remove leftover cuda-installer.log
-        if: ${{ contains(matrix.os, 'self-hosted') }}
+        if: ${{ contains(fromJson(needs.test-build-cpu-only-cache.outputs.runs-on), 'self-hosted') }}
         run: |
           docker run --rm -v /tmp:/host/tmp -w /p busybox rm -f /host/tmp/cuda-installer.log
       - uses: actions/checkout@v2
@@ -214,7 +214,7 @@ jobs:
           path: ${{ env.ONEFLOW_SRC }}
       - uses: ./
         name: Test manylinux
-        if: ${{ matrix.oneflow-build-env == 'manylinux'}}
+        if: ${{ contains(fromJson(needs.test-build-cpu-only-cache.outputs.runs-on), 'self-hosted') }}
         with:
           action: ${{ env.ACTION }}
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/ci/cpu-only.cmake
