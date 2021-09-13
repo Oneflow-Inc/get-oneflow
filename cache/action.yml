@@ -17,7 +17,7 @@ inputs:
   runner-labels:
     description: 'runner labels to output if cache not found'
 outputs:
-  run-on:
+  runs-on:
     description: 'if cache found, will generate a [ubuntu-latest]'
   prefixes:
     description: 'same as input'

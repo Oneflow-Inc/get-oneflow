@@ -160,3 +160,70 @@ jobs:
             3.7
             3.8
             3.9
+
+  test-build-cpu-only-cache:
+    name: 'find cache for cpu only'
+    runs-on: [ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Checkout Oneflow-Inc/oneflow
+        uses: actions/checkout@v2
+        with:
+          repository: Oneflow-Inc/oneflow
+          ref: refine_for_new_ci
+          path: ${{ env.ONEFLOW_SRC }}
+      - uses: ./cache
+        name: find cache
+        with:
+          prefixes: |
+            ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/whl
+            ${{ github.repository }}/digest/${{ hashFiles('**/*.cpp') }}
+          keys: |
+            wheelhouse
+
+  test-build-cpu-only:
+    name: 'Build OneFlow'
+    runs-on: test-build-cpu-only-cache.outputs.runs-on
+    needs: [test-build-cpu-only-cache]
+    env:
+      ONEFLOW_SRC: oneflow-src
+      ACTION: build-oneflow
+    steps:
+      - uses: actions/checkout@v2
+      - name: Checkout Oneflow-Inc/oneflow
+        uses: actions/checkout@v2
+        with:
+          repository: Oneflow-Inc/oneflow
+          ref: refine_for_new_ci
+          path: ${{ env.ONEFLOW_SRC }}
+      - name: Remove leftover cuda-installer.log
+        if: ${{ contains(matrix.os, 'self-hosted') }}
+        run: |
+          docker run --rm -v /tmp:/host/tmp -w /p busybox rm -f /host/tmp/cuda-installer.log
+      - uses: actions/checkout@v2
+      - name: Checkout Oneflow-Inc/oneflow
+        uses: actions/checkout@v2
+        with:
+          repository: Oneflow-Inc/oneflow
+          ref: refine_for_new_ci
+          path: ${{ env.ONEFLOW_SRC }}
+      - uses: ./
+        name: Test manylinux
+        if: ${{ matrix.oneflow-build-env == 'manylinux'}}
+        with:
+          action: ${{ env.ACTION }}
+          cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/ci/cpu-only.cmake
+          build-script: ${{ env.ONEFLOW_SRC }}/ci/manylinux/build.sh
+          oneflow-src: ${{ env.ONEFLOW_SRC }}
+          oneflow-build-env: manylinux
+          wheelhouse-dir: manylinux-wheelhouse
+          self-hosted: ${{ contains(matrix.os, 'self-hosted') }}
+          cuda-version: ${{ matrix.cuda-version }}
+          manylinux-cache-dir: ~/manylinux-cache-dir/${{ matrix.cuda-version }}
+          docker-run-use-system-http-proxy: false
+          docker-run-use-lld: true
+          python-versions: |
+            3.6
+            3.7
+            3.8
+            3.9
