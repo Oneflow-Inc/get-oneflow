@@ -68,10 +68,6 @@ inputs:
     description: ''
     required: false
     default: false
-  ssh-tank-path:
-    description: ''
-    required: false
-    default: false
   ssh-tank-host:
     description: ''
     required: false
