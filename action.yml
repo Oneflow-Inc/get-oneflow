@@ -97,4 +97,4 @@ outputs:
     description: 'pip index url could be use to install oneflow'
 runs:
   using: 'node12'
-  main: 'dist/index.js'
+  main: 'dist/buildOneFlow/index.js'
