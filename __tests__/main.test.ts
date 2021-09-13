@@ -159,6 +159,10 @@ test(
 test(
   'ssh tank',
   async () => {
+    if (isOnPremise() == false) {
+      return
+    }
+    // TODO: generate credential to run the test on gh hosted
     env.setInput('wheelhouse-dir', '~/manylinux-wheelhouse')
     // TODO: create file if test dir is empty
     env.setInput('ssh-tank-host', '127.0.0.1')
