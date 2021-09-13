@@ -17,8 +17,12 @@ export async function saveKey(key: string, obj: unknown): Promise<void> {
   await store.put(key, buf, {timeout: 60 * 1000 * 60})
 }
 
-export async function lookup(key: string): Promise<unknown> {
+export async function lookupInKeys(keys: string[]): Promise<unknown> {
   const store = ciCacheBucketStore()
-  const res = await store.get(key)
-  return JSON.parse(res.content)
+  // TODO: support check keys have same values
+  for await (const key of keys) {
+    const res = await store.get(key)
+    return JSON.parse(res.content)
+  }
+  return null
 }

@@ -23,6 +23,9 @@ outputs:
     description: 'same as input'
   cache-hit:
     description: 'A boolean value to indicate an exact match was found for the primary key'
+  object:
+    description: 'cached object, in json'
+
 runs:
   using: 'node12'
   main: '../dist/cacheOutput/index.js'
