@@ -137,7 +137,7 @@ jobs:
           self-hosted: ${{ contains(matrix.os, 'self-hosted') }}
       - uses: ./
         name: Test manylinux
-        if: ${{ matrix.oneflow-build-env == 'manylinux'}}
+        if: ${{ matrix.oneflow-build-env == 'manylinux'}} && ${{ cuda-version != 'none'}}
         with:
           action: ${{ env.ACTION }}
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/${{ matrix.cmake-init-cache }}
