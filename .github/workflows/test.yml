@@ -159,6 +159,10 @@ jobs:
   test-build-cpu-only-cache:
     name: 'find cache for cpu only'
     runs-on: [ubuntu-latest]
+    outputs:
+      runs-on: ${{ steps.find-cache.outputs.runs-on }}
+      prefixes: ${{ steps.find-cache.outputs.runs-on }}
+      found: ${{ steps.find-cache.outputs.runs-on }}
     steps:
       - uses: actions/checkout@v2
       - name: Checkout Oneflow-Inc/oneflow
@@ -169,6 +173,7 @@ jobs:
           path: oneflow_src
       - uses: ./cache
         name: find cache
+        id: find-cache
         with:
           prefixes: |
             ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/whl
