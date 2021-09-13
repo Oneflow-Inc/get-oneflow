@@ -12,8 +12,8 @@ inputs:
       Later you can get artifact with keys to inventory files like pr/[commit]/wheelhouse.json.
       If key found, build will be skipped.
       Currently backed by OSS
-  keys:
-    description: 'keys to find'
+  key:
+    description: 'key to find'
   runner-labels:
     description: 'runner labels to output if cache not found'
 outputs:
@@ -21,8 +21,13 @@ outputs:
     description: 'if cache found, will generate a [ubuntu-latest]'
   prefixes:
     description: 'same as input'
-  found:
-    description: 'if cache found'
+  cache-hit:
+    description: 'A boolean value to indicate an exact match was found for the primary key'
 runs:
   using: 'node12'
   main: '../dist/cacheOutput/index.js'
+  post: '../dist/postCacheOutput/index.js'
+  post-if: 'success()'
+branding:
+  icon: 'archive'
+  color: 'gray-dark'

@@ -16,3 +16,9 @@ export async function saveKey(key: string, obj: unknown): Promise<void> {
   const buf = Buffer.from(JSON.stringify(obj, null, 2), 'utf8')
   await store.put(key, buf, {timeout: 60 * 1000 * 60})
 }
+
+export async function lookup(key: string): Promise<unknown> {
+  const store = ciCacheBucketStore()
+  const res = await store.get(key)
+  return JSON.parse(res.content)
+}
