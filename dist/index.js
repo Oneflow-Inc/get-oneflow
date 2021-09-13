@@ -304,18 +304,53 @@ function getPythonExe(pythonVersion) {
     assert_1.ok(exe, pythonVersion);
     return exe;
 }
-function buildOneFlow(tag) {
+function buildAndMakeWheel(createOptions, docker) {
     return __awaiter(this, void 0, void 0, function* () {
+        const shouldSymbolicLinkLld = core.getBooleanInput('docker-run-use-lld');
         const oneflowSrc = util_1.getPathInput('oneflow-src', { required: true });
         const wheelhouseDir = util_1.getPathInput('wheelhouse-dir', { required: true });
         const buildScript = util_1.getPathInput('build-script', {
             required: true
         });
+        core.debug('buildAndMakeWheel--------------------------------------');
+        core.info(JSON.stringify(createOptions, null, 2));
+        core.debug('buildAndMakeWheel--------------------------------------');
+        const container = yield docker.createContainer(createOptions);
+        yield container.start();
+        const pythonVersions = core.getMultilineInput('python-versions', {
+            required: true
+        });
+        if (shouldSymbolicLinkLld) {
+            for (const gccVersion of ['7', '10']) {
+                yield runBash(container, `rm -f /opt/rh/devtoolset-${gccVersion}/root/usr/bin/ld`);
+                yield runBash(container, `ln -s $(which lld) /opt/rh/devtoolset-${gccVersion}/root/usr/bin/ld`);
+            }
+        }
+        const distDir = path_1.default.join(oneflowSrc, 'python', 'dist');
+        runExec(container, ['rm', '-rf', distDir]);
+        for (const pythonVersion of pythonVersions) {
+            const pythonExe = getPythonExe(pythonVersion);
+            yield buildOnePythonVersion(container, buildScript, pythonExe);
+        }
+        const whlFiles = yield fs_1.default.promises.readdir(distDir);
+        assert_1.ok(whlFiles.length);
+        yield Promise.all(whlFiles.map((whl) => __awaiter(this, void 0, void 0, function* () {
+            return runExec(container, ['auditwheel', 'repair', whl, '--wheel-dir', wheelhouseDir], { cwd: distDir });
+        })));
+    });
+}
+function buildOneFlow(tag) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const oneflowSrc = util_1.getPathInput('oneflow-src', { required: true });
+        const wheelhouseDir = util_1.getPathInput('wheelhouse-dir', { required: true });
+        // const buildScript: string = getPathInput('build-script', {
+        //   required: true
+        // })
         const docker = new dockerode_1.default({ socketPath: '/var/run/docker.sock' });
         const cudaTools = yield ensure_1.ensureCUDA();
         const containerName = 'oneflow-manylinux-'.concat(os_1.default.userInfo().username);
         const containerInfos = yield docker.listContainers();
-        const shouldSymbolicLinkLld = core.getBooleanInput('docker-run-use-lld');
+        // const shouldSymbolicLinkLld = core.getBooleanInput('docker-run-use-lld')
         for (const containerInfo of containerInfos) {
             if (containerInfo.Names.includes(containerName) ||
                 containerInfo.Names.includes('/'.concat(containerName))) {
@@ -401,29 +436,7 @@ function buildOneFlow(tag) {
                 `ONEFLOW_CI_LLVM_DIR=${llvmDir}`
             ].concat(httpProxyEnvs)
         };
-        core.info(JSON.stringify(createOptions, null, 2));
-        const container = yield docker.createContainer(createOptions);
-        yield container.start();
-        const pythonVersions = core.getMultilineInput('python-versions', {
-            required: true
-        });
-        if (shouldSymbolicLinkLld) {
-            for (const gccVersion of ['7', '10']) {
-                yield runBash(container, `rm -f /opt/rh/devtoolset-${gccVersion}/root/usr/bin/ld`);
-                yield runBash(container, `ln -s $(which lld) /opt/rh/devtoolset-${gccVersion}/root/usr/bin/ld`);
-            }
-        }
-        const distDir = path_1.default.join(oneflowSrc, 'python', 'dist');
-        runExec(container, ['rm', '-rf', distDir]);
-        for (const pythonVersion of pythonVersions) {
-            const pythonExe = getPythonExe(pythonVersion);
-            yield buildOnePythonVersion(container, buildScript, pythonExe);
-        }
-        const whlFiles = yield fs_1.default.promises.readdir(distDir);
-        assert_1.ok(whlFiles.length);
-        yield Promise.all(whlFiles.map((whl) => __awaiter(this, void 0, void 0, function* () {
-            return runExec(container, ['auditwheel', 'repair', whl, '--wheel-dir', wheelhouseDir], { cwd: distDir });
-        })));
+        yield buildAndMakeWheel(createOptions, docker);
     });
 }
 exports.buildOneFlow = buildOneFlow;
@@ -936,6 +949,8 @@ function buildWithConda() {
 }
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
+        core.debug('--------------------------------------');
+        core.debug('--------------------------------------');
         try {
             const buildEnv = core.getInput('oneflow-build-env');
             const action = core.getInput('action');
@@ -106478,7 +106493,7 @@ XRegExp = XRegExp || (function (undef) {
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"_from":"ali-oss","_id":"ali-oss@6.16.0","_inBundle":false,"_integrity":"sha512-tK/+yEKtBBD+kMoHABxg6lCgC+Ad9HNjCln7qdL6LRYbUm+FFTKJubC4hT2FIooMBDb9tnI7My4MVreKnbJQRg==","_location":"/ali-oss","_phantomChildren":{},"_requested":{"type":"tag","registry":true,"raw":"ali-oss","name":"ali-oss","escapedName":"ali-oss","rawSpec":"","saveSpec":null,"fetchSpec":"latest"},"_requiredBy":["#USER","/"],"_resolved":"https://registry.npmjs.org/ali-oss/-/ali-oss-6.16.0.tgz","_shasum":"3b7fbe10f13fbd535478fc31c7d05aaf4280269b","_spec":"ali-oss","_where":"/home/caishenghang/get-oneflow","author":{"name":"dead_horse"},"browser":{"lib/client.js":"./dist/aliyun-oss-sdk.js","mime":"mime/lite","urllib":"./shims/xhr.js","utility":"./shims/utility.js","crypto":"./shims/crypto/crypto.js","debug":"./shims/debug","fs":false,"child_process":false,"is-type-of":"./shims/is-type-of.js"},"bugs":{"url":"https://github.com/aliyun/oss-nodejs-sdk/issues"},"bundleDependencies":false,"dependencies":{"address":"^1.0.0","agentkeepalive":"^3.4.1","bowser":"^1.6.0","co-defer":"^1.0.0","copy-to":"^2.0.1","dateformat":"^2.0.0","debug":"^2.2.0","destroy":"^1.0.4","end-or-error":"^1.0.1","get-ready":"^1.0.0","humanize-ms":"^1.2.0","is-type-of":"^1.0.0","js-base64":"^2.5.2","jstoxml":"^0.2.3","merge-descriptors":"^1.0.1","mime":"^2.4.5","mz-modules":"^2.1.0","platform":"^1.3.1","pump":"^3.0.0","sdk-base":"^2.0.1","stream-http":"2.8.2","stream-wormhole":"^1.0.4","urllib":"^2.33.1","utility":"^1.8.0","xml2js":"^0.4.16"},"deprecated":false,"description":"aliyun oss(object storage service) node client","devDependencies":{"@babel/core":"^7.11.6","@babel/plugin-transform-regenerator":"^7.10.4","@babel/plugin-transform-runtime":"^7.11.5","@babel/preset-env":"^7.11.5","@babel/runtime":"^7.11.2","@types/node":"^14.0.12","@typescript-eslint/eslint-plugin":"^2.34.0","@typescript-eslint/parser":"^2.34.0","aliasify":"^2.0.0","autod":"^2.6.1","babelify":"^10.0.0","beautify-benchmark":"^0.2.4","benchmark":"^2.1.1","bluebird":"^3.1.5","browserify":"^16.5.2","co-fs":"^1.2.0","co-mocha":"^1.2.1","core-js":"^3.6.5","crypto-js":"^3.1.9-1","dotenv":"^8.2.0","eslint":"^6.8.0","eslint-config-airbnb":"^16.1.0","eslint-config-ali":"^9.0.2","eslint-plugin-import":"^2.21.1","eslint-plugin-jsx-a11y":"^6.0.3","eslint-plugin-react":"^7.7.0","filereader":"^0.10.3","git-pre-hooks":"^1.2.0","immediate":"^3.3.0","karma":"^1.7.1","karma-browserify":"^5.1.1","karma-chrome-launcher":"^2.2.0","karma-firefox-launcher":"^1.0.1","karma-ie-launcher":"^1.0.0","karma-mocha":"^1.3.0","karma-safari-launcher":"^1.0.0","lint-staged":"^9.5.0","mm":"^2.0.0","mocha":"^3.5.3","nyc":"^13.3.0","promise-polyfill":"^6.0.2","request":"^2.88.0","should":"^11.0.0","sinon":"^1.17.7","snyk":"1.454.0","standard-version":"^8.0.1","stream-equal":"^1.1.0","thunk-mocha":"^1.0.3","timemachine":"^0.3.0","typescript":"^3.9.5","uglify-js":"^2.8.29","watchify":"^3.9.0"},"engines":{"node":">=8"},"files":["lib","shims","dist"],"git-pre-hooks":{"pre-release":"npm run build-dist","post-release":["npm run publish-to-npm","npm run publish-to-cdn"],"pre-commit":"npm run lint-staged"},"homepage":"https://github.com/aliyun/oss-nodejs-sdk","keywords":["oss","client","file","aliyun"],"license":"MIT","lint-staged":{"**/!(dist)/*":["npm run detect-secrets --"]},"main":"lib/client.js","name":"ali-oss","repository":{"type":"git","url":"git://github.com/aliyun/oss-nodejs-sdk.git"},"scripts":{"autod":"autod","browser-test":"npm run build-test && karma start","build-change-log":"standard-version","build-dist":"npm run tsc && node browser-build.js > dist/aliyun-oss-sdk.js && MINIFY=1 node browser-build.js > dist/aliyun-oss-sdk.min.js","build-test":"MINIFY=1 node browser-build.js > test/browser/build/aliyun-oss-sdk.min.js && node -r dotenv/config task/browser-test-build.js > test/browser/build/tests.js","detect-secrets":"node task/detect-secrets","jshint":"jshint .","lint-staged":"lint-staged","prepublish":"npm run snyk-protect","publish-to-cdn":"node publish.js","publish-to-npm":"node publish-npm-check.js && npm publish","snyk-protect":"snyk protect","test":"npm run tsc && mocha -t 60000 -r thunk-mocha -r should -r dotenv/config test/node/*.test.js test/node/**/*.test.js","test-cov":"npm run tsc && nyc --reporter=lcov node_modules/.bin/_mocha -t 60000 -r thunk-mocha -r should test/node/*.test.js test/node/**/*.test.js","tsc":"npm run tsc:clean && npm run tsc:build","tsc:build":"tsc -b tsconfig.json tsconfig-cjs.json","tsc:clean":"tsc -b tsconfig.json tsconfig-cjs.json --clean ","tsc:watch":"tsc -b tsconfig.json tsconfig-cjs.json --watch"},"snyk":true,"version":"6.16.0"}');
+module.exports = JSON.parse('{"_args":[["ali-oss@6.16.0","/home/xiexuan/get-oneflow"]],"_from":"ali-oss@6.16.0","_id":"ali-oss@6.16.0","_inBundle":false,"_integrity":"sha512-tK/+yEKtBBD+kMoHABxg6lCgC+Ad9HNjCln7qdL6LRYbUm+FFTKJubC4hT2FIooMBDb9tnI7My4MVreKnbJQRg==","_location":"/ali-oss","_phantomChildren":{},"_requested":{"type":"version","registry":true,"raw":"ali-oss@6.16.0","name":"ali-oss","escapedName":"ali-oss","rawSpec":"6.16.0","saveSpec":null,"fetchSpec":"6.16.0"},"_requiredBy":["/"],"_resolved":"https://registry.npmjs.org/ali-oss/-/ali-oss-6.16.0.tgz","_spec":"6.16.0","_where":"/home/xiexuan/get-oneflow","author":{"name":"dead_horse"},"browser":{"lib/client.js":"./dist/aliyun-oss-sdk.js","mime":"mime/lite","urllib":"./shims/xhr.js","utility":"./shims/utility.js","crypto":"./shims/crypto/crypto.js","debug":"./shims/debug","fs":false,"child_process":false,"is-type-of":"./shims/is-type-of.js"},"bugs":{"url":"https://github.com/aliyun/oss-nodejs-sdk/issues"},"dependencies":{"address":"^1.0.0","agentkeepalive":"^3.4.1","bowser":"^1.6.0","co-defer":"^1.0.0","copy-to":"^2.0.1","dateformat":"^2.0.0","debug":"^2.2.0","destroy":"^1.0.4","end-or-error":"^1.0.1","get-ready":"^1.0.0","humanize-ms":"^1.2.0","is-type-of":"^1.0.0","js-base64":"^2.5.2","jstoxml":"^0.2.3","merge-descriptors":"^1.0.1","mime":"^2.4.5","mz-modules":"^2.1.0","platform":"^1.3.1","pump":"^3.0.0","sdk-base":"^2.0.1","stream-http":"2.8.2","stream-wormhole":"^1.0.4","urllib":"^2.33.1","utility":"^1.8.0","xml2js":"^0.4.16"},"description":"aliyun oss(object storage service) node client","devDependencies":{"@babel/core":"^7.11.6","@babel/plugin-transform-regenerator":"^7.10.4","@babel/plugin-transform-runtime":"^7.11.5","@babel/preset-env":"^7.11.5","@babel/runtime":"^7.11.2","@types/node":"^14.0.12","@typescript-eslint/eslint-plugin":"^2.34.0","@typescript-eslint/parser":"^2.34.0","aliasify":"^2.0.0","autod":"^2.6.1","babelify":"^10.0.0","beautify-benchmark":"^0.2.4","benchmark":"^2.1.1","bluebird":"^3.1.5","browserify":"^16.5.2","co-fs":"^1.2.0","co-mocha":"^1.2.1","core-js":"^3.6.5","crypto-js":"^3.1.9-1","dotenv":"^8.2.0","eslint":"^6.8.0","eslint-config-airbnb":"^16.1.0","eslint-config-ali":"^9.0.2","eslint-plugin-import":"^2.21.1","eslint-plugin-jsx-a11y":"^6.0.3","eslint-plugin-react":"^7.7.0","filereader":"^0.10.3","git-pre-hooks":"^1.2.0","immediate":"^3.3.0","karma":"^1.7.1","karma-browserify":"^5.1.1","karma-chrome-launcher":"^2.2.0","karma-firefox-launcher":"^1.0.1","karma-ie-launcher":"^1.0.0","karma-mocha":"^1.3.0","karma-safari-launcher":"^1.0.0","lint-staged":"^9.5.0","mm":"^2.0.0","mocha":"^3.5.3","nyc":"^13.3.0","promise-polyfill":"^6.0.2","request":"^2.88.0","should":"^11.0.0","sinon":"^1.17.7","snyk":"1.454.0","standard-version":"^8.0.1","stream-equal":"^1.1.0","thunk-mocha":"^1.0.3","timemachine":"^0.3.0","typescript":"^3.9.5","uglify-js":"^2.8.29","watchify":"^3.9.0"},"engines":{"node":">=8"},"files":["lib","shims","dist"],"git-pre-hooks":{"pre-release":"npm run build-dist","post-release":["npm run publish-to-npm","npm run publish-to-cdn"],"pre-commit":"npm run lint-staged"},"homepage":"https://github.com/aliyun/oss-nodejs-sdk","keywords":["oss","client","file","aliyun"],"license":"MIT","lint-staged":{"**/!(dist)/*":["npm run detect-secrets --"]},"main":"lib/client.js","name":"ali-oss","repository":{"type":"git","url":"git://github.com/aliyun/oss-nodejs-sdk.git"},"scripts":{"autod":"autod","browser-test":"npm run build-test && karma start","build-change-log":"standard-version","build-dist":"npm run tsc && node browser-build.js > dist/aliyun-oss-sdk.js && MINIFY=1 node browser-build.js > dist/aliyun-oss-sdk.min.js","build-test":"MINIFY=1 node browser-build.js > test/browser/build/aliyun-oss-sdk.min.js && node -r dotenv/config task/browser-test-build.js > test/browser/build/tests.js","detect-secrets":"node task/detect-secrets","jshint":"jshint .","lint-staged":"lint-staged","prepublish":"npm run snyk-protect","publish-to-cdn":"node publish.js","publish-to-npm":"node publish-npm-check.js && npm publish","snyk-protect":"snyk protect","test":"npm run tsc && mocha -t 60000 -r thunk-mocha -r should -r dotenv/config test/node/*.test.js test/node/**/*.test.js","test-cov":"npm run tsc && nyc --reporter=lcov node_modules/.bin/_mocha -t 60000 -r thunk-mocha -r should test/node/*.test.js test/node/**/*.test.js","tsc":"npm run tsc:clean && npm run tsc:build","tsc:build":"tsc -b tsconfig.json tsconfig-cjs.json","tsc:clean":"tsc -b tsconfig.json tsconfig-cjs.json --clean ","tsc:watch":"tsc -b tsconfig.json tsconfig-cjs.json --watch"},"snyk":true,"version":"6.16.0"}');
 
 /***/ }),
 
@@ -106582,7 +106597,7 @@ module.exports = JSON.parse('{"100":"Continue","101":"Switching Protocols","102"
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"_from":"urllib@^2.33.1","_id":"urllib@2.37.3","_inBundle":false,"_integrity":"sha512-jGfi6qi23KvN3u3WizRxeU/yWVoh0Ml7c4yfmeRKVfGESMXYfNcQCPgeHRC1w1OMstVa9MXyIUYz3OLj+pWAMA==","_location":"/urllib","_phantomChildren":{},"_requested":{"type":"range","registry":true,"raw":"urllib@^2.33.1","name":"urllib","escapedName":"urllib","rawSpec":"^2.33.1","saveSpec":null,"fetchSpec":"^2.33.1"},"_requiredBy":["/ali-oss"],"_resolved":"https://registry.npmjs.org/urllib/-/urllib-2.37.3.tgz","_shasum":"e5044a54947fbe9fe006188bbe73041970334111","_spec":"urllib@^2.33.1","_where":"/home/caishenghang/get-oneflow/node_modules/ali-oss","author":{"name":"fengmk2","email":"fengmk2@gmail.com","url":"https://fengmk2.com"},"bugs":{"url":"https://github.com/node-modules/urllib/issues"},"bundleDependencies":false,"ci":{"type":"github","os":{"github":"linux, windows, macos"},"version":"8, 10, 12, 14"},"dependencies":{"any-promise":"^1.3.0","content-type":"^1.0.2","debug":"^2.6.9","default-user-agent":"^1.0.0","digest-header":"^0.0.1","ee-first":"~1.1.1","formstream":"^1.1.0","humanize-ms":"^1.2.0","iconv-lite":"^0.4.15","ip":"^1.1.5","proxy-agent":"^4.0.1","pump":"^3.0.0","qs":"^6.4.0","statuses":"^1.3.1","utility":"^1.16.1"},"deprecated":false,"description":"Help in opening URLs (mostly HTTP) in a complex world — basic and digest authentication, redirections, cookies and more.","devDependencies":{"@types/mocha":"^5.2.5","@types/node":"^10.12.18","agentkeepalive":"^4.0.0","autod":"*","benchmark":"^2.1.4","bluebird":"*","busboy":"^0.2.14","co":"*","coffee":"1","egg-ci":"^1.15.0","git-contributor":"^1.0.10","http-proxy":"^1.16.2","intelli-espower-loader":"^1.0.1","istanbul":"*","jshint":"*","mkdirp":"^0.5.1","mocha":"3","muk":"^0.5.3","pedding":"^1.1.0","power-assert":"^1.4.2","semver":"5","spy":"^1.0.0","tar":"^4.4.8","through2":"^2.0.3","typescript":"^3.2.2"},"engines":{"node":">= 0.10.0"},"files":["lib"],"homepage":"https://github.com/node-modules/urllib","keywords":["urllib","http","urlopen","curl","wget","request","https"],"license":"MIT","main":"lib/index.js","name":"urllib","repository":{"type":"git","url":"git://github.com/node-modules/urllib.git"},"scripts":{"autod":"autod -w --prefix \'^\' -t test -e examples","ci":"npm run lint && npm run test-cov","contributor":"git-contributor","lint":"jshint .","test":"npm run lint && npm run test-local","test-cov":"istanbul cover node_modules/mocha/bin/_mocha -- -t 30000 -r intelli-espower-loader test/*.test.js","test-local":"mocha -t 30000 -r intelli-espower-loader test/*.test.js"},"types":"lib/index.d.ts","version":"2.37.3"}');
+module.exports = JSON.parse('{"_args":[["urllib@2.37.3","/home/xiexuan/get-oneflow"]],"_from":"urllib@2.37.3","_id":"urllib@2.37.3","_inBundle":false,"_integrity":"sha512-jGfi6qi23KvN3u3WizRxeU/yWVoh0Ml7c4yfmeRKVfGESMXYfNcQCPgeHRC1w1OMstVa9MXyIUYz3OLj+pWAMA==","_location":"/urllib","_phantomChildren":{},"_requested":{"type":"version","registry":true,"raw":"urllib@2.37.3","name":"urllib","escapedName":"urllib","rawSpec":"2.37.3","saveSpec":null,"fetchSpec":"2.37.3"},"_requiredBy":["/ali-oss"],"_resolved":"https://registry.npmjs.org/urllib/-/urllib-2.37.3.tgz","_spec":"2.37.3","_where":"/home/xiexuan/get-oneflow","author":{"name":"fengmk2","email":"fengmk2@gmail.com","url":"https://fengmk2.com"},"bugs":{"url":"https://github.com/node-modules/urllib/issues"},"ci":{"type":"github","os":{"github":"linux, windows, macos"},"version":"8, 10, 12, 14"},"dependencies":{"any-promise":"^1.3.0","content-type":"^1.0.2","debug":"^2.6.9","default-user-agent":"^1.0.0","digest-header":"^0.0.1","ee-first":"~1.1.1","formstream":"^1.1.0","humanize-ms":"^1.2.0","iconv-lite":"^0.4.15","ip":"^1.1.5","proxy-agent":"^4.0.1","pump":"^3.0.0","qs":"^6.4.0","statuses":"^1.3.1","utility":"^1.16.1"},"description":"Help in opening URLs (mostly HTTP) in a complex world — basic and digest authentication, redirections, cookies and more.","devDependencies":{"@types/mocha":"^5.2.5","@types/node":"^10.12.18","agentkeepalive":"^4.0.0","autod":"*","benchmark":"^2.1.4","bluebird":"*","busboy":"^0.2.14","co":"*","coffee":"1","egg-ci":"^1.15.0","git-contributor":"^1.0.10","http-proxy":"^1.16.2","intelli-espower-loader":"^1.0.1","istanbul":"*","jshint":"*","mkdirp":"^0.5.1","mocha":"3","muk":"^0.5.3","pedding":"^1.1.0","power-assert":"^1.4.2","semver":"5","spy":"^1.0.0","tar":"^4.4.8","through2":"^2.0.3","typescript":"^3.2.2"},"engines":{"node":">= 0.10.0"},"files":["lib"],"homepage":"https://github.com/node-modules/urllib","keywords":["urllib","http","urlopen","curl","wget","request","https"],"license":"MIT","main":"lib/index.js","name":"urllib","repository":{"type":"git","url":"git://github.com/node-modules/urllib.git"},"scripts":{"autod":"autod -w --prefix \'^\' -t test -e examples","ci":"npm run lint && npm run test-cov","contributor":"git-contributor","lint":"jshint .","test":"npm run lint && npm run test-local","test-cov":"istanbul cover node_modules/mocha/bin/_mocha -- -t 30000 -r intelli-espower-loader test/*.test.js","test-local":"mocha -t 30000 -r intelli-espower-loader test/*.test.js"},"types":"lib/index.d.ts","version":"2.37.3"}');
 
 /***/ }),
 

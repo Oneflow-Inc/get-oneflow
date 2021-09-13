@@ -89,6 +89,8 @@ async function buildWithConda(): Promise<void> {
 }
 
 async function run(): Promise<void> {
+  core.debug('--------------------------------------')
+  core.debug('--------------------------------------')
   try {
     const buildEnv: string = core.getInput('oneflow-build-env')
     const action: string = core.getInput('action')
