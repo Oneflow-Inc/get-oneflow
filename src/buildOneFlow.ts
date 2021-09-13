@@ -1,15 +1,19 @@
 import * as core from '@actions/core'
-import * as exec from './exec'
+import * as exec from './utils/exec'
 import * as io from '@actions/io'
 import * as tc from '@actions/tool-cache'
 import fs from 'fs'
 import os from 'os'
 import {ExecOptions} from '@actions/exec'
 import path from 'path'
-import {ensureConda} from './conda'
-import {buildManylinuxAndTag, buildOneFlow, DOCKER_TOOL_URLS} from './docker'
-import {isSelfHosted} from './util'
-import {TOOLS, mirrorToDownloads} from './ensure'
+import {ensureConda} from './utils/conda'
+import {
+  buildManylinuxAndTag,
+  buildOneFlow,
+  DOCKER_TOOL_URLS
+} from './utils/docker'
+import {isSelfHosted} from './utils/util'
+import {TOOLS, mirrorToDownloads} from './utils/ensure'
 
 async function condaRun(
   condaEnvName: string,

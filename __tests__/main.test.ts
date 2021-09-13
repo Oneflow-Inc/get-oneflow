@@ -3,10 +3,14 @@ import * as cp from 'child_process'
 import * as path from 'path'
 import {test} from '@jest/globals'
 import os from 'os'
-import {buildManylinuxAndTag, ensureDocker, buildOneFlow} from '../src/docker'
-import {TOOLS, mirrorToDownloads, ensureCUDA102} from '../src/ensure'
-import * as env from '../src/env'
-import * as ssh from '../src/ssh'
+import {
+  buildManylinuxAndTag,
+  ensureDocker,
+  buildOneFlow
+} from '../src/utils/docker'
+import {TOOLS, mirrorToDownloads, ensureCUDA102} from '../src/utils/ensure'
+import * as env from '../src/utils/env'
+import * as ssh from '../src/utils/ssh'
 import {ok} from 'assert'
 
 process.env['RUNNER_TOOL_CACHE'] = '~/runner_tool_cache'.replace(
@@ -25,7 +29,7 @@ test('test runs', () => {
   process.env['INPUT_SELF-HOSTED'] = 'true'
   env.setInput('action', 'do-nothing')
   const np = process.execPath
-  const ip = path.join(__dirname, '..', 'lib', 'main.js')
+  const ip = path.join(__dirname, '..', 'lib', 'buildOneFlow.js')
   const options: cp.ExecFileSyncOptions = {
     env: process.env
   }
