@@ -5,15 +5,8 @@ inputs:
     description: 'OSS bucket to save cache keys for build outputs and test results'
     required: false
     default: 'oneflow-ci-cache'
-  prefixes:
-    description: |
-      Prefix of keys used to save and find artifacts.
-      For instance: pr/[commit], degist/[hash of files].
-      Later you can get artifact with keys to inventory files like pr/[commit]/wheelhouse.json.
-      If key found, build will be skipped.
-      Currently backed by OSS
-  key:
-    description: 'key to find'
+  keys:
+    description: ''
   runner-labels:
     description: 'runner labels to output if cache not found'
 outputs:
