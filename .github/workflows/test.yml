@@ -35,11 +35,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: ./
+      - uses: ./mirror
         if: ${{ env.OSS_ACCESS_KEY_ID }}
         name: Mirror tools
-        with:
-          action: mirror-tools
 
   test-build-img:
     name: 'Build image'

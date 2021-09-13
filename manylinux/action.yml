@@ -1,9 +1,6 @@
 name: 'Build/Get OneFlow'
 description: ''
 inputs:
-  action:
-    description: 'build-img|load-img'
-    required: true
   manylinux-version:
     description: ''
     required: true

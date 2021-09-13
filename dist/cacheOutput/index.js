@@ -624,6 +624,10 @@ function run() {
         try {
             // const keys: string[] = core.getMultilineInput('keys')
             let runnerLabels = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getMultilineInput('runner-labels');
+            if (runnerLabels.length === 0) {
+                _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed('runner-labels empty');
+                return;
+            }
             const prefixes = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getMultilineInput('prefixes');
             // if (runnerLabels.includes('self-hosted') === false) {
             //   runnerLabels.concat('self-hosted')

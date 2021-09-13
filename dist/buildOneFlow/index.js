@@ -106124,10 +106124,10 @@ function mirrorToDownloads(url) {
         }
     });
 }
-function getOSSDownloadURL(url) {
+function ensure_getOSSDownloadURL(url) {
     const parsedURL = new URL(url);
     const store = staticBucketStore();
-    const fileName = external_path_default().basename(parsedURL.pathname);
+    const fileName = path.basename(parsedURL.pathname);
     const objectKey = getDownloadsKey(fileName);
     return store.getObjectUrl(objectKey, 'https://oneflow-static.oss-cn-beijing.aliyuncs.com');
 }
@@ -106310,8 +106310,8 @@ function buildManylinuxAndTag(version) {
         const fromTag = tagFromversion(version);
         const splits = fromTag.split('/');
         let toTag = 'oneflowinc/'.concat(splits[splits.length - 1]);
-        toTag = [toTag, external_os_default().userInfo().username].join(':');
-        const docker = new (docker_default())({ socketPath: '/var/run/docker.sock' });
+        toTag = [toTag, os.userInfo().username].join(':');
+        const docker = new Docker({ socketPath: '/var/run/docker.sock' });
         let buildArgs = {
             from: fromTag,
             HTTP_PROXY: process.env.HTTP_PROXY,
@@ -106319,7 +106319,7 @@ function buildManylinuxAndTag(version) {
             HTTPS_PROXY: process.env.HTTPS_PROXY,
             https_proxy: process.env.https_proxy
         };
-        if (util_isSelfHosted()) {
+        if (isSelfHosted()) {
             const selfHostedBuildArgs = {
                 SCCACHE_RELEASE_URL: getOSSDownloadURL(DOCKER_TOOL_URLS.sccache),
                 CCACHE_RELEASE_URL: getOSSDownloadURL(DOCKER_TOOL_URLS.ccache),
@@ -106328,7 +106328,7 @@ function buildManylinuxAndTag(version) {
             };
             buildArgs = Object.assign(Object.assign({}, buildArgs), selfHostedBuildArgs);
         }
-        lib_core.info(JSON.stringify({
+        core.info(JSON.stringify({
             toTag,
             buildArgs
         }, null, 2));
@@ -106340,10 +106340,10 @@ function buildManylinuxAndTag(version) {
             networkmode: 'host',
             buildargs: buildArgs
         });
-        lib_core.debug('started building docker img');
-        new (docker_default())().modem.demuxStream(stream, process.stdout, process.stderr);
+        core.debug('started building docker img');
+        new Docker().modem.demuxStream(stream, process.stdout, process.stderr);
         yield new Promise((resolve, reject) => {
-            new (docker_default())().modem.followProgress(stream, (err, res) => {
+            new Docker().modem.followProgress(stream, (err, res) => {
                 const lastFrame = res[res.length - 1];
                 lastFrame.error ? reject(lastFrame) : resolve(res);
                 err ? reject(err) : resolve(res);
@@ -106352,20 +106352,20 @@ function buildManylinuxAndTag(version) {
                 const status = event;
                 const data = event;
                 if (err.error) {
-                    lib_core.info(err.error);
+                    core.info(err.error);
                 }
                 else if (status.status) {
-                    lib_core.info(`[${status.status}] ${status.progress}`);
+                    core.info(`[${status.status}] ${status.progress}`);
                 }
                 else if (data.stream) {
-                    lib_core.info(data.stream);
+                    core.info(data.stream);
                 }
                 else {
-                    lib_core.info(JSON.stringify(event, null, 2));
+                    core.info(JSON.stringify(event, null, 2));
                 }
             });
         });
-        lib_core.debug('done building docker img');
+        core.debug('done building docker img');
         return toTag;
     });
 }
@@ -106658,20 +106658,6 @@ function run() {
                     }
                     for (const e of Object.entries(DOCKER_TOOL_URLS)) {
                         yield mirrorToDownloads(e[1]);
-                    }
-                    break;
-                case 'build-img':
-                    {
-                        const manylinuxVersion = lib_core.getInput('manylinux-version', {
-                            required: true
-                        });
-                        if (manylinuxVersion === '2014') {
-                            const tag = yield buildManylinuxAndTag(manylinuxVersion);
-                            lib_core.setOutput('tag', tag);
-                        }
-                        else {
-                            lib_core.setFailed(`unsupported manylinuxVersion: ${manylinuxVersion}`);
-                        }
                     }
                     break;
                 case 'build-oneflow':
