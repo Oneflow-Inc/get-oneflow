@@ -178,7 +178,7 @@ jobs:
 
   test-build-cpu-only:
     name: 'Build OneFlow'
-    runs-on: ${{ needs.test-build-cpu-only-cache.outputs.runs-on }}
+    runs-on: ${{ fromJson(needs.test-build-cpu-only-cache.outputs.runs-on) }}
     needs: [test-build-cpu-only-cache]
     env:
       ONEFLOW_SRC: oneflow-src
