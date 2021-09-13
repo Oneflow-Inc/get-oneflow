@@ -105818,7 +105818,7 @@ function getExecOutput(commandLine, args, options) {
 }
 
 // EXTERNAL MODULE: ./node_modules/@actions/io/lib/io.js
-var io = __nccwpck_require__(47351);
+var lib_io = __nccwpck_require__(47351);
 // EXTERNAL MODULE: ./node_modules/@actions/tool-cache/lib/tool-cache.js
 var tool_cache = __nccwpck_require__(27784);
 // EXTERNAL MODULE: external "fs"
@@ -105854,7 +105854,7 @@ function ensureConda() {
             const condaInstallerUrl = lib_core.getInput('conda-installer-url');
             let cmdFromPrefix = external_path_default().join(condaPrefix, 'condabin', 'conda');
             try {
-                yield io.which('conda', true);
+                yield lib_io.which('conda', true);
                 return 'conda';
             }
             catch (error) {
@@ -105868,7 +105868,7 @@ function ensureConda() {
                 const installerPath = yield tool_cache.downloadTool(condaInstallerUrl);
                 exec_exec('bash', [installerPath, '-b', '-u', '-s', '-p', condaPrefix]);
             }
-            cmdFromPrefix = yield io.which(cmdFromPrefix, true);
+            cmdFromPrefix = yield lib_io.which(cmdFromPrefix, true);
             return cmdFromPrefix;
         }
         else {
@@ -105934,7 +105934,7 @@ function createExtractFolder(dest) {
             // create a temp dir
             dest = external_path_default().join(getTempDirectory(), v4());
         }
-        yield io.mkdirP(dest);
+        yield lib_io.mkdirP(dest);
         return dest;
     });
 }
@@ -106102,25 +106102,25 @@ function getDownloadsKey(fileName) {
 function mirrorToDownloads(url) {
     return ensure_awaiter(this, void 0, void 0, function* () {
         const parsedURL = new URL(url);
-        const fileName = external_path_default().basename(parsedURL.pathname);
+        const fileName = path.basename(parsedURL.pathname);
         const store = staticBucketStore();
         const objectKey = getDownloadsKey(fileName);
         try {
             yield store.head(objectKey);
-            lib_core.info(`[found] ${url}`);
+            core.info(`[found] ${url}`);
         }
         catch (error) {
-            lib_core.info(`[absent-url] ${url}`);
-            lib_core.info(`[absent-key] ${objectKey}`);
-            if (util_isSelfHosted()) {
+            core.info(`[absent-url] ${url}`);
+            core.info(`[absent-key] ${objectKey}`);
+            if (isSelfHosted()) {
                 return;
             }
-            const downloaded = yield tool_cache.downloadTool(url);
+            const downloaded = yield tc.downloadTool(url);
             yield store.put(objectKey, downloaded, {
                 timeout: 60 * 1000 * 60
             });
             yield io.rmRF(downloaded);
-            lib_core.info(`[mirrored] ${url}`);
+            core.info(`[mirrored] ${url}`);
         }
     });
 }
@@ -106456,7 +106456,7 @@ function buildOneFlow(tag) {
             required: true
         });
         // TODO: don't do any sub-directory appending, leave action caller to decide the cache dir?
-        yield io.mkdirP(manylinuxCacheDir);
+        yield lib_io.mkdirP(manylinuxCacheDir);
         if (lib_core.getBooleanInput('docker-run-use-system-http-proxy', {
             required: false
         })) {
@@ -106578,12 +106578,11 @@ var buildOneFlow_awaiter = (undefined && undefined.__awaiter) || function (thisA
 
 
 
-
 function condaRun(condaEnvName, commandLine, args, options) {
     return buildOneFlow_awaiter(this, void 0, void 0, function* () {
         let condaCmd = 'conda';
         try {
-            condaCmd = yield io.which(condaCmd, true);
+            condaCmd = yield lib_io.which(condaCmd, true);
         }
         catch (error) {
             condaCmd = yield ensureConda();
@@ -106622,7 +106621,7 @@ function buildWithConda() {
                 '--prune'
             ]);
             const buildDir = 'build';
-            yield io.mkdirP(buildDir);
+            yield lib_io.mkdirP(buildDir);
             const condaEnvName = 'oneflow-dev-clang10-v2';
             yield condaRun(condaEnvName, 'cmake', [
                 '-S',
@@ -106650,37 +106649,18 @@ function run() {
     return buildOneFlow_awaiter(this, void 0, void 0, function* () {
         try {
             const buildEnv = lib_core.getInput('oneflow-build-env');
-            const action = lib_core.getInput('action');
-            switch (action) {
-                case 'mirror-tools':
-                    for (const t of TOOLS) {
-                        yield mirrorToDownloads(t.url);
-                    }
-                    for (const e of Object.entries(DOCKER_TOOL_URLS)) {
-                        yield mirrorToDownloads(e[1]);
-                    }
-                    break;
-                case 'build-oneflow':
-                    if (['conda', 'manylinux'].includes(buildEnv) === false) {
-                        lib_core.setFailed('oneflow-build-env must be conda or manylinux');
-                    }
-                    if (buildEnv === 'conda') {
-                        yield buildWithConda();
-                    }
-                    if (buildEnv === 'manylinux') {
-                        if (util_isSelfHosted()) {
-                            const tag = 'registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64:0.1';
-                            yield exec_exec('docker', ['pull', tag]);
-                            yield buildOneFlow(tag);
-                        }
-                    }
-                    break;
-                case 'do-nothing':
-                    lib_core.warning(`unsupported action: ${action}`);
-                    break;
-                default:
-                    lib_core.setFailed(`unsupported action: ${action}`);
-                    break;
+            if (['conda', 'manylinux'].includes(buildEnv) === false) {
+                lib_core.setFailed('oneflow-build-env must be conda or manylinux');
+            }
+            if (buildEnv === 'conda') {
+                yield buildWithConda();
+            }
+            if (buildEnv === 'manylinux') {
+                if (util_isSelfHosted()) {
+                    const tag = 'registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64:0.1';
+                    yield exec_exec('docker', ['pull', tag]);
+                    yield buildOneFlow(tag);
+                }
             }
         }
         catch (error) {
