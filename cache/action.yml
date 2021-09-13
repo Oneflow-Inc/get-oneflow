@@ -1,0 +1,28 @@
+name: 'Build/Get OneFlow'
+description: ''
+inputs:
+  oss-bucket:
+    description: 'OSS bucket to save cache keys for build outputs and test results'
+    required: false
+    default: 'oneflow-ci-cache'
+  prefixes:
+    description: |
+      Prefix of keys used to save and find artifacts.
+      For instance: pr/[commit], degist/[hash of files].
+      Later you can get artifact with keys to inventory files like pr/[commit]/wheelhouse.json.
+      If key found, build will be skipped.
+      Currently backed by OSS
+  keys:
+    description: 'keys to find'
+  runner-labels:
+    description: 'runner labels to output if cache not found'
+outputs:
+  run-on:
+    description: 'if cache found, will generate a [ubuntu-latest]'
+  prefixes:
+    description: 'same as input'
+  found:
+    description: 'if cache found'
+runs:
+  using: 'node12'
+  main: '../dist/cacheOutput/index.js'
