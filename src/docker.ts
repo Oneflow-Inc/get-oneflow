@@ -291,14 +291,10 @@ async function buildAndMakeWheel(
 export async function buildOneFlow(tag: string): Promise<void> {
   const oneflowSrc: string = getPathInput('oneflow-src', {required: true})
   const wheelhouseDir: string = getPathInput('wheelhouse-dir', {required: true})
-  // const buildScript: string = getPathInput('build-script', {
-  //   required: true
-  // })
   const docker = new Docker({socketPath: '/var/run/docker.sock'})
   const cudaTools = await ensureCUDA()
   const containerName = 'oneflow-manylinux-'.concat(os.userInfo().username)
   const containerInfos = await docker.listContainers()
-  // const shouldSymbolicLinkLld = core.getBooleanInput('docker-run-use-lld')
   for (const containerInfo of containerInfos) {
     if (
       containerInfo.Names.includes(containerName) ||
