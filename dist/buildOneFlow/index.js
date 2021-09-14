@@ -106424,7 +106424,7 @@ function getPythonExe(pythonVersion) {
     (0,external_assert_.ok)(exe, pythonVersion);
     return exe;
 }
-function buildAndMakeWheel(createOptions, docker) {
+function buildAndMakeWheel(createOptions, docker, buildDir, shouldCleanBuildDir) {
     return docker_awaiter(this, void 0, void 0, function* () {
         const shouldSymbolicLinkLld = lib_core.getBooleanInput('docker-run-use-lld');
         const oneflowSrc = getPathInput('oneflow-src', { required: true });
@@ -106434,6 +106434,9 @@ function buildAndMakeWheel(createOptions, docker) {
         });
         const container = yield docker.createContainer(createOptions);
         yield container.start();
+        if (shouldCleanBuildDir) {
+            yield runBash(container, `rm -rf ${external_path_default().join(buildDir, '*')}`);
+        }
         const pythonVersions = lib_core.getMultilineInput('python-versions', {
             required: true
         });
@@ -106550,17 +106553,13 @@ function buildOneFlow(tag) {
             ].concat(httpProxyEnvs)
         };
         try {
-            yield buildAndMakeWheel(createOptions, docker);
+            yield buildAndMakeWheel(createOptions, docker, buildDir, false);
         }
         catch (error) {
             const retryFailedBuild = lib_core.getBooleanInput('retry-failed-build');
             if (retryFailedBuild) {
-                if (external_fs_default().existsSync(buildDir)) {
-                    external_fs_default().rmdirSync(buildDir, { recursive: true });
-                    lib_core.info('Remove `build` Directory');
-                }
                 lib_core.info('Retry Build and Make Wheel.');
-                yield buildAndMakeWheel(createOptions, docker);
+                yield buildAndMakeWheel(createOptions, docker, buildDir, true);
             }
             else {
                 lib_core.setFailed(error.message);

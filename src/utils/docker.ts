@@ -244,7 +244,9 @@ function getPythonExe(pythonVersion: string): string {
 
 async function buildAndMakeWheel(
   createOptions: Object,
-  docker: Docker
+  docker: Docker,
+  buildDir: string,
+  shouldCleanBuildDir: Boolean
 ): Promise<void> {
   const shouldSymbolicLinkLld = core.getBooleanInput('docker-run-use-lld')
   const oneflowSrc: string = getPathInput('oneflow-src', {required: true})
@@ -254,6 +256,9 @@ async function buildAndMakeWheel(
   })
   const container = await docker.createContainer(createOptions)
   await container.start()
+  if (shouldCleanBuildDir) {
+    await runBash(container, `rm -rf ${path.join(buildDir, '*')}`)
+  }
   const pythonVersions: string[] = core.getMultilineInput('python-versions', {
     required: true
   })
@@ -384,16 +389,12 @@ export async function buildOneFlow(tag: string): Promise<void> {
     ].concat(httpProxyEnvs)
   }
   try {
-    await buildAndMakeWheel(createOptions, docker)
+    await buildAndMakeWheel(createOptions, docker, buildDir, false)
   } catch (error) {
     const retryFailedBuild = core.getBooleanInput('retry-failed-build')
     if (retryFailedBuild) {
-      if (fs.existsSync(buildDir)) {
-        fs.rmdirSync(buildDir, {recursive: true})
-        core.info('Remove `build` Directory')
-      }
       core.info('Retry Build and Make Wheel.')
-      await buildAndMakeWheel(createOptions, docker)
+      await buildAndMakeWheel(createOptions, docker, buildDir, true)
     } else {
       core.setFailed(error.message)
     }
