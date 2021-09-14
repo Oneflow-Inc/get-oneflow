@@ -78866,7 +78866,7 @@ function run() {
             const keys = yield getOneFlowBuildCacheKeys(entry);
             lib_core.saveState('keys', keys);
             let runnerLabels = lib_core.getMultilineInput('runner-labels', {
-                required: true
+                required: false
             });
             const checkNotCompleted = lib_core.getBooleanInput('check-not-completed', {
                 required: false
