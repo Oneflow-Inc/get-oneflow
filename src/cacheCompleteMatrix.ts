@@ -19,7 +19,7 @@ async function run(): Promise<void> {
       entry: string[]
       include: unknown[]
     }
-    const matrix: Matrix = {entry: keys, include: []}
+    const matrix: Matrix = {entry: matrixKeys, include: []}
     for (const matrixKey of matrixKeys) {
       const found = await cache.checkComplete(
         keys.map(x => x.replace(MATRIX_KEY_PLACEHOLDER, matrixKey))

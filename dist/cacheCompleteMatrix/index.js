@@ -69495,7 +69495,7 @@ function run() {
             for (const key of keys) {
                 (0,external_assert_.ok)(key.includes(MATRIX_KEY_PLACEHOLDER));
             }
-            const matrix = { entry: keys, include: [] };
+            const matrix = { entry: matrixKeys, include: [] };
             for (const matrixKey of matrixKeys) {
                 const found = yield checkComplete(keys.map(x => x.replace(MATRIX_KEY_PLACEHOLDER, matrixKey)));
                 matrix.include = matrix.include.concat([
