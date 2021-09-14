@@ -210,6 +210,10 @@ test(
       path.join(__dirname, '..', 'lib', 'postCacheComplete.js')
     )
     ok(await checkComplete(keys))
+    await cpExec.cpExec(
+      np,
+      path.join(__dirname, '..', 'lib', 'cacheComplete.js')
+    )
   },
   MINUTES15
 )
