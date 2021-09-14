@@ -388,7 +388,6 @@ export async function buildOneFlow(tag: string): Promise<void> {
     ].concat(httpProxyEnvs)
   }
   try {
-    // throw new Error('Something bad happened')
     await buildAndMakeWheel(createOptions, docker)
   } catch (error) {
     const retryFailedBuild = core.getBooleanInput('retry-failed-build')
