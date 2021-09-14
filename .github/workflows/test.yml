@@ -47,8 +47,6 @@ jobs:
       max-parallel: 5
       matrix:
         os: [['self-hosted', 'linux', 'provision'], [ubuntu-latest]]
-    env:
-      ACTION: build-img
     steps:
       - name: Fix permissions
         if: ${{ contains(matrix.os, 'self-hosted') }}
@@ -73,7 +71,6 @@ jobs:
         docker-run-use-system-http-proxy: [false]
     env:
       ONEFLOW_SRC: oneflow-src-${{ matrix.oneflow-build-env }}
-      ACTION: build-oneflow
     steps:
       - name: Fix permissions
         if: ${{ contains(matrix.os, 'self-hosted') }}
@@ -122,7 +119,6 @@ jobs:
     runs-on: [ubuntu-latest]
     env:
       ONEFLOW_SRC: oneflow-src
-      ACTION: build-oneflow
     outputs:
       matrix: ${{ steps.find-cache.outputs.matrix }}
     steps:
@@ -140,8 +136,6 @@ jobs:
       - uses: ./cache-complete/matrix
         name: find cache
         id: find-cache
-        env:
-          BUILD_TYPE: cpu-only
         with:
           runner-labels: |
             self-hosted
@@ -166,7 +160,6 @@ jobs:
       matrix: ${{ fromJson(needs.find-build-cache.outputs.matrix) }}
     env:
       ONEFLOW_SRC: oneflow-src
-      ACTION: build-oneflow
     steps:
       - name: Fix permissions
         if: ${{ contains(fromJson(needs.find-build-cache.outputs.runs-on-${{ matrix.build-type }}), 'self-hosted') }}
@@ -194,8 +187,8 @@ jobs:
         id: save-cache
         with:
           keys: |
-            ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/${{ matrix.entry  }}
-            ${{ github.repository }}/digest/${{ steps.set-cache-key.outputs.src-hash }}/${{ matrix.entry  }}
+            ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/${{ matrix.entry }}
+            ${{ github.repository }}/digest/${{ steps.set-cache-key.outputs.src-hash }}/${{ matrix.entry }}
           mark-as-completed: ${{ contains(matrix.runs-on, 'self-hosted') }}]}
           check-not-completed: ${{ contains(matrix.runs-on, 'self-hosted') }}]}
       - name: Check cache
@@ -269,11 +262,9 @@ jobs:
       fail-fast: false
       max-parallel: 5
       matrix:
-        build-type: ['cu102-xla', 'cu114', 'cpu-only']
+        entry: ['cu102-xla', 'cu114', 'cpu-only']
     env:
       ONEFLOW_SRC: oneflow-src
-      ACTION: build-oneflow
-      BUILD_TYPE: ${{ matrix.build-type }}
     steps:
       - name: Checkout this repo
         uses: actions/checkout@v2
@@ -283,6 +274,10 @@ jobs:
           repository: Oneflow-Inc/oneflow
           ref: refine_for_new_ci
           path: ${{ env.ONEFLOW_SRC }}
+      - name: Set cache key env
+        id: set-cache-key
+        run: |
+          echo '::set-output name=src-hash::${{ hashFiles('oneflow-src/core/**/*.h', 'oneflow-src/core/**/*.cpp', 'oneflow-src/cmake/**/*', 'oneflow-src/python/oneflow/**/*.py, 'oneflow-src/core/**/*.yaml') }}'
       - uses: ./cache-complete
         name: find cache
         id: find-cache
@@ -292,8 +287,8 @@ jobs:
             linux
             provision
           keys: |
-            ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/${{ matrix.build-type }}/whl
-            ${{ github.repository }}/digest/${{ matrix.build-type }}/${{ hashFiles('oneflow-src/**/*.cpp') }}
+            ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/${{ matrix.entry }}
+            ${{ github.repository }}/digest/${{ steps.set-cache-key.outputs.src-hash }}/${{ matrix.entry }}
           mark-as-completed: false
       - name: Check built
         if: ${{ !steps.find-cache.outputs.cache-hit }}
