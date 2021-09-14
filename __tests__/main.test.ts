@@ -14,6 +14,7 @@ import * as ssh from '../src/utils/ssh'
 import {ok} from 'assert'
 import * as core from '@actions/core'
 import * as cpExec from '../src/utils/cpExec'
+import {checkComplete, removeComplete} from '../src/utils/cache'
 
 process.env['RUNNER_TOOL_CACHE'] = '~/runner_tool_cache'.replace(
   '~',
@@ -188,15 +189,18 @@ test(
   'cache complete',
   async () => {
     const np = process.execPath
-    env.setMultilineInput('keys', [
+    const keys = [
       'pr/test-commit/test-build-type',
       'degist/test-hash/test-build-type'
-    ])
+    ]
+    env.setMultilineInput('keys', keys)
     env.setMultilineInput('runner-labels', [
       'self-hosted',
       'linux',
       'provision'
     ])
+    await removeComplete(keys)
+    ok(!(await checkComplete(keys)))
     await cpExec.cpExec(
       np,
       path.join(__dirname, '..', 'lib', 'cacheComplete.js')
@@ -205,6 +209,7 @@ test(
       np,
       path.join(__dirname, '..', 'lib', 'postCacheComplete.js')
     )
+    ok(await checkComplete(keys))
   },
   MINUTES15
 )

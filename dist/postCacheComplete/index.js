@@ -69407,7 +69407,6 @@ function checkComplete(keys) {
     return __awaiter(this, void 0, void 0, function* () {
         const store = ciCacheBucketStore();
         try {
-            // TODO: support check keys have same values
             for (keys_2 = __asyncValues(keys); keys_2_1 = yield keys_2.next(), !keys_2_1.done;) {
                 const key = keys_2_1.value;
                 const objectKey = key.concat(COMPLETE_KEY);
@@ -69429,6 +69428,33 @@ function checkComplete(keys) {
             finally { if (e_2) throw e_2.error; }
         }
         return false;
+    });
+}
+function removeComplete(keys) {
+    var keys_3, keys_3_1;
+    var e_3, _a;
+    return __awaiter(this, void 0, void 0, function* () {
+        const store = ciCacheBucketStore();
+        try {
+            for (keys_3 = __asyncValues(keys); keys_3_1 = yield keys_3.next(), !keys_3_1.done;) {
+                const key = keys_3_1.value;
+                const objectKey = key.concat(COMPLETE_KEY);
+                try {
+                    yield store.delete(objectKey, { timeout: 60 * 1000 * 60 });
+                    core.info(`[delete] ${objectKey}`);
+                }
+                catch (error) {
+                    core.info(`[delete fail] ${objectKey}`);
+                }
+            }
+        }
+        catch (e_3_1) { e_3 = { error: e_3_1 }; }
+        finally {
+            try {
+                if (keys_3_1 && !keys_3_1.done && (_a = keys_3.return)) yield _a.call(keys_3);
+            }
+            finally { if (e_3) throw e_3.error; }
+        }
     });
 }
 

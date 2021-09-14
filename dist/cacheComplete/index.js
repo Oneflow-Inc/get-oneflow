@@ -69345,7 +69345,7 @@ var __webpack_exports__ = {};
 __nccwpck_require__.r(__webpack_exports__);
 
 // EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
-var core = __nccwpck_require__(2186);
+var lib_core = __nccwpck_require__(2186);
 // EXTERNAL MODULE: ./node_modules/ali-oss/lib/client.js
 var client = __nccwpck_require__(2399);
 var client_default = /*#__PURE__*/__nccwpck_require__.n(client);
@@ -69407,17 +69407,16 @@ function checkComplete(keys) {
     return __awaiter(this, void 0, void 0, function* () {
         const store = ciCacheBucketStore();
         try {
-            // TODO: support check keys have same values
             for (keys_2 = __asyncValues(keys); keys_2_1 = yield keys_2.next(), !keys_2_1.done;) {
                 const key = keys_2_1.value;
                 const objectKey = key.concat(COMPLETE_KEY);
                 try {
                     yield store.head(objectKey, { timeout: 60 * 1000 * 60 });
-                    core.info(`[found] ${objectKey}`);
+                    lib_core.info(`[found] ${objectKey}`);
                     return true;
                 }
                 catch (error) {
-                    core.info(`[absent] ${objectKey}`);
+                    lib_core.info(`[absent] ${objectKey}`);
                 }
             }
         }
@@ -69429,6 +69428,33 @@ function checkComplete(keys) {
             finally { if (e_2) throw e_2.error; }
         }
         return false;
+    });
+}
+function removeComplete(keys) {
+    var keys_3, keys_3_1;
+    var e_3, _a;
+    return __awaiter(this, void 0, void 0, function* () {
+        const store = ciCacheBucketStore();
+        try {
+            for (keys_3 = __asyncValues(keys); keys_3_1 = yield keys_3.next(), !keys_3_1.done;) {
+                const key = keys_3_1.value;
+                const objectKey = key.concat(COMPLETE_KEY);
+                try {
+                    yield store.delete(objectKey, { timeout: 60 * 1000 * 60 });
+                    core.info(`[delete] ${objectKey}`);
+                }
+                catch (error) {
+                    core.info(`[delete fail] ${objectKey}`);
+                }
+            }
+        }
+        catch (e_3_1) { e_3 = { error: e_3_1 }; }
+        finally {
+            try {
+                if (keys_3_1 && !keys_3_1.done && (_a = keys_3.return)) yield _a.call(keys_3);
+            }
+            finally { if (e_3) throw e_3.error; }
+        }
     });
 }
 
@@ -69447,26 +69473,26 @@ var cacheComplete_awaiter = (undefined && undefined.__awaiter) || function (this
 function run() {
     return cacheComplete_awaiter(this, void 0, void 0, function* () {
         try {
-            const keys = core.getMultilineInput('keys', { required: true });
-            let runnerLabels = core.getMultilineInput('runner-labels', {
+            const keys = lib_core.getMultilineInput('keys', { required: true });
+            let runnerLabels = lib_core.getMultilineInput('runner-labels', {
                 required: true
             });
             if (runnerLabels.length === 0) {
-                core.setFailed('runner-labels empty');
+                lib_core.setFailed('runner-labels empty');
                 return;
             }
             // TODO: add condition
             const found = yield checkComplete(keys);
             if (found) {
                 runnerLabels = ['ubuntu-latest'];
-                core.setOutput('object', found);
+                lib_core.setOutput('object', found);
             }
-            core.setOutput('runs-on', runnerLabels);
-            core.setOutput('keys', keys);
-            core.setOutput('complete', !!found);
+            lib_core.setOutput('runs-on', runnerLabels);
+            lib_core.setOutput('keys', keys);
+            lib_core.setOutput('complete', !!found);
         }
         catch (error) {
-            core.setFailed(error.message);
+            lib_core.setFailed(error.message);
         }
     });
 }

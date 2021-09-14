@@ -23,7 +23,6 @@ export async function cacheComplete(keys: string[]): Promise<void> {
 
 export async function checkComplete(keys: string[]): Promise<Boolean> {
   const store = ciCacheBucketStore()
-  // TODO: support check keys have same values
   for await (const key of keys) {
     const objectKey = key.concat(COMPLETE_KEY)
     try {
@@ -35,4 +34,17 @@ export async function checkComplete(keys: string[]): Promise<Boolean> {
     }
   }
   return false
+}
+
+export async function removeComplete(keys: string[]): Promise<void> {
+  const store = ciCacheBucketStore()
+  for await (const key of keys) {
+    const objectKey = key.concat(COMPLETE_KEY)
+    try {
+      await store.delete(objectKey, {timeout: 60 * 1000 * 60})
+      core.info(`[delete] ${objectKey}`)
+    } catch (error) {
+      core.info(`[delete fail] ${objectKey}`)
+    }
+  }
 }
