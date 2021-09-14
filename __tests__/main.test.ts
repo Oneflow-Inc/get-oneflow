@@ -194,6 +194,8 @@ test(
       'tests/degist/test-hash/test-build-type'
     ]
     env.setMultilineInput('keys', keys)
+    env.setBooleanInput('mark-as-completed', true)
+    env.setBooleanInput('check-not-completed', true)
     env.setMultilineInput('runner-labels', [
       'self-hosted',
       'linux',
@@ -210,6 +212,7 @@ test(
       path.join(__dirname, '..', 'lib', 'postCacheComplete.js')
     )
     ok(await checkComplete(keys))
+    env.setBooleanInput('check-not-completed', false)
     await cpExec.cpExec(
       np,
       path.join(__dirname, '..', 'lib', 'cacheComplete.js')

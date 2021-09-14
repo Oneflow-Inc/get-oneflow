@@ -69419,7 +69419,7 @@ function checkComplete(keys) {
                 try {
                     yield store.head(objectKey, { timeout: 60 * 1000 * 60 });
                     lib_core.info(`[found] ${objectKey}`);
-                    return true;
+                    return objectKey;
                 }
                 catch (error) {
                     lib_core.info(`[absent] ${objectKey}`);
@@ -69433,7 +69433,7 @@ function checkComplete(keys) {
             }
             finally { if (e_2) throw e_2.error; }
         }
-        return false;
+        return null;
     });
 }
 function removeComplete(keys) {
@@ -69483,19 +69483,26 @@ function run() {
             let runnerLabels = lib_core.getMultilineInput('runner-labels', {
                 required: true
             });
+            const checkNotCompleted = lib_core.getBooleanInput('check-not-completed', {
+                required: false
+            });
             if (runnerLabels.length === 0) {
                 lib_core.setFailed('runner-labels empty');
                 return;
             }
             // TODO: add condition
             const found = yield checkComplete(keys);
+            if (checkNotCompleted && found) {
+                lib_core.setFailed(`${found} marked as completed`);
+                return;
+            }
             if (found) {
                 runnerLabels = ['ubuntu-latest'];
                 lib_core.setOutput('object', found);
             }
             lib_core.setOutput('runs-on', runnerLabels);
             lib_core.setOutput('keys', keys);
-            lib_core.setOutput('complete', !!found);
+            lib_core.setOutput('cache-hit', !!found);
         }
         catch (error) {
             lib_core.setFailed(error.message);

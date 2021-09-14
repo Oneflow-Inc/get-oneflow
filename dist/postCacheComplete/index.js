@@ -69419,7 +69419,7 @@ function checkComplete(keys) {
                 try {
                     yield store.head(objectKey, { timeout: 60 * 1000 * 60 });
                     core.info(`[found] ${objectKey}`);
-                    return true;
+                    return objectKey;
                 }
                 catch (error) {
                     core.info(`[absent] ${objectKey}`);
@@ -69433,7 +69433,7 @@ function checkComplete(keys) {
             }
             finally { if (e_2) throw e_2.error; }
         }
-        return false;
+        return null;
     });
 }
 function removeComplete(keys) {
@@ -69480,7 +69480,12 @@ function run() {
     return postCacheComplete_awaiter(this, void 0, void 0, function* () {
         try {
             const keys = lib_core.getMultilineInput('keys', { required: true });
-            yield cacheComplete(keys);
+            const markAsCompleted = lib_core.getBooleanInput('mark-as-completed', {
+                required: true
+            });
+            if (markAsCompleted) {
+                yield cacheComplete(keys);
+            }
         }
         catch (error) {
             lib_core.setFailed(error.message);

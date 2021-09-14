@@ -24,19 +24,19 @@ export async function cacheComplete(keys: string[]): Promise<void> {
   }
 }
 
-export async function checkComplete(keys: string[]): Promise<Boolean> {
+export async function checkComplete(keys: string[]): Promise<string | null> {
   const store = ciCacheBucketStore()
   for await (const key of keys) {
     const objectKey = getCompleteKey(key)
     try {
       await store.head(objectKey, {timeout: 60 * 1000 * 60})
       core.info(`[found] ${objectKey}`)
-      return true
+      return objectKey
     } catch (error) {
       core.info(`[absent] ${objectKey}`)
     }
   }
-  return false
+  return null
 }
 
 export async function removeComplete(keys: string[]): Promise<void> {

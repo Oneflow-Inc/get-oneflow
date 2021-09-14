@@ -159,8 +159,7 @@ jobs:
     runs-on: [ubuntu-latest]
     outputs:
       runs-on: ${{ steps.find-cache.outputs.runs-on }}
-      prefixes: ${{ steps.find-cache.outputs.runs-on }}
-      found: ${{ steps.find-cache.outputs.runs-on }}
+      found: ${{ steps.find-cache.outputs.cache-hit }}
     steps:
       - uses: actions/checkout@v2
       - name: Checkout Oneflow-Inc/oneflow
@@ -169,7 +168,7 @@ jobs:
           repository: Oneflow-Inc/oneflow
           ref: refine_for_new_ci
           path: oneflow_src
-      - uses: ./cache
+      - uses: ./cache-complete
         name: find cache
         id: find-cache
         with:
@@ -177,11 +176,10 @@ jobs:
             self-hosted
             linux
             provision
-          prefixes: |
+          keys: |
             ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/whl
             ${{ github.repository }}/digest/${{ hashFiles('oneflow_src/**/*.cpp') }}
-          keys: |
-            wheelhouse.json
+          mark-as-completed: false
 
   test-build-cpu-only:
     name: 'Build OneFlow'
@@ -214,6 +212,18 @@ jobs:
           repository: Oneflow-Inc/oneflow
           ref: refine_for_new_ci
           path: ${{ env.ONEFLOW_SRC }}
+      - uses: ./cache-complete
+        name: find cache
+        id: find-cache
+        with:
+          runner-labels: |
+            self-hosted
+            linux
+            provision
+          keys: |
+            ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/whl
+            ${{ github.repository }}/digest/${{ hashFiles('oneflow_src/**/*.cpp') }}
+          mark-as-completed: true
       - uses: ./
         name: Test manylinux
         if: ${{ contains(fromJson(needs.test-build-cpu-only-cache.outputs.runs-on), 'self-hosted') }}

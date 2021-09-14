@@ -4,8 +4,10 @@ import * as cache from './utils/cache'
 async function run(): Promise<void> {
   try {
     const keys: string[] = core.getMultilineInput('keys', {required: true})
-    const onlyCheck: Boolean = core.getBooleanInput('only-check')
-    if (!onlyCheck) {
+    const markAsCompleted: Boolean = core.getBooleanInput('mark-as-completed', {
+      required: true
+    })
+    if (markAsCompleted) {
       await cache.cacheComplete(keys)
     }
   } catch (error) {

@@ -6,19 +6,29 @@ async function run(): Promise<void> {
     let runnerLabels: string[] = core.getMultilineInput('runner-labels', {
       required: true
     })
+    const checkNotCompleted: Boolean = core.getBooleanInput(
+      'check-not-completed',
+      {
+        required: false
+      }
+    )
     if (runnerLabels.length === 0) {
       core.setFailed('runner-labels empty')
       return
     }
     // TODO: add condition
     const found = await cache.checkComplete(keys)
+    if (checkNotCompleted && found) {
+      core.setFailed(`${found} marked as completed`)
+      return
+    }
     if (found) {
       runnerLabels = ['ubuntu-latest']
       core.setOutput('object', found)
     }
     core.setOutput('runs-on', runnerLabels)
     core.setOutput('keys', keys)
-    core.setOutput('complete', !!found)
+    core.setOutput('cache-hit', !!found)
   } catch (error) {
     core.setFailed(error.message)
   }

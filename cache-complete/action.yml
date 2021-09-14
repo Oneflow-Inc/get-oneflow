@@ -1,0 +1,33 @@
+name: 'Build/Get OneFlow'
+description: ''
+inputs:
+  keys:
+    description: ''
+    required: true
+  runner-labels:
+    required: false
+    description: 'runner labels to output if cache not found'
+  mark-as-completed:
+    required: false
+    description: 'if true, will mark keys as completed when this job is success'
+    default: false
+  check-not-completed:
+    required: false
+    description: 'will fail if found the key marked completed'
+    default: false
+outputs:
+  runs-on:
+    description: 'if cache found, will generate a [ubuntu-latest], in JSON'
+  keys:
+    description: 'same as input, in JSON'
+  cache-hit:
+    description: 'A boolean value to indicate an exact match was found for the primary key'
+
+runs:
+  using: 'node12'
+  main: '../dist/cacheOutput/index.js'
+  post: '../dist/postCacheOutput/index.js'
+  post-if: success()
+branding:
+  icon: 'archive'
+  color: 'gray-dark'
