@@ -7,6 +7,7 @@ async function run(): Promise<void> {
     const markAsCompleted: Boolean = core.getBooleanInput('mark-as-completed', {
       required: true
     })
+    // TODO: clear cache if failed
     if (markAsCompleted) {
       await cache.cacheComplete(keys)
     }
