@@ -69349,6 +69349,9 @@ var lib_core = __nccwpck_require__(2186);
 // EXTERNAL MODULE: ./node_modules/ali-oss/lib/client.js
 var client = __nccwpck_require__(2399);
 var client_default = /*#__PURE__*/__nccwpck_require__.n(client);
+// EXTERNAL MODULE: external "path"
+var external_path_ = __nccwpck_require__(5622);
+var external_path_default = /*#__PURE__*/__nccwpck_require__.n(external_path_);
 ;// CONCATENATED MODULE: ./src/utils/cache.ts
 var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -69368,6 +69371,7 @@ var __asyncValues = (undefined && undefined.__asyncValues) || function (o) {
 };
 
 
+
 function ciCacheBucketStore() {
     const store = new (client_default())({
         region: 'oss-cn-beijing',
@@ -69378,7 +69382,9 @@ function ciCacheBucketStore() {
     });
     return store;
 }
-const COMPLETE_KEY = 'complete';
+function getCompleteKey(key) {
+    return external_path_default().join(key, 'complete');
+}
 function cacheComplete(keys) {
     var keys_1, keys_1_1;
     var e_1, _a;
@@ -69387,7 +69393,7 @@ function cacheComplete(keys) {
         try {
             for (keys_1 = __asyncValues(keys); keys_1_1 = yield keys_1.next(), !keys_1_1.done;) {
                 const key = keys_1_1.value;
-                const objectKey = key.concat(COMPLETE_KEY);
+                const objectKey = getCompleteKey(key);
                 const buf = Buffer.from('', 'utf8');
                 yield store.put(objectKey, buf, { timeout: 60 * 1000 * 60 });
             }
@@ -69409,7 +69415,7 @@ function checkComplete(keys) {
         try {
             for (keys_2 = __asyncValues(keys); keys_2_1 = yield keys_2.next(), !keys_2_1.done;) {
                 const key = keys_2_1.value;
-                const objectKey = key.concat(COMPLETE_KEY);
+                const objectKey = getCompleteKey(key);
                 try {
                     yield store.head(objectKey, { timeout: 60 * 1000 * 60 });
                     core.info(`[found] ${objectKey}`);
@@ -69438,7 +69444,7 @@ function removeComplete(keys) {
         try {
             for (keys_3 = __asyncValues(keys); keys_3_1 = yield keys_3.next(), !keys_3_1.done;) {
                 const key = keys_3_1.value;
-                const objectKey = key.concat(COMPLETE_KEY);
+                const objectKey = getCompleteKey(key);
                 try {
                     yield store.delete(objectKey, { timeout: 60 * 1000 * 60 });
                     core.info(`[delete] ${objectKey}`);
