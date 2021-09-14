@@ -13,13 +13,15 @@ jobs:
   build: # make sure build/ci work properly
     name: 'Build and test this repo'
     runs-on: ubuntu-latest
+    env:
+      ONEFLOW_SRC: oneflow-src
     steps:
       - uses: actions/checkout@v2
       - name: Checkout Oneflow-Inc/oneflow
         uses: actions/checkout@v2
         with:
           repository: Oneflow-Inc/oneflow
-          path: ~/oneflow-src
+          path: ${{ env.ONEFLOW_SRC }}
       - run: |
           npm install
       - run: |

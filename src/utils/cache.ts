@@ -63,21 +63,20 @@ export async function getOneFlowBuildCacheKeys(
 ): Promise<string[]> {
   const oneflowSrc: string = getPathInput('oneflow-src', {required: true})
   const patterns = [
-    'core/**/*.h',
-    'core/**/*.cpp',
-    'core/**/*.yaml',
+    'oneflow/core/**/*.h',
+    'oneflow/core/**/*.cpp',
+    'oneflow/core/**/*.yaml',
     'cmake/**/*',
     'python/oneflow/**/*.py'
-  ]
-    .map(x => path.join(oneflowSrc, x))
-    .join('\n')
+  ].map(x => path.join(oneflowSrc, x))
   const ghWorkspace = process.env.GITHUB_WORKSPACE
   process.env.GITHUB_WORKSPACE = oneflowSrc
-  const globber = await glob.create(patterns)
-  const files = await globber.glob()
-  // TODO: assert one by one
-  ok(files.length > 0)
-  const srcHash = await glob.hashFiles(patterns)
+  for (const pattern of patterns) {
+    const globber = await glob.create(pattern)
+    const files = await globber.glob()
+    ok(files.length > 0, pattern)
+  }
+  const srcHash = await glob.hashFiles(patterns.join('\n'))
   process.env.GITHUB_WORKSPACE = ghWorkspace
   return [`digest/${srcHash}`]
     .concat(

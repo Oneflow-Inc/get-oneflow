@@ -78822,20 +78822,21 @@ function getOneFlowBuildCacheKeys(entry) {
     return cache_awaiter(this, void 0, void 0, function* () {
         const oneflowSrc = getPathInput('oneflow-src', { required: true });
         const patterns = [
-            'core/**/*.h',
-            'core/**/*.cpp',
-            'core/**/*.yaml',
+            'oneflow/core/**/*.h',
+            'oneflow/core/**/*.cpp',
+            'oneflow/core/**/*.yaml',
             'cmake/**/*',
             'python/oneflow/**/*.py'
-        ]
-            .map(x => external_path_default().join(oneflowSrc, x))
-            .join('\n');
+        ].map(x => external_path_default().join(oneflowSrc, x));
         const ghWorkspace = process.env.GITHUB_WORKSPACE;
         process.env.GITHUB_WORKSPACE = oneflowSrc;
-        const globber = yield glob.create(patterns);
-        const files = yield globber.glob();
-        (0,external_assert_.ok)(files.length > 0);
-        const srcHash = yield glob.hashFiles(patterns);
+        for (const pattern of patterns) {
+            const globber = yield glob.create(pattern);
+            const files = yield globber.glob();
+            (0,external_assert_.ok)(files.length > 0, pattern);
+        }
+        // TODO: assert one by one
+        const srcHash = yield glob.hashFiles(patterns.join('\n'));
         process.env.GITHUB_WORKSPACE = ghWorkspace;
         return [`digest/${srcHash}`]
             .concat(process.env.GITHUB_REPOSITORY

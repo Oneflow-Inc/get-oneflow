@@ -231,7 +231,7 @@ test(
   'cache complete matrix',
   async () => {
     const np = process.execPath
-    const sourceDir = '~/oneflow'
+    const sourceDir = process.env.ONEFLOW_SRC || '~/oneflow'
     env.setInput('oneflow-src', sourceDir)
     env.setMultilineInput('entries', ['entryA', 'entryB', 'entryC'])
     env.setMultilineInput('runner-labels', [
