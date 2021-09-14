@@ -154,7 +154,7 @@ jobs:
             3.8
             3.9
 
-  test-build-cpu-only-cache:
+  find-build-cache:
     name: 'find cache for cpu only'
     runs-on: [ubuntu-latest]
     outputs:
@@ -183,19 +183,19 @@ jobs:
 
   test-build-cpu-only:
     name: 'Build OneFlow'
-    runs-on: ${{ fromJson(needs.test-build-cpu-only-cache.outputs.runs-on) }}
-    needs: [test-build-cpu-only-cache]
+    runs-on: ${{ fromJson(needs.find-build-cache.outputs.runs-on) }}
+    needs: [find-build-cache]
     env:
       ONEFLOW_SRC: oneflow-src
       ACTION: build-oneflow
     steps:
       - name: Fix permissions
-        if: ${{ contains(fromJson(needs.test-build-cpu-only-cache.outputs.runs-on), 'self-hosted') }}
+        if: ${{ contains(fromJson(needs.find-build-cache.outputs.runs-on), 'self-hosted') }}
         run: |
           set -x
           docker run --rm -v $PWD:/p -w /p busybox chown -R $(id -u):$(id -g) .
       - name: Remove leftover cuda-installer.log
-        if: ${{ contains(fromJson(needs.test-build-cpu-only-cache.outputs.runs-on), 'self-hosted') }}
+        if: ${{ contains(fromJson(needs.find-build-cache.outputs.runs-on), 'self-hosted') }}
         run: |
           docker run --rm -v /tmp:/host/tmp -w /p busybox rm -f /host/tmp/cuda-installer.log
       - name: Checkout this repo
@@ -218,17 +218,17 @@ jobs:
             ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/whl
             ${{ github.repository }}/digest/${{ hashFiles('oneflow_src/**/*.cpp') }}
           mark-as-completed: true
-          check-not-completed: ${{ !needs.test-build-cpu-only-cache.outputs.found }}
+          check-not-completed: ${{ !needs.find-build-cache.outputs.found }}
       - uses: ./
         name: Test manylinux
-        if: ${{ contains(fromJson(needs.test-build-cpu-only-cache.outputs.runs-on), 'self-hosted') }}
+        if: ${{ contains(fromJson(needs.find-build-cache.outputs.runs-on), 'self-hosted') }}
         with:
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/ci/cpu-only.cmake
           build-script: ${{ env.ONEFLOW_SRC }}/ci/manylinux/build.sh
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           oneflow-build-env: manylinux
           wheelhouse-dir: manylinux-wheelhouse
-          self-hosted: ${{ contains(fromJson(needs.test-build-cpu-only-cache.outputs.runs-on), 'self-hosted') }}
+          self-hosted: ${{ contains(fromJson(needs.find-build-cache.outputs.runs-on), 'self-hosted') }}
           cuda-version: none
           manylinux-cache-dir: ~/manylinux-cache-dir/cpu-only
           docker-run-use-system-http-proxy: false
