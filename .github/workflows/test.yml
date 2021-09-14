@@ -146,7 +146,7 @@ jobs:
             provision
           keys: |
             ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/cu102-xla/whl
-            ${{ github.repository }}/digest/${{ hashFiles('oneflow-src/core/**/*.h', 'oneflow-src/core/**/*.cpp', 'oneflow-src/cmake/**/*', 'oneflow-src/python/oneflow/**/*.py, 'oneflow-src/core/**/*.yaml') }}
+            ${{ github.repository }}/digest/cu102-xla/${{ hashFiles('oneflow-src/core/**/*.h', 'oneflow-src/core/**/*.cpp', 'oneflow-src/cmake/**/*', 'oneflow-src/python/oneflow/**/*.py, 'oneflow-src/core/**/*.yaml') }}
           mark-as-completed: false
       - uses: ./cache-complete
         name: find cache
@@ -158,7 +158,7 @@ jobs:
             provision
           keys: |
             ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/cu114/whl
-            ${{ github.repository }}/digest/${{ hashFiles('oneflow-src/core/**/*.h', 'oneflow-src/core/**/*.cpp', 'oneflow-src/cmake/**/*', 'oneflow-src/python/oneflow/**/*.py, 'oneflow-src/core/**/*.yaml') }}
+            ${{ github.repository }}/digest/cu114/${{ hashFiles('oneflow-src/core/**/*.h', 'oneflow-src/core/**/*.cpp', 'oneflow-src/cmake/**/*', 'oneflow-src/python/oneflow/**/*.py, 'oneflow-src/core/**/*.yaml') }}
           mark-as-completed: false
       - uses: ./cache-complete
         name: find cache
@@ -170,7 +170,7 @@ jobs:
             provision
           keys: |
             ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/cpu-only/whl
-            ${{ github.repository }}/digest/${{ hashFiles('oneflow-src/core/**/*.h', 'oneflow-src/core/**/*.cpp', 'oneflow-src/cmake/**/*', 'oneflow-src/python/oneflow/**/*.py, 'oneflow-src/core/**/*.yaml') }}
+            ${{ github.repository }}/digest/cpu-only/${{ hashFiles('oneflow-src/core/**/*.h', 'oneflow-src/core/**/*.cpp', 'oneflow-src/cmake/**/*', 'oneflow-src/python/oneflow/**/*.py, 'oneflow-src/core/**/*.yaml') }}
           mark-as-completed: false
 
   test-build-cpu-only:
@@ -214,7 +214,7 @@ jobs:
             provision
           keys: |
             ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/${{ matrix.build-type }}/whl
-            ${{ github.repository }}/digest/${{ hashFiles('oneflow-src/**/*.cpp') }}
+            ${{ github.repository }}/digest/${{ matrix.build-type }}/${{ hashFiles('oneflow-src/**/*.cpp') }}
           mark-as-completed: true
           check-not-completed: ${{ !needs.find-build-cache.outputs.found }}
       - uses: ./
