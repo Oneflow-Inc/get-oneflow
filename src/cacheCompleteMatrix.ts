@@ -24,7 +24,7 @@ async function run(): Promise<void> {
       const found = await cache.checkComplete(
         keys.map(x => x.replace(MATRIX_KEY_PLACEHOLDER, matrixKey))
       )
-      matrix.include.concat([
+      matrix.include = matrix.include.concat([
         {
           'cache-hit': !!found,
           'runs-on': found ? 'ubuntu-latest' : runnerLabels

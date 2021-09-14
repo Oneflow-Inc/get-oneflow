@@ -69498,7 +69498,7 @@ function run() {
             const matrix = { entry: [], include: [] };
             for (const matrixKey of matrixKeys) {
                 const found = yield checkComplete(keys.map(x => x.replace(MATRIX_KEY_PLACEHOLDER, matrixKey)));
-                matrix.include.concat([
+                matrix.include = matrix.include.concat([
                     {
                         'cache-hit': !!found,
                         'runs-on': found ? 'ubuntu-latest' : runnerLabels

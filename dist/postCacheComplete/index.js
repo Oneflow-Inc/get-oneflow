@@ -69484,6 +69484,7 @@ function run() {
             const markAsCompleted = lib_core.getBooleanInput('mark-as-completed', {
                 required: true
             });
+            // TODO: clear cache if failed
             if (markAsCompleted) {
                 yield cacheComplete(keys);
             }
