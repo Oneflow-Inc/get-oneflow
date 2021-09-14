@@ -187,7 +187,7 @@ jobs:
           mark-as-completed: ${{ contains(matrix.runs-on, 'self-hosted') }}
           check-not-completed: ${{ contains(matrix.runs-on, 'self-hosted') }}
       - name: Check cache
-        if: ${{ steps.save-cache.outputs.cache-hit != matrix.cache-hit }}
+        if: ${{ fromJSON(steps.save-cache.outputs.cache-hit) != matrix.cache-hit }}
         run: |
           echo "::error file=test.yml,line=204,col=10::steps.save-cache.outputs.cache-hit != matrix.cache-hit"
           exit 1
