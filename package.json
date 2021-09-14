@@ -18,7 +18,7 @@
         "test": "jest",
         "all": "npm run build && npm run format && npm run lint && npm run package && npm test",
         "fast": "npm run build && npm run package && npm test",
-        "pub": "npm run all && git add . && git commit -m publishing && git push"
+        "pub": "rm -rf dist && npm run all && git add . && git commit -m publishing && git push"
     },
     "repository": {
         "type": "git",
