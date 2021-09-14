@@ -78874,6 +78874,7 @@ function run() {
                 const found = yield checkComplete(yield getOneFlowBuildCacheKeys(entry));
                 matrix.include = matrix.include.concat([
                     {
+                        entry,
                         'cache-hit': !!found,
                         'runs-on': found ? 'ubuntu-latest' : runnerLabels
                     }

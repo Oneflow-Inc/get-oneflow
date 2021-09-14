@@ -195,7 +195,9 @@ test(
     const np = process.execPath
     const sourceDir = '~/oneflow'
     env.setInput('oneflow-src', sourceDir)
-    const keys = await getOneFlowBuildCacheKeys('test')
+    const ENTRY = 'test'
+    env.setInput('entry', ENTRY)
+    const keys = await getOneFlowBuildCacheKeys(ENTRY)
     env.setBooleanInput('mark-as-completed', true)
     env.setBooleanInput('check-not-completed', true)
     env.setMultilineInput('runner-labels', [
@@ -209,6 +211,7 @@ test(
       np,
       path.join(__dirname, '..', 'lib', 'cacheComplete.js')
     )
+    env.setTestState('keys', keys)
     await cpExec.cpExec(
       np,
       path.join(__dirname, '..', 'lib', 'postCacheComplete.js')

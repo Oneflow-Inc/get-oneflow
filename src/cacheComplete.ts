@@ -4,6 +4,7 @@ async function run(): Promise<void> {
   try {
     const entry: string = core.getInput('entry', {required: true})
     const keys: string[] = await cache.getOneFlowBuildCacheKeys(entry)
+    core.saveState('keys', keys)
     let runnerLabels: string[] = core.getMultilineInput('runner-labels', {
       required: true
     })

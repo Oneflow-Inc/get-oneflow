@@ -78599,6 +78599,8 @@ __nccwpck_require__.r(__webpack_exports__);
 
 // EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
 var lib_core = __nccwpck_require__(2186);
+// EXTERNAL MODULE: external "assert"
+var external_assert_ = __nccwpck_require__(2357);
 // EXTERNAL MODULE: ./node_modules/ali-oss/lib/client.js
 var client = __nccwpck_require__(2399);
 var client_default = /*#__PURE__*/__nccwpck_require__.n(client);
@@ -78613,8 +78615,6 @@ var external_os_ = __nccwpck_require__(2087);
 var lib_exec = __nccwpck_require__(9990);
 // EXTERNAL MODULE: ./node_modules/@actions/io/lib/io.js
 var lib_io = __nccwpck_require__(7436);
-// EXTERNAL MODULE: external "assert"
-var external_assert_ = __nccwpck_require__(2357);
 ;// CONCATENATED MODULE: ./src/utils/util.ts
 var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -78858,15 +78858,17 @@ var postCacheComplete_awaiter = (undefined && undefined.__awaiter) || function (
 };
 
 
+
 function run() {
     return postCacheComplete_awaiter(this, void 0, void 0, function* () {
         try {
-            const keys = lib_core.getMultilineInput('keys', { required: true });
             const markAsCompleted = lib_core.getBooleanInput('mark-as-completed', {
                 required: true
             });
+            const keys = JSON.parse(lib_core.getState('keys'));
             // TODO: clear cache if failed
             if (markAsCompleted) {
+                (0,external_assert_.ok)(keys);
                 yield cacheComplete(keys);
             }
         }

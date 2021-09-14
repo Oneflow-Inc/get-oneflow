@@ -78865,6 +78865,7 @@ function run() {
         try {
             const entry = lib_core.getInput('entry', { required: true });
             const keys = yield getOneFlowBuildCacheKeys(entry);
+            lib_core.saveState('keys', keys);
             let runnerLabels = lib_core.getMultilineInput('runner-labels', {
                 required: true
             });
