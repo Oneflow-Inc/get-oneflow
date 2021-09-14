@@ -12,6 +12,9 @@ async function run(): Promise<void> {
     if (markAsCompleted) {
       ok(keys)
       await cache.cacheComplete(keys)
+      for (const key of keys) {
+        core.info(`[complete] ${key}`)
+      }
     }
   } catch (error) {
     core.setFailed(error.message)

@@ -78870,6 +78870,9 @@ function run() {
             if (markAsCompleted) {
                 (0,external_assert_.ok)(keys);
                 yield cacheComplete(keys);
+                for (const key of keys) {
+                    lib_core.info(`[complete] ${key}`);
+                }
             }
         }
         catch (error) {
