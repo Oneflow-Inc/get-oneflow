@@ -158,12 +158,12 @@ jobs:
       ONEFLOW_SRC: oneflow-src
     steps:
       - name: Fix permissions
-        if: ${{ contains(fromJson(needs.find-build-cache.outputs.runs-on-${{ matrix.build-type }}), 'self-hosted') }}
+        if: ${{ contains(matrix.runs-on, 'self-hosted') }}
         run: |
           set -x
           docker run --rm -v $PWD:/p -w /p busybox chown -R $(id -u):$(id -g) .
       - name: Remove leftover cuda-installer.log
-        if: ${{ contains(fromJson(needs.find-build-cache.outputs.runs-on-${{ matrix.build-type }}), 'self-hosted') }}
+        if: ${{ contains(matrix.runs-on, 'self-hosted') }}
         run: |
           docker run --rm -v /tmp:/host/tmp -w /p busybox rm -f /host/tmp/cuda-installer.log
       - name: Checkout this repo
@@ -201,7 +201,7 @@ jobs:
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           oneflow-build-env: manylinux
           wheelhouse-dir: manylinux-wheelhouse
-          self-hosted: ${{ contains(fromJson(needs.find-build-cache.outputs.runs-on-${{ matrix.build-type }}), 'self-hosted') }}
+          self-hosted: ${{ contains(matrix.runs-on, 'self-hosted') }}
           cuda-version: none
           manylinux-cache-dir: ~/manylinux-cache-dir/cpu-only
           docker-run-use-system-http-proxy: false
@@ -220,7 +220,7 @@ jobs:
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           oneflow-build-env: manylinux
           wheelhouse-dir: manylinux-wheelhouse
-          self-hosted: ${{ contains(fromJson(needs.find-build-cache.outputs.runs-on-${{ matrix.build-type }}), 'self-hosted') }}
+          self-hosted: ${{ contains(matrix.runs-on, 'self-hosted') }}
           cuda-version: 11.4
           manylinux-cache-dir: ~/manylinux-cache-dir/cpu-only
           docker-run-use-system-http-proxy: false
@@ -239,7 +239,7 @@ jobs:
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           oneflow-build-env: manylinux
           wheelhouse-dir: manylinux-wheelhouse
-          self-hosted: ${{ contains(fromJson(needs.find-build-cache.outputs.runs-on-${{ matrix.build-type }}), 'self-hosted') }}
+          self-hosted: ${{ contains(matrix.runs-on, 'self-hosted') }}
           cuda-version: 10.2
           manylinux-cache-dir: ~/manylinux-cache-dir/cpu-only
           docker-run-use-system-http-proxy: true
