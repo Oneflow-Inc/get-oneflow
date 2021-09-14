@@ -59,7 +59,6 @@ jobs:
       - uses: ./manylinux
         name: Test build manylinux
         with:
-          action: ${{ env.ACTION }}
           self-hosted: ${{ contains(matrix.os, 'self-hosted') }}
 
   test-build-oneflow:
@@ -116,7 +115,6 @@ jobs:
         name: Test conda on gh-hosted
         if: ${{ contains(matrix.os, 'ubuntu-latest') && matrix.oneflow-build-env == 'conda'}}
         with:
-          action: ${{ env.ACTION }}
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/cn/fast/cpu-clang.cmake
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           oneflow-build-env: conda
@@ -125,7 +123,6 @@ jobs:
         name: Test conda on self-hosted
         if: ${{ contains(matrix.os, 'self-hosted') && matrix.oneflow-build-env == 'conda'}}
         with:
-          action: ${{ env.ACTION }}
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/cn/fast/cpu-clang.cmake
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           oneflow-build-env: conda
@@ -137,7 +134,6 @@ jobs:
         name: Test manylinux
         if: ${{ matrix.oneflow-build-env == 'manylinux' && matrix.cuda-version != 'none'}}
         with:
-          action: ${{ env.ACTION }}
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/${{ matrix.cmake-init-cache }}
           build-script: ${{ env.ONEFLOW_SRC }}/${{ matrix.build-script }}
           oneflow-src: ${{ env.ONEFLOW_SRC }}
