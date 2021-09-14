@@ -78607,7 +78607,6 @@ var external_path_ = __nccwpck_require__(5622);
 var external_path_default = /*#__PURE__*/__nccwpck_require__.n(external_path_);
 // EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
 var github = __nccwpck_require__(5438);
-var github_default = /*#__PURE__*/__nccwpck_require__.n(github);
 // EXTERNAL MODULE: external "os"
 var external_os_ = __nccwpck_require__(2087);
 var external_os_default = /*#__PURE__*/__nccwpck_require__.n(external_os_);
@@ -78839,9 +78838,9 @@ function getOneFlowBuildCacheKeys(entry) {
         const srcHash = yield glob.hashFiles(patterns);
         process.env.GITHUB_WORKSPACE = ghWorkspace;
         return [`digest/${srcHash}`]
-            .concat((github_default())
+            .concat(process.env.GITHUB_REPOSITORY
             ? [
-                `${(github_default()).context.repo.owner}/${(github_default()).context.repo.repo}/${(github_default()).context.eventName}/${(github_default()).context.issue.number}/${(github_default()).context.sha}`
+                `${github.context.repo.owner}/${github.context.repo.repo}/${github.context.eventName}/${github.context.issue.number}/${github.context.sha}`
             ]
             : [])
             .map(x => (entry ? external_path_default().join(x, entry) : x));

@@ -1,7 +1,7 @@
 import OSS from 'ali-oss'
 import * as core from '@actions/core'
 import path from 'path'
-import github from '@actions/github'
+import * as github from '@actions/github'
 import {getPathInput} from './util'
 import * as glob from '@actions/glob'
 import {ok} from 'assert'
@@ -80,7 +80,7 @@ export async function getOneFlowBuildCacheKeys(
   process.env.GITHUB_WORKSPACE = ghWorkspace
   return [`digest/${srcHash}`]
     .concat(
-      github
+      process.env.GITHUB_REPOSITORY
         ? [
             `${github.context.repo.owner}/${github.context.repo.repo}/${github.context.eventName}/${github.context.issue.number}/${github.context.sha}`
           ]

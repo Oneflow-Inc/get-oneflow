@@ -78837,7 +78837,7 @@ function getOneFlowBuildCacheKeys(entry) {
         const srcHash = yield glob.hashFiles(patterns);
         process.env.GITHUB_WORKSPACE = ghWorkspace;
         return [`digest/${srcHash}`]
-            .concat(github
+            .concat(process.env.GITHUB_REPOSITORY
             ? [
                 `${github.context.repo.owner}/${github.context.repo.repo}/${github.context.eventName}/${github.context.issue.number}/${github.context.sha}`
             ]
