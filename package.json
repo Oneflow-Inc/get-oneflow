@@ -14,6 +14,7 @@
         "package-mirror-tools": "ncc build -o dist/mirrorTools src/mirrorTools.ts",
         "package-cache-complete": "ncc build -o dist/cacheComplete src/cacheComplete.ts",
         "package-post-cache-complete": "ncc build -o dist/postCacheComplete src/postCacheComplete.ts",
+        "package-post-cache-complete-matrix": "ncc build -o dist/cacheCompleteMatrix src/cacheCompleteMatrix.ts",
         "package": "concurrently \"npm:package-*\"",
         "test": "jest",
         "all": "npm run build && npm run format && npm run lint && npm run package && npm test",

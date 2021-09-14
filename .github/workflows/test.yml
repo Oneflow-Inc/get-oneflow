@@ -124,9 +124,7 @@ jobs:
       ONEFLOW_SRC: oneflow-src
       ACTION: build-oneflow
     outputs:
-      runs-on-cu102-xla: ${{ steps.find-cache-cu102-xla.outputs.runs-on }}
-      runs-on-cu114: ${{ steps.find-cache-cu114.outputs.runs-on }}
-      runs-on-cpu-only: ${{ steps.find-cache-cpu-only.outputs.runs-on }}
+      matrix: ${{ steps.find-cache.outputs.matrix }}
     steps:
       - uses: actions/checkout@v2
       - name: Checkout Oneflow-Inc/oneflow
@@ -139,37 +137,9 @@ jobs:
         id: set-cache-key
         run: |
           echo "::set-output name=src-hash::${{ hashFiles('oneflow-src/core/**/*.h', 'oneflow-src/core/**/*.cpp', 'oneflow-src/cmake/**/*', 'oneflow-src/python/oneflow/**/*.py, 'oneflow-src/core/**/*.yaml') }}"
-      - uses: ./cache-complete
+      - uses: ./cache-complete/matrix
         name: find cache
-        id: find-cache-cu102-xla
-        env:
-          BUILD_TYPE: cu102-xla
-        with:
-          runner-labels: |
-            self-hosted
-            linux
-            provision
-          keys: |
-            ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/${{ env.BUILD_TYPE }}/whl
-            ${{ github.repository }}/digest/${{ env.BUILD_TYPE }}/${{ steps.set-cache-key.outputs.src-hash }}
-          mark-as-completed: false
-      - uses: ./cache-complete
-        name: find cache
-        id: find-cache-cu114
-        env:
-          BUILD_TYPE: cu114
-        with:
-          runner-labels: |
-            self-hosted
-            linux
-            provision
-          keys: |
-            ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/${{ env.BUILD_TYPE }}/whl
-            ${{ github.repository }}/digest/${{ env.BUILD_TYPE }}/${{ steps.set-cache-key.outputs.src-hash }}
-          mark-as-completed: false
-      - uses: ./cache-complete
-        name: find cache
-        id: find-cache-cpu-only
+        id: find-cache
         env:
           BUILD_TYPE: cpu-only
         with:
@@ -177,14 +147,18 @@ jobs:
             self-hosted
             linux
             provision
+          matrix-keys: |
+            cu114
+            cpu-only
+            cu102-xla
           keys: |
-            ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/${{ env.BUILD_TYPE }}/whl
-            ${{ github.repository }}/digest/${{ env.BUILD_TYPE }}/${{ steps.set-cache-key.outputs.src-hash }}
+            ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/[matrix-key]
+            ${{ github.repository }}/digest/${{ steps.set-cache-key.outputs.src-hash }}/[matrix-key]
           mark-as-completed: false
 
   test-build-manylinux:
     name: 'Build OneFlow manylinux'
-    runs-on: ${{ fromJson(needs.find-build-cache.outputs.runs-on-${{ matrix.build-type }}) }}
+    runs-on: ${{ fromJson(needs.find-build-cache.outputs.runs-on-list }}) }}
     needs: [find-build-cache]
     strategy:
       fail-fast: false
