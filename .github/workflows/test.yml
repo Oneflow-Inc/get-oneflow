@@ -152,7 +152,7 @@ jobs:
 
   test-build-manylinux:
     name: 'Build OneFlow manylinux'
-    runs-on: ${{ matrix.runs-on }}) }}
+    runs-on: ${{ matrix.runs-on }}
     needs: [find-build-cache]
     strategy:
       fail-fast: false
