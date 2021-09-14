@@ -190,14 +190,19 @@ jobs:
         run: |
           echo '::set-output name=src-hash::${{ hashFiles('oneflow-src/core/**/*.h', 'oneflow-src/core/**/*.cpp', 'oneflow-src/cmake/**/*', 'oneflow-src/python/oneflow/**/*.py, 'oneflow-src/core/**/*.yaml') }}'
       - uses: ./cache-complete
-        name: find cache
-        id: find-cache
+        name: Save cache if successful
+        id: save-cache
         with:
           keys: |
-            ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/${{ env.BUILD_TYPE }}/whl
-            ${{ github.repository }}/digest/${{ env.BUILD_TYPE }}/${{ steps.set-cache-key.outputs.src-hash }}
-          mark-as-completed: ${{ contains(needs.find-build-cache.outputs, 'self-hosted') }}]}
-          check-not-completed: ${{ contains(needs.find-build-cache.outputs, 'self-hosted') }}]}
+            ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/${{ matrix.entry  }}
+            ${{ github.repository }}/digest/${{ steps.set-cache-key.outputs.src-hash }}/${{ matrix.entry  }}
+          mark-as-completed: ${{ contains(matrix.runs-on, 'self-hosted') }}]}
+          check-not-completed: ${{ contains(matrix.runs-on, 'self-hosted') }}]}
+      - name: Check cache
+        if: ${{ steps.save-cache.outputs.cache-hit != matrix.cache-hit }}
+        run: |
+          echo "::error file=test.yml,line=204,col=10::steps.save-cache.outputs.cache-hit != matrix.cache-hit"
+          exit 1
       - uses: ./
         name: Build manylinux cpu only
         if: ${{ matrix.entry =='cpu-only' && !matrix.cache-hit }}
