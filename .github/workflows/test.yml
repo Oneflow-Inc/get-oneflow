@@ -173,7 +173,7 @@ jobs:
             ${{ github.repository }}/digest/cpu-only/${{ hashFiles('oneflow-src/core/**/*.h', 'oneflow-src/core/**/*.cpp', 'oneflow-src/cmake/**/*', 'oneflow-src/python/oneflow/**/*.py, 'oneflow-src/core/**/*.yaml') }}
           mark-as-completed: false
 
-  test-build-cpu-only:
+  test-build-manylinux:
     name: 'Build OneFlow manylinux'
     runs-on: ${{ fromJson(needs.find-build-cache.outputs.runs-on) }}
     needs: [find-build-cache]
@@ -216,7 +216,7 @@ jobs:
             ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/${{ matrix.build-type }}/whl
             ${{ github.repository }}/digest/${{ matrix.build-type }}/${{ hashFiles('oneflow-src/**/*.cpp') }}
           mark-as-completed: true
-          check-not-completed: ${{ !needs.find-build-cache.outputs.found }}
+          check-not-completed: true
       - uses: ./
         name: Build manylinux cpu only
         if: ${{ !needs.find-build-cache.outputs.found-cpu-only }}
@@ -274,3 +274,51 @@ jobs:
             3.7
             3.8
             3.9
+
+  check-build-cache:
+    name: 'Check manylinux build cache'
+    runs-on: [ubuntu-latest]
+    needs: [test-build-manylinux]
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        build-type: ['cu102-xla', 'cu114', 'cpu-only']
+    env:
+      ONEFLOW_SRC: oneflow-src
+      ACTION: build-oneflow
+      BUILD_TYPE: ${{ matrix.build-type }}
+    steps:
+      - name: Fix permissions
+        if: ${{ contains(fromJson(needs.find-build-cache.outputs.runs-on), 'self-hosted') }}
+        run: |
+          set -x
+          docker run --rm -v $PWD:/p -w /p busybox chown -R $(id -u):$(id -g) .
+      - name: Remove leftover cuda-installer.log
+        if: ${{ contains(fromJson(needs.find-build-cache.outputs.runs-on), 'self-hosted') }}
+        run: |
+          docker run --rm -v /tmp:/host/tmp -w /p busybox rm -f /host/tmp/cuda-installer.log
+      - name: Checkout this repo
+        uses: actions/checkout@v2
+      - name: Checkout Oneflow-Inc/oneflow
+        uses: actions/checkout@v2
+        with:
+          repository: Oneflow-Inc/oneflow
+          ref: refine_for_new_ci
+          path: ${{ env.ONEFLOW_SRC }}
+      - uses: ./cache-complete
+        name: find cache
+        id: find-cache
+        with:
+          runner-labels: |
+            self-hosted
+            linux
+            provision
+          keys: |
+            ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/${{ matrix.build-type }}/whl
+            ${{ github.repository }}/digest/${{ matrix.build-type }}/${{ hashFiles('oneflow-src/**/*.cpp') }}
+          mark-as-completed: false
+      - name: Check built
+        if: ${{ !steps.find-cache.outputs.cache-hit }}
+        run: |
+          exit 1
