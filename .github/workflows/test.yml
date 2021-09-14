@@ -183,6 +183,7 @@ jobs:
         id: save-cache
         with:
           oneflow-src: ${{ env.ONEFLOW_SRC }}
+          entry: ${{ matrix.entry }}
           mark-as-completed: ${{ contains(matrix.runs-on, 'self-hosted') }}]}
           check-not-completed: ${{ contains(matrix.runs-on, 'self-hosted') }}]}
       - name: Check cache
