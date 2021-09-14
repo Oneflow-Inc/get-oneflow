@@ -75,6 +75,7 @@ export async function getOneFlowBuildCacheKeys(
   process.env.GITHUB_WORKSPACE = oneflowSrc
   const globber = await glob.create(patterns)
   const files = await globber.glob()
+  // TODO: assert one by one
   ok(files.length > 0)
   const srcHash = await glob.hashFiles(patterns)
   process.env.GITHUB_WORKSPACE = ghWorkspace
