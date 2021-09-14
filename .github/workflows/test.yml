@@ -156,6 +156,7 @@ jobs:
           manylinux-cache-dir: ~/manylinux-cache-dir/${{ matrix.cuda-version }}
           docker-run-use-system-http-proxy: ${{ matrix.docker-run-use-system-http-proxy }}
           docker-run-use-lld: true
+          retry-failed-build: true
           python-versions: |
             3.6
             3.7

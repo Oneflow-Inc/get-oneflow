@@ -108,6 +108,7 @@ async function testOneCUDA(cudaVersion: string): Promise<void> {
     'build-script',
     path.join(sourceDir, 'ci/manylinux/build-gcc7.sh')
   )
+  env.setBooleanInput('retry-failed-build', true)
   if (cudaVersion === '11.4') {
     env.setBooleanInput('docker-run-use-system-http-proxy', false)
     env.setInput('build-script', path.join(sourceDir, 'ci/manylinux/build.sh'))
