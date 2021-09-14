@@ -194,7 +194,7 @@ test(
   'cache complete',
   async () => {
     const np = process.execPath
-    const sourceDir = '~/oneflow'
+    const sourceDir = process.env.ONEFLOW_SRC || '~/oneflow'
     env.setInput('oneflow-src', sourceDir)
     const ENTRY = 'test'
     env.setInput('entry', ENTRY)
