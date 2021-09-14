@@ -242,17 +242,59 @@ function getPythonExe(pythonVersion: string): string {
   return exe
 }
 
-export async function buildOneFlow(tag: string): Promise<void> {
+async function buildAndMakeWheel(
+  createOptions: Object,
+  docker: Docker
+): Promise<void> {
+  const shouldSymbolicLinkLld = core.getBooleanInput('docker-run-use-lld')
   const oneflowSrc: string = getPathInput('oneflow-src', {required: true})
   const wheelhouseDir: string = getPathInput('wheelhouse-dir', {required: true})
   const buildScript: string = getPathInput('build-script', {
     required: true
   })
+  const container = await docker.createContainer(createOptions)
+  await container.start()
+  const pythonVersions: string[] = core.getMultilineInput('python-versions', {
+    required: true
+  })
+  if (shouldSymbolicLinkLld) {
+    for (const gccVersion of ['7', '10']) {
+      await runBash(
+        container,
+        `rm -f /opt/rh/devtoolset-${gccVersion}/root/usr/bin/ld`
+      )
+      await runBash(
+        container,
+        `ln -s $(which lld) /opt/rh/devtoolset-${gccVersion}/root/usr/bin/ld`
+      )
+    }
+  }
+  const distDir = path.join(oneflowSrc, 'python', 'dist')
+  runExec(container, ['rm', '-rf', distDir])
+  for (const pythonVersion of pythonVersions) {
+    const pythonExe = getPythonExe(pythonVersion)
+    await buildOnePythonVersion(container, buildScript, pythonExe)
+  }
+  const whlFiles = await fs.promises.readdir(distDir)
+  ok(whlFiles.length)
+  await Promise.all(
+    whlFiles.map(async (whl: string) =>
+      runExec(
+        container,
+        ['auditwheel', 'repair', whl, '--wheel-dir', wheelhouseDir],
+        {cwd: distDir}
+      )
+    )
+  )
+}
+
+export async function buildOneFlow(tag: string): Promise<void> {
+  const oneflowSrc: string = getPathInput('oneflow-src', {required: true})
+  const wheelhouseDir: string = getPathInput('wheelhouse-dir', {required: true})
   const docker = new Docker({socketPath: '/var/run/docker.sock'})
   const cudaTools = await ensureCUDA()
   const containerName = 'oneflow-manylinux-'.concat(os.userInfo().username)
   const containerInfos = await docker.listContainers()
-  const shouldSymbolicLinkLld = core.getBooleanInput('docker-run-use-lld')
   for (const containerInfo of containerInfos) {
     if (
       containerInfo.Names.includes(containerName) ||
@@ -341,41 +383,21 @@ export async function buildOneFlow(tag: string): Promise<void> {
       `ONEFLOW_CI_LLVM_DIR=${llvmDir}`
     ].concat(httpProxyEnvs)
   }
-  core.info(JSON.stringify(createOptions, null, 2))
-  const container = await docker.createContainer(createOptions)
-  await container.start()
-  const pythonVersions: string[] = core.getMultilineInput('python-versions', {
-    required: true
-  })
-  if (shouldSymbolicLinkLld) {
-    for (const gccVersion of ['7', '10']) {
-      await runBash(
-        container,
-        `rm -f /opt/rh/devtoolset-${gccVersion}/root/usr/bin/ld`
-      )
-      await runBash(
-        container,
-        `ln -s $(which lld) /opt/rh/devtoolset-${gccVersion}/root/usr/bin/ld`
-      )
+  try {
+    await buildAndMakeWheel(createOptions, docker)
+  } catch (error) {
+    const retryFailedBuild = core.getBooleanInput('retry-failed-build')
+    if (retryFailedBuild) {
+      if (fs.existsSync(buildDir)) {
+        fs.rmdirSync(buildDir, {recursive: true})
+        core.info('Remove `build` Directory')
+      }
+      core.info('Retry Build and Make Wheel.')
+      await buildAndMakeWheel(createOptions, docker)
+    } else {
+      core.setFailed(error.message)
     }
   }
-  const distDir = path.join(oneflowSrc, 'python', 'dist')
-  runExec(container, ['rm', '-rf', distDir])
-  for (const pythonVersion of pythonVersions) {
-    const pythonExe = getPythonExe(pythonVersion)
-    await buildOnePythonVersion(container, buildScript, pythonExe)
-  }
-  const whlFiles = await fs.promises.readdir(distDir)
-  ok(whlFiles.length)
-  await Promise.all(
-    whlFiles.map(async (whl: string) =>
-      runExec(
-        container,
-        ['auditwheel', 'repair', whl, '--wheel-dir', wheelhouseDir],
-        {cwd: distDir}
-      )
-    )
-  )
 }
 
 async function buildOnePythonVersion(
