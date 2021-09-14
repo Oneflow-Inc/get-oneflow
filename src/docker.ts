@@ -252,9 +252,6 @@ async function buildAndMakeWheel(
   const buildScript: string = getPathInput('build-script', {
     required: true
   })
-  core.debug('buildAndMakeWheel--------------------------------------')
-  core.info(JSON.stringify(createOptions, null, 2))
-  core.debug('buildAndMakeWheel--------------------------------------')
   const container = await docker.createContainer(createOptions)
   await container.start()
   const pythonVersions: string[] = core.getMultilineInput('python-versions', {
@@ -390,7 +387,22 @@ export async function buildOneFlow(tag: string): Promise<void> {
       `ONEFLOW_CI_LLVM_DIR=${llvmDir}`
     ].concat(httpProxyEnvs)
   }
-  await buildAndMakeWheel(createOptions, docker)
+  try {
+    // throw new Error('Something bad happened')
+    await buildAndMakeWheel(createOptions, docker)
+  } catch (error) {
+    const retryFailedBuild = core.getBooleanInput('retry-failed-build')
+    if (retryFailedBuild) {
+      if (fs.existsSync(buildDir)) {
+        fs.rmdirSync(buildDir, {recursive: true})
+        core.info('Remove `build` Directory')
+      }
+      core.info('Retry Build and Make Wheel.')
+      await buildAndMakeWheel(createOptions, docker)
+    } else {
+      core.setFailed(error.message)
+    }
+  }
 }
 
 async function buildOnePythonVersion(
