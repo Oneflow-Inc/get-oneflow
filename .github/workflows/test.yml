@@ -158,17 +158,15 @@ jobs:
 
   test-build-manylinux:
     name: 'Build OneFlow manylinux'
-    runs-on: ${{ fromJson(needs.find-build-cache.outputs.runs-on-list }}) }}
+    runs-on: ${{ matrix.runs-on }}) }}
     needs: [find-build-cache]
     strategy:
       fail-fast: false
       max-parallel: 5
-      matrix:
-        build-type: ['cu102-xla', 'cu114', 'cpu-only']
+      matrix: ${{ fromJson(needs.find-build-cache.outputs.matrix) }}
     env:
       ONEFLOW_SRC: oneflow-src
       ACTION: build-oneflow
-      BUILD_TYPE: ${{ matrix.build-type }}
     steps:
       - name: Fix permissions
         if: ${{ contains(fromJson(needs.find-build-cache.outputs.runs-on-${{ matrix.build-type }}), 'self-hosted') }}
@@ -202,7 +200,7 @@ jobs:
           check-not-completed: ${{ contains(needs.find-build-cache.outputs, 'self-hosted') }}]}
       - uses: ./
         name: Build manylinux cpu only
-        if: ${{ env.BUILD_TYPE =='cpu-only' && !steps.find-cache.outputs.cache-hit }}
+        if: ${{ matrix.entry =='cpu-only' && !matrix.cache-hit }}
         with:
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/ci/cpu-only.cmake
           build-script: ${{ env.ONEFLOW_SRC }}/ci/manylinux/build.sh
@@ -221,7 +219,7 @@ jobs:
             3.9
       - uses: ./
         name: Build manylinux cu114
-        if: ${{ env.BUILD_TYPE =='cu114' && !steps.find-cache.outputs.cache-hit }}
+        if: ${{ matrix.entry =='cu114' && !matrix.cache-hit }}
         with:
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/ci/cuda.cmake
           build-script: ${{ env.ONEFLOW_SRC }}/ci/manylinux/build.sh
@@ -240,7 +238,7 @@ jobs:
             3.9
       - uses: ./
         name: Build manylinux cu102-xla
-        if: ${{ env.BUILD_TYPE =='cu102-xla' && !steps.find-cache.outputs.cache-hit }}
+        if: ${{ matrix.entry =='cu102-xla' && !matrix.cache-hit }}
         with:
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/ci/cuda-xla.cmake
           build-script: ${{ env.ONEFLOW_SRC }}/ci/manylinux/build-gcc7.sh
