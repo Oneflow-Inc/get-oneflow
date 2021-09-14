@@ -185,9 +185,18 @@ test(
 )
 
 test(
-  'cache key',
+  'cache complete',
   async () => {
     const np = process.execPath
+    env.setMultilineInput('keys', [
+      'pr/test-commit/test-build-type',
+      'degist/test-hash/test-build-type'
+    ])
+    env.setMultilineInput('runner-labels', [
+      'self-hosted',
+      'linux',
+      'provision'
+    ])
     await cpExec.cpExec(
       np,
       path.join(__dirname, '..', 'lib', 'cacheComplete.js')

@@ -69454,6 +69454,7 @@ function run() {
                 core.setFailed('runner-labels empty');
                 return;
             }
+            // TODO: add condition
             const found = yield checkComplete(keys);
             if (found) {
                 runnerLabels = ['ubuntu-latest'];
