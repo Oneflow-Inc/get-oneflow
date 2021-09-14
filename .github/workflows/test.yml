@@ -138,7 +138,7 @@ jobs:
       - name: Set cache key env
         id: set-cache-key
         run: |
-          echo '::set-output name=src-hash::${{ hashFiles('oneflow-src/core/**/*.h', 'oneflow-src/core/**/*.cpp', 'oneflow-src/cmake/**/*', 'oneflow-src/python/oneflow/**/*.py, 'oneflow-src/core/**/*.yaml') }}'
+          echo "::set-output name=src-hash::${{ hashFiles('oneflow-src/core/**/*.h', 'oneflow-src/core/**/*.cpp', 'oneflow-src/cmake/**/*', 'oneflow-src/python/oneflow/**/*.py, 'oneflow-src/core/**/*.yaml') }}"
       - uses: ./cache-complete
         name: find cache
         id: find-cache-cu102-xla
