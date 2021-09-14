@@ -282,6 +282,6 @@ jobs:
           entry: ${{ matrix.entry }}
           mark-as-completed: false
       - name: Check built
-        if: ${{ !steps.find-cache.outputs.cache-hit }}
+        if: ${{ !fromJSON(steps.find-cache.outputs.cache-hit) }}
         run: |
           exit 1
