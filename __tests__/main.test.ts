@@ -188,8 +188,14 @@ test(
   'cache key',
   async () => {
     const np = process.execPath
-    const ip = path.join(__dirname, '..', 'lib', 'cacheOutput.js')
-    await cpExec.cpExec(np, ip)
+    await cpExec.cpExec(
+      np,
+      path.join(__dirname, '..', 'lib', 'cacheComplete.js')
+    )
+    await cpExec.cpExec(
+      np,
+      path.join(__dirname, '..', 'lib', 'postCacheComplete.js')
+    )
   },
   MINUTES15
 )
