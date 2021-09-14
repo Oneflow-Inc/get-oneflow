@@ -69504,7 +69504,7 @@ function run() {
             lib_core.setOutput('cache-hit', !!found);
         }
         catch (error) {
-            lib_core.setFailed(error.message);
+            lib_core.setFailed(error);
         }
     });
 }

@@ -28,7 +28,7 @@ async function run(): Promise<void> {
     core.setOutput('keys', keys)
     core.setOutput('cache-hit', !!found)
   } catch (error) {
-    core.setFailed(error.message)
+    core.setFailed(error as Error)
   }
 }
 
