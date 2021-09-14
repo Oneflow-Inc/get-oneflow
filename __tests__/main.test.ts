@@ -12,6 +12,8 @@ import {TOOLS, mirrorToDownloads, ensureCUDA102} from '../src/utils/ensure'
 import * as env from '../src/utils/env'
 import * as ssh from '../src/utils/ssh'
 import {ok} from 'assert'
+import * as core from '@actions/core'
+import * as cpExec from '../src/utils/cpExec'
 
 process.env['RUNNER_TOOL_CACHE'] = '~/runner_tool_cache'.replace(
   '~',
@@ -178,6 +180,16 @@ test(
       'degist/test-hash/test-build-type'
     ])
     await ssh.uploadWheelhouse()
+  },
+  MINUTES15
+)
+
+test(
+  'cache key',
+  async () => {
+    const np = process.execPath
+    const ip = path.join(__dirname, '..', 'lib', 'cacheOutput.js')
+    await cpExec.cpExec(np, ip)
   },
   MINUTES15
 )
