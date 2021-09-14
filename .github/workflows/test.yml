@@ -224,6 +224,7 @@ jobs:
             ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/whl
             ${{ github.repository }}/digest/${{ hashFiles('oneflow_src/**/*.cpp') }}
           mark-as-completed: true
+          check-not-completed: true
       - uses: ./
         name: Test manylinux
         if: ${{ contains(fromJson(needs.test-build-cpu-only-cache.outputs.runs-on), 'self-hosted') }}

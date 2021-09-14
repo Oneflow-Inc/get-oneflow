@@ -12,15 +12,13 @@ async function run(): Promise<void> {
         required: false
       }
     )
-    if (runnerLabels.length === 0) {
-      core.setFailed('runner-labels empty')
-      return
-    }
     // TODO: add condition
     const found = await cache.checkComplete(keys)
-    if (checkNotCompleted && found) {
-      core.setFailed(`${found} marked as completed`)
-      return
+    if (checkNotCompleted) {
+      if (found) {
+        core.setFailed(`${found} marked as completed`)
+        return
+      }
     }
     if (found) {
       runnerLabels = ['ubuntu-latest']
