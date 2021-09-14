@@ -62,7 +62,7 @@ jobs:
           self-hosted: ${{ contains(matrix.os, 'self-hosted') }}
 
   test-build-oneflow:
-    name: 'Build OneFlow'
+    name: 'Build OneFlow Conda'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -70,21 +70,7 @@ jobs:
       matrix:
         oneflow-build-env: ['conda', 'manylinux']
         os: [['self-hosted', 'linux', 'provision'], [ubuntu-latest]]
-        cuda-version: ['none']
         docker-run-use-system-http-proxy: [false]
-        include:
-          - oneflow-build-env: manylinux
-            os: ['self-hosted', 'linux', 'provision']
-            cuda-version: 10.2
-            cmake-init-cache: cmake/caches/ci/cuda-xla.cmake
-            build-script: ci/manylinux/build-gcc7.sh
-            docker-run-use-system-http-proxy: true
-          - oneflow-build-env: manylinux
-            os: ['self-hosted', 'linux', 'provision']
-            cuda-version: 11.4
-            cmake-init-cache: cmake/caches/ci/cuda.cmake
-            build-script: ci/manylinux/build.sh
-            docker-run-use-system-http-proxy: false
     env:
       ONEFLOW_SRC: oneflow-src-${{ matrix.oneflow-build-env }}
       ACTION: build-oneflow
@@ -130,41 +116,18 @@ jobs:
           conda-installer-url: https://oneflow-static.oss-cn-beijing.aliyuncs.com/downloads/conda-installers/Miniconda3-py39_4.10.3-Linux-x86_64.sh
           conda-prefix: ~/miniconda3-prefixes/py39_4.10.3
           self-hosted: ${{ contains(matrix.os, 'self-hosted') }}
-      - uses: ./
-        name: Test manylinux
-        if: ${{ matrix.oneflow-build-env == 'manylinux' && matrix.cuda-version != 'none'}}
-        with:
-          cmake-init-cache: ${{ env.ONEFLOW_SRC }}/${{ matrix.cmake-init-cache }}
-          build-script: ${{ env.ONEFLOW_SRC }}/${{ matrix.build-script }}
-          oneflow-src: ${{ env.ONEFLOW_SRC }}
-          oneflow-build-env: manylinux
-          wheelhouse-dir: manylinux-wheelhouse
-          self-hosted: ${{ contains(matrix.os, 'self-hosted') }}
-          cuda-version: ${{ matrix.cuda-version }}
-          manylinux-cache-dir: ~/manylinux-cache-dir/${{ matrix.cuda-version }}
-          docker-run-use-system-http-proxy: ${{ matrix.docker-run-use-system-http-proxy }}
-          docker-run-use-lld: true
-          python-versions: |
-            3.6
-            3.7
-            3.8
-            3.9
 
   find-build-cache:
-    name: 'find cache for cpu only'
+    name: 'Find cache'
     runs-on: [ubuntu-latest]
-    strategy:
-      fail-fast: false
-      max-parallel: 5
-      matrix:
-        build-type: ['cu102-xla', 'cu114', 'cpu-only']
     env:
       ONEFLOW_SRC: oneflow-src
       ACTION: build-oneflow
-      BUILD_TYPE: ${{build-type }}
     outputs:
       runs-on: ${{ steps.find-cache.outputs.runs-on }}
-      found: ${{ steps.find-cache.outputs.cache-hit }}
+      found-cu102-xla: ${{ steps.find-cache-cu102-xla.outputs.cache-hit }}
+      found-cu114: ${{ steps.find-cache-cu114.outputs.cache-hit }}
+      found-cpu-only: ${{ steps.find-cache-cpu-only.outputs.cache-hit }}
     steps:
       - uses: actions/checkout@v2
       - name: Checkout Oneflow-Inc/oneflow
@@ -175,24 +138,54 @@ jobs:
           path: oneflow-src
       - uses: ./cache-complete
         name: find cache
-        id: find-cache
+        id: find-cache-cu102-xla
         with:
           runner-labels: |
             self-hosted
             linux
             provision
           keys: |
-            ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}//whl
+            ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/cu102-xla/whl
+            ${{ github.repository }}/digest/${{ hashFiles('oneflow-src/core/**/*.h', 'oneflow-src/core/**/*.cpp', 'oneflow-src/cmake/**/*', 'oneflow-src/python/oneflow/**/*.py, 'oneflow-src/core/**/*.yaml') }}
+          mark-as-completed: false
+      - uses: ./cache-complete
+        name: find cache
+        id: find-cache-cu114
+        with:
+          runner-labels: |
+            self-hosted
+            linux
+            provision
+          keys: |
+            ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/cu114/whl
+            ${{ github.repository }}/digest/${{ hashFiles('oneflow-src/core/**/*.h', 'oneflow-src/core/**/*.cpp', 'oneflow-src/cmake/**/*', 'oneflow-src/python/oneflow/**/*.py, 'oneflow-src/core/**/*.yaml') }}
+          mark-as-completed: false
+      - uses: ./cache-complete
+        name: find cache
+        id: find-cache-cpu-only
+        with:
+          runner-labels: |
+            self-hosted
+            linux
+            provision
+          keys: |
+            ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/cpu-only/whl
             ${{ github.repository }}/digest/${{ hashFiles('oneflow-src/core/**/*.h', 'oneflow-src/core/**/*.cpp', 'oneflow-src/cmake/**/*', 'oneflow-src/python/oneflow/**/*.py, 'oneflow-src/core/**/*.yaml') }}
           mark-as-completed: false
 
   test-build-cpu-only:
-    name: 'Build OneFlow'
+    name: 'Build OneFlow manylinux'
     runs-on: ${{ fromJson(needs.find-build-cache.outputs.runs-on) }}
     needs: [find-build-cache]
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        build-type: ['cu102-xla', 'cu114', 'cpu-only']
     env:
       ONEFLOW_SRC: oneflow-src
       ACTION: build-oneflow
+      BUILD_TYPE: ${{ matrix.build-type }}
     steps:
       - name: Fix permissions
         if: ${{ contains(fromJson(needs.find-build-cache.outputs.runs-on), 'self-hosted') }}
@@ -220,13 +213,13 @@ jobs:
             linux
             provision
           keys: |
-            ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/whl
+            ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/${{ matrix.build-type }}/whl
             ${{ github.repository }}/digest/${{ hashFiles('oneflow-src/**/*.cpp') }}
           mark-as-completed: true
           check-not-completed: ${{ !needs.find-build-cache.outputs.found }}
       - uses: ./
-        name: Test manylinux
-        if: ${{ contains(fromJson(needs.find-build-cache.outputs.runs-on), 'self-hosted') }}
+        name: Build manylinux cpu only
+        if: ${{ !needs.find-build-cache.outputs.found-cpu-only }}
         with:
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/ci/cpu-only.cmake
           build-script: ${{ env.ONEFLOW_SRC }}/ci/manylinux/build.sh
@@ -237,6 +230,44 @@ jobs:
           cuda-version: none
           manylinux-cache-dir: ~/manylinux-cache-dir/cpu-only
           docker-run-use-system-http-proxy: false
+          docker-run-use-lld: true
+          python-versions: |
+            3.6
+            3.7
+            3.8
+            3.9
+      - uses: ./
+        name: Build manylinux cu114
+        if: ${{ !needs.find-build-cache.outputs.found-cu114 }}
+        with:
+          cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/ci/cuda.cmake
+          build-script: ${{ env.ONEFLOW_SRC }}/ci/manylinux/build.sh
+          oneflow-src: ${{ env.ONEFLOW_SRC }}
+          oneflow-build-env: manylinux
+          wheelhouse-dir: manylinux-wheelhouse
+          self-hosted: ${{ contains(fromJson(needs.find-build-cache.outputs.runs-on), 'self-hosted') }}
+          cuda-version: 11.4
+          manylinux-cache-dir: ~/manylinux-cache-dir/cpu-only
+          docker-run-use-system-http-proxy: false
+          docker-run-use-lld: true
+          python-versions: |
+            3.6
+            3.7
+            3.8
+            3.9
+      - uses: ./
+        name: Build manylinux cu102-xla
+        if: ${{ !needs.find-build-cache.outputs.found-cu102-xla }}
+        with:
+          cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/ci/cuda-xla.cmake
+          build-script: ${{ env.ONEFLOW_SRC }}/ci/manylinux/build-gcc7.sh
+          oneflow-src: ${{ env.ONEFLOW_SRC }}
+          oneflow-build-env: manylinux
+          wheelhouse-dir: manylinux-wheelhouse
+          self-hosted: ${{ contains(fromJson(needs.find-build-cache.outputs.runs-on), 'self-hosted') }}
+          cuda-version: 10.2
+          manylinux-cache-dir: ~/manylinux-cache-dir/cpu-only
+          docker-run-use-system-http-proxy: true
           docker-run-use-lld: true
           python-versions: |
             3.6
