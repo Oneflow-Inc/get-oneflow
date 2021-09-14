@@ -1,5 +1,5 @@
 import OSS from 'ali-oss'
-
+import * as core from '@actions/core'
 function ciCacheBucketStore(): OSS {
   const store = new OSS({
     region: 'oss-cn-beijing',
@@ -11,19 +11,27 @@ function ciCacheBucketStore(): OSS {
   return store
 }
 
-const OBJECT_KEY = 'object.json'
-export async function saveKey(key: string, obj: unknown): Promise<void> {
+const COMPLETE_KEY = 'complete'
+export async function cacheComplete(keys: string[]): Promise<void> {
   const store = ciCacheBucketStore()
-  const buf = Buffer.from(JSON.stringify(obj, null, 2), 'utf8')
-  await store.put(key.concat(OBJECT_KEY), buf, {timeout: 60 * 1000 * 60})
+  for await (const key of keys) {
+    const objectKey = key.concat(COMPLETE_KEY)
+    await store.put(objectKey, '', {timeout: 60 * 1000 * 60})
+  }
 }
 
-export async function lookupInKeys(keys: string[]): Promise<unknown> {
+export async function checkComplete(keys: string[]): Promise<Boolean> {
   const store = ciCacheBucketStore()
   // TODO: support check keys have same values
   for await (const key of keys) {
-    const res = await store.get(key.concat(OBJECT_KEY))
-    return JSON.parse(res.content)
+    const objectKey = key.concat(COMPLETE_KEY)
+    try {
+      await store.head(objectKey, {timeout: 60 * 1000 * 60})
+      core.info(`[found] ${objectKey}`)
+      return true
+    } catch (error) {
+      core.info(`[absent] ${objectKey}`)
+    }
   }
-  return null
+  return false
 }

@@ -10,14 +10,14 @@ async function run(): Promise<void> {
       core.setFailed('runner-labels empty')
       return
     }
-    const found = await cache.lookupInKeys(keys)
+    const found = await cache.checkComplete(keys)
     if (found) {
       runnerLabels = ['ubuntu-latest']
       core.setOutput('object', found)
     }
     core.setOutput('runs-on', runnerLabels)
     core.setOutput('keys', keys)
-    core.setOutput('cache-hit', !!found)
+    core.setOutput('complete', !!found)
   } catch (error) {
     core.setFailed(error.message)
   }
