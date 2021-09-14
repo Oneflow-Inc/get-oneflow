@@ -69486,15 +69486,13 @@ function run() {
             const checkNotCompleted = lib_core.getBooleanInput('check-not-completed', {
                 required: false
             });
-            if (runnerLabels.length === 0) {
-                lib_core.setFailed('runner-labels empty');
-                return;
-            }
             // TODO: add condition
             const found = yield checkComplete(keys);
-            if (checkNotCompleted && found) {
-                lib_core.setFailed(`${found} marked as completed`);
-                return;
+            if (checkNotCompleted) {
+                if (found) {
+                    lib_core.setFailed(`${found} marked as completed`);
+                    return;
+                }
             }
             if (found) {
                 runnerLabels = ['ubuntu-latest'];
