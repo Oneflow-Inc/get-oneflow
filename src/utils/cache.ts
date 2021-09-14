@@ -16,7 +16,8 @@ export async function cacheComplete(keys: string[]): Promise<void> {
   const store = ciCacheBucketStore()
   for await (const key of keys) {
     const objectKey = key.concat(COMPLETE_KEY)
-    await store.put(objectKey, '', {timeout: 60 * 1000 * 60})
+    const buf = Buffer.from('', 'utf8')
+    await store.put(objectKey, buf, {timeout: 60 * 1000 * 60})
   }
 }
 

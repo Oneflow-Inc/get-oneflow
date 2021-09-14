@@ -69388,7 +69388,8 @@ function cacheComplete(keys) {
             for (keys_1 = __asyncValues(keys); keys_1_1 = yield keys_1.next(), !keys_1_1.done;) {
                 const key = keys_1_1.value;
                 const objectKey = key.concat(COMPLETE_KEY);
-                yield store.put(objectKey, '', { timeout: 60 * 1000 * 60 });
+                const buf = Buffer.from('', 'utf8');
+                yield store.put(objectKey, buf, { timeout: 60 * 1000 * 60 });
             }
         }
         catch (e_1_1) { e_1 = { error: e_1_1 }; }
