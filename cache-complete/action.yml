@@ -25,8 +25,8 @@ outputs:
 
 runs:
   using: 'node12'
-  main: '../dist/cacheOutput/index.js'
-  post: '../dist/postCacheOutput/index.js'
+  main: '../dist/cacheComplete/index.js'
+  post: '../dist/postCacheComplete/index.js'
   post-if: success()
 branding:
   icon: 'archive'
