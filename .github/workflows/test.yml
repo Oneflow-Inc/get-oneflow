@@ -143,7 +143,7 @@ jobs:
             cu102-xla
           keys: |
             ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/[matrix-key]
-            ${{ github.repository }}/digest/hashFiles('oneflow-src/core/**/*.h', 'oneflow-src/core/**/*.cpp', 'oneflow-src/cmake/**/*', 'oneflow-src/python/oneflow/**/*.py, 'oneflow-src/core/**/*.yaml')/[matrix-key]
+            ${{ github.repository }}/digest/${{ hashFiles('oneflow-src/core/**/*.h', 'oneflow-src/core/**/*.cpp', 'oneflow-src/cmake/**/*', 'oneflow-src/python/oneflow/**/*.py, 'oneflow-src/core/**/*.yaml') }}/[matrix-key]
 
   test-build-manylinux:
     name: 'Build OneFlow manylinux'
@@ -179,7 +179,7 @@ jobs:
         with:
           keys: |
             ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/${{ matrix.entry }}
-            ${{ github.repository }}/digest/hashFiles('oneflow-src/core/**/*.h', 'oneflow-src/core/**/*.cpp', 'oneflow-src/cmake/**/*', 'oneflow-src/python/oneflow/**/*.py, 'oneflow-src/core/**/*.yaml')/${{ matrix.entry }}
+            ${{ github.repository }}/digest/${{ hashFiles('oneflow-src/core/**/*.h', 'oneflow-src/core/**/*.cpp', 'oneflow-src/cmake/**/*', 'oneflow-src/python/oneflow/**/*.py, 'oneflow-src/core/**/*.yaml') }}/${{ matrix.entry }}
           mark-as-completed: ${{ contains(matrix.runs-on, 'self-hosted') }}]}
           check-not-completed: ${{ contains(matrix.runs-on, 'self-hosted') }}]}
       - name: Check cache
@@ -274,7 +274,7 @@ jobs:
             linux
             provision
           keys: |
-            ${{ github.repository }}/digest/hashFiles('oneflow-src/core/**/*.h', 'oneflow-src/core/**/*.cpp', 'oneflow-src/cmake/**/*', 'oneflow-src/python/oneflow/**/*.py, 'oneflow-src/core/**/*.yaml')/${{ matrix.entry }}
+            ${{ github.repository }}/digest/${{ hashFiles('oneflow-src/core/**/*.h', 'oneflow-src/core/**/*.cpp', 'oneflow-src/cmake/**/*', 'oneflow-src/python/oneflow/**/*.py, 'oneflow-src/core/**/*.yaml') }}/${{ matrix.entry }}
           mark-as-completed: false
       - name: Check built
         if: ${{ !steps.find-cache.outputs.cache-hit }}
