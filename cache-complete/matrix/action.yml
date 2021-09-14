@@ -16,7 +16,7 @@ outputs:
 
 runs:
   using: 'node12'
-  main: '../dist/cacheCompleteMatrix/index.js'
+  main: '../../dist/cacheCompleteMatrix/index.js'
 branding:
   icon: 'archive'
   color: 'gray-dark'
