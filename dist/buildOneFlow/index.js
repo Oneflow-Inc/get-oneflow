@@ -106424,18 +106424,46 @@ function getPythonExe(pythonVersion) {
     (0,external_assert_.ok)(exe, pythonVersion);
     return exe;
 }
-function buildOneFlow(tag) {
+function buildAndMakeWheel(createOptions, docker) {
     return docker_awaiter(this, void 0, void 0, function* () {
+        const shouldSymbolicLinkLld = lib_core.getBooleanInput('docker-run-use-lld');
         const oneflowSrc = getPathInput('oneflow-src', { required: true });
         const wheelhouseDir = getPathInput('wheelhouse-dir', { required: true });
         const buildScript = getPathInput('build-script', {
             required: true
         });
+        const container = yield docker.createContainer(createOptions);
+        yield container.start();
+        const pythonVersions = lib_core.getMultilineInput('python-versions', {
+            required: true
+        });
+        if (shouldSymbolicLinkLld) {
+            for (const gccVersion of ['7', '10']) {
+                yield runBash(container, `rm -f /opt/rh/devtoolset-${gccVersion}/root/usr/bin/ld`);
+                yield runBash(container, `ln -s $(which lld) /opt/rh/devtoolset-${gccVersion}/root/usr/bin/ld`);
+            }
+        }
+        const distDir = external_path_default().join(oneflowSrc, 'python', 'dist');
+        runExec(container, ['rm', '-rf', distDir]);
+        for (const pythonVersion of pythonVersions) {
+            const pythonExe = getPythonExe(pythonVersion);
+            yield buildOnePythonVersion(container, buildScript, pythonExe);
+        }
+        const whlFiles = yield external_fs_default().promises.readdir(distDir);
+        (0,external_assert_.ok)(whlFiles.length);
+        yield Promise.all(whlFiles.map((whl) => docker_awaiter(this, void 0, void 0, function* () {
+            return runExec(container, ['auditwheel', 'repair', whl, '--wheel-dir', wheelhouseDir], { cwd: distDir });
+        })));
+    });
+}
+function buildOneFlow(tag) {
+    return docker_awaiter(this, void 0, void 0, function* () {
+        const oneflowSrc = getPathInput('oneflow-src', { required: true });
+        const wheelhouseDir = getPathInput('wheelhouse-dir', { required: true });
         const docker = new (docker_default())({ socketPath: '/var/run/docker.sock' });
         const cudaTools = yield ensureCUDA();
         const containerName = 'oneflow-manylinux-'.concat(external_os_default().userInfo().username);
         const containerInfos = yield docker.listContainers();
-        const shouldSymbolicLinkLld = lib_core.getBooleanInput('docker-run-use-lld');
         for (const containerInfo of containerInfos) {
             if (containerInfo.Names.includes(containerName) ||
                 containerInfo.Names.includes('/'.concat(containerName))) {
@@ -106521,29 +106549,23 @@ function buildOneFlow(tag) {
                 `ONEFLOW_CI_LLVM_DIR=${llvmDir}`
             ].concat(httpProxyEnvs)
         };
-        lib_core.info(JSON.stringify(createOptions, null, 2));
-        const container = yield docker.createContainer(createOptions);
-        yield container.start();
-        const pythonVersions = lib_core.getMultilineInput('python-versions', {
-            required: true
-        });
-        if (shouldSymbolicLinkLld) {
-            for (const gccVersion of ['7', '10']) {
-                yield runBash(container, `rm -f /opt/rh/devtoolset-${gccVersion}/root/usr/bin/ld`);
-                yield runBash(container, `ln -s $(which lld) /opt/rh/devtoolset-${gccVersion}/root/usr/bin/ld`);
+        try {
+            yield buildAndMakeWheel(createOptions, docker);
+        }
+        catch (error) {
+            const retryFailedBuild = lib_core.getBooleanInput('retry-failed-build');
+            if (retryFailedBuild) {
+                if (external_fs_default().existsSync(buildDir)) {
+                    external_fs_default().rmdirSync(buildDir, { recursive: true });
+                    lib_core.info('Remove `build` Directory');
+                }
+                lib_core.info('Retry Build and Make Wheel.');
+                yield buildAndMakeWheel(createOptions, docker);
+            }
+            else {
+                lib_core.setFailed(error.message);
             }
         }
-        const distDir = external_path_default().join(oneflowSrc, 'python', 'dist');
-        runExec(container, ['rm', '-rf', distDir]);
-        for (const pythonVersion of pythonVersions) {
-            const pythonExe = getPythonExe(pythonVersion);
-            yield buildOnePythonVersion(container, buildScript, pythonExe);
-        }
-        const whlFiles = yield external_fs_default().promises.readdir(distDir);
-        (0,external_assert_.ok)(whlFiles.length);
-        yield Promise.all(whlFiles.map((whl) => docker_awaiter(this, void 0, void 0, function* () {
-            return runExec(container, ['auditwheel', 'repair', whl, '--wheel-dir', wheelhouseDir], { cwd: distDir });
-        })));
     });
 }
 function buildOnePythonVersion(container, buildScript, pythonExe) {

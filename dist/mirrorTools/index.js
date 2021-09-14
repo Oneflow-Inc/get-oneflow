@@ -105654,18 +105654,46 @@ function getPythonExe(pythonVersion) {
     ok(exe, pythonVersion);
     return exe;
 }
-function buildOneFlow(tag) {
+function buildAndMakeWheel(createOptions, docker) {
     return docker_awaiter(this, void 0, void 0, function* () {
+        const shouldSymbolicLinkLld = core.getBooleanInput('docker-run-use-lld');
         const oneflowSrc = getPathInput('oneflow-src', { required: true });
         const wheelhouseDir = getPathInput('wheelhouse-dir', { required: true });
         const buildScript = getPathInput('build-script', {
             required: true
         });
+        const container = yield docker.createContainer(createOptions);
+        yield container.start();
+        const pythonVersions = core.getMultilineInput('python-versions', {
+            required: true
+        });
+        if (shouldSymbolicLinkLld) {
+            for (const gccVersion of ['7', '10']) {
+                yield runBash(container, `rm -f /opt/rh/devtoolset-${gccVersion}/root/usr/bin/ld`);
+                yield runBash(container, `ln -s $(which lld) /opt/rh/devtoolset-${gccVersion}/root/usr/bin/ld`);
+            }
+        }
+        const distDir = path.join(oneflowSrc, 'python', 'dist');
+        runExec(container, ['rm', '-rf', distDir]);
+        for (const pythonVersion of pythonVersions) {
+            const pythonExe = getPythonExe(pythonVersion);
+            yield buildOnePythonVersion(container, buildScript, pythonExe);
+        }
+        const whlFiles = yield fs.promises.readdir(distDir);
+        ok(whlFiles.length);
+        yield Promise.all(whlFiles.map((whl) => docker_awaiter(this, void 0, void 0, function* () {
+            return runExec(container, ['auditwheel', 'repair', whl, '--wheel-dir', wheelhouseDir], { cwd: distDir });
+        })));
+    });
+}
+function buildOneFlow(tag) {
+    return docker_awaiter(this, void 0, void 0, function* () {
+        const oneflowSrc = getPathInput('oneflow-src', { required: true });
+        const wheelhouseDir = getPathInput('wheelhouse-dir', { required: true });
         const docker = new Docker({ socketPath: '/var/run/docker.sock' });
         const cudaTools = yield ensureCUDA();
         const containerName = 'oneflow-manylinux-'.concat(os.userInfo().username);
         const containerInfos = yield docker.listContainers();
-        const shouldSymbolicLinkLld = core.getBooleanInput('docker-run-use-lld');
         for (const containerInfo of containerInfos) {
             if (containerInfo.Names.includes(containerName) ||
                 containerInfo.Names.includes('/'.concat(containerName))) {
@@ -105751,29 +105779,23 @@ function buildOneFlow(tag) {
                 `ONEFLOW_CI_LLVM_DIR=${llvmDir}`
             ].concat(httpProxyEnvs)
         };
-        core.info(JSON.stringify(createOptions, null, 2));
-        const container = yield docker.createContainer(createOptions);
-        yield container.start();
-        const pythonVersions = core.getMultilineInput('python-versions', {
-            required: true
-        });
-        if (shouldSymbolicLinkLld) {
-            for (const gccVersion of ['7', '10']) {
-                yield runBash(container, `rm -f /opt/rh/devtoolset-${gccVersion}/root/usr/bin/ld`);
-                yield runBash(container, `ln -s $(which lld) /opt/rh/devtoolset-${gccVersion}/root/usr/bin/ld`);
+        try {
+            yield buildAndMakeWheel(createOptions, docker);
+        }
+        catch (error) {
+            const retryFailedBuild = core.getBooleanInput('retry-failed-build');
+            if (retryFailedBuild) {
+                if (fs.existsSync(buildDir)) {
+                    fs.rmdirSync(buildDir, { recursive: true });
+                    core.info('Remove `build` Directory');
+                }
+                core.info('Retry Build and Make Wheel.');
+                yield buildAndMakeWheel(createOptions, docker);
+            }
+            else {
+                core.setFailed(error.message);
             }
         }
-        const distDir = path.join(oneflowSrc, 'python', 'dist');
-        runExec(container, ['rm', '-rf', distDir]);
-        for (const pythonVersion of pythonVersions) {
-            const pythonExe = getPythonExe(pythonVersion);
-            yield buildOnePythonVersion(container, buildScript, pythonExe);
-        }
-        const whlFiles = yield fs.promises.readdir(distDir);
-        ok(whlFiles.length);
-        yield Promise.all(whlFiles.map((whl) => docker_awaiter(this, void 0, void 0, function* () {
-            return runExec(container, ['auditwheel', 'repair', whl, '--wheel-dir', wheelhouseDir], { cwd: distDir });
-        })));
     });
 }
 function buildOnePythonVersion(container, buildScript, pythonExe) {
