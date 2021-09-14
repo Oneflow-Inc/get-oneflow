@@ -190,8 +190,8 @@ test(
   async () => {
     const np = process.execPath
     const keys = [
-      'pr/test-commit/test-build-type',
-      'degist/test-hash/test-build-type'
+      'tests/pr/test-commit/test-build-type',
+      'tests/degist/test-hash/test-build-type'
     ]
     env.setMultilineInput('keys', keys)
     env.setMultilineInput('runner-labels', [
