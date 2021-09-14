@@ -153,6 +153,15 @@ jobs:
   find-build-cache:
     name: 'find cache for cpu only'
     runs-on: [ubuntu-latest]
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        build-type: ['cu102-xla', 'cu114', 'cpu-only']
+    env:
+      ONEFLOW_SRC: oneflow-src
+      ACTION: build-oneflow
+      BUILD_TYPE: ${{build-type }}
     outputs:
       runs-on: ${{ steps.find-cache.outputs.runs-on }}
       found: ${{ steps.find-cache.outputs.cache-hit }}
@@ -163,7 +172,7 @@ jobs:
         with:
           repository: Oneflow-Inc/oneflow
           ref: refine_for_new_ci
-          path: oneflow_src
+          path: oneflow-src
       - uses: ./cache-complete
         name: find cache
         id: find-cache
@@ -173,8 +182,8 @@ jobs:
             linux
             provision
           keys: |
-            ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/whl
-            ${{ github.repository }}/digest/${{ hashFiles('oneflow_src/**/*.cpp') }}
+            ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}//whl
+            ${{ github.repository }}/digest/${{ hashFiles('oneflow-src/core/**/*.h', 'oneflow-src/core/**/*.cpp', 'oneflow-src/cmake/**/*', 'oneflow-src/python/oneflow/**/*.py, 'oneflow-src/core/**/*.yaml') }}
           mark-as-completed: false
 
   test-build-cpu-only:
@@ -212,7 +221,7 @@ jobs:
             provision
           keys: |
             ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/whl
-            ${{ github.repository }}/digest/${{ hashFiles('oneflow_src/**/*.cpp') }}
+            ${{ github.repository }}/digest/${{ hashFiles('oneflow-src/**/*.cpp') }}
           mark-as-completed: true
           check-not-completed: ${{ !needs.find-build-cache.outputs.found }}
       - uses: ./
