@@ -78835,7 +78835,6 @@ function getOneFlowBuildCacheKeys(entry) {
             const files = yield globber.glob();
             (0,external_assert_.ok)(files.length > 0, pattern);
         }
-        // TODO: assert one by one
         const srcHash = yield glob.hashFiles(patterns.join('\n'));
         process.env.GITHUB_WORKSPACE = ghWorkspace;
         return [`digest/${srcHash}`]
