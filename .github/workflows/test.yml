@@ -129,10 +129,6 @@ jobs:
           repository: Oneflow-Inc/oneflow
           ref: refine_for_new_ci
           path: oneflow-src
-      - name: Set cache key env
-        id: set-cache-key
-        run: |
-          echo "::set-output name=src-hash::${{ hashFiles('oneflow-src/core/**/*.h', 'oneflow-src/core/**/*.cpp', 'oneflow-src/cmake/**/*', 'oneflow-src/python/oneflow/**/*.py, 'oneflow-src/core/**/*.yaml') }}"
       - uses: ./cache-complete/matrix
         name: find cache
         id: find-cache
@@ -147,7 +143,7 @@ jobs:
             cu102-xla
           keys: |
             ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/[matrix-key]
-            ${{ github.repository }}/digest/${{ steps.set-cache-key.outputs.src-hash }}/[matrix-key]
+            ${{ github.repository }}/digest/hashFiles('oneflow-src/core/**/*.h', 'oneflow-src/core/**/*.cpp', 'oneflow-src/cmake/**/*', 'oneflow-src/python/oneflow/**/*.py, 'oneflow-src/core/**/*.yaml')/[matrix-key]
           mark-as-completed: false
 
   test-build-manylinux:
@@ -188,7 +184,7 @@ jobs:
         with:
           keys: |
             ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/${{ matrix.entry }}
-            ${{ github.repository }}/digest/${{ steps.set-cache-key.outputs.src-hash }}/${{ matrix.entry }}
+            ${{ github.repository }}/digest/hashFiles('oneflow-src/core/**/*.h', 'oneflow-src/core/**/*.cpp', 'oneflow-src/cmake/**/*', 'oneflow-src/python/oneflow/**/*.py, 'oneflow-src/core/**/*.yaml')/${{ matrix.entry }}
           mark-as-completed: ${{ contains(matrix.runs-on, 'self-hosted') }}]}
           check-not-completed: ${{ contains(matrix.runs-on, 'self-hosted') }}]}
       - name: Check cache
@@ -274,10 +270,6 @@ jobs:
           repository: Oneflow-Inc/oneflow
           ref: refine_for_new_ci
           path: ${{ env.ONEFLOW_SRC }}
-      - name: Set cache key env
-        id: set-cache-key
-        run: |
-          echo '::set-output name=src-hash::${{ hashFiles('oneflow-src/core/**/*.h', 'oneflow-src/core/**/*.cpp', 'oneflow-src/cmake/**/*', 'oneflow-src/python/oneflow/**/*.py, 'oneflow-src/core/**/*.yaml') }}'
       - uses: ./cache-complete
         name: find cache
         id: find-cache
@@ -287,8 +279,7 @@ jobs:
             linux
             provision
           keys: |
-            ${{ github.repository }}/pr/${{ github.event.pull_request.number }}/${{ github.sha }}/${{ matrix.entry }}
-            ${{ github.repository }}/digest/${{ steps.set-cache-key.outputs.src-hash }}/${{ matrix.entry }}
+            ${{ github.repository }}/digest/hashFiles('oneflow-src/core/**/*.h', 'oneflow-src/core/**/*.cpp', 'oneflow-src/cmake/**/*', 'oneflow-src/python/oneflow/**/*.py, 'oneflow-src/core/**/*.yaml')/${{ matrix.entry }}
           mark-as-completed: false
       - name: Check built
         if: ${{ !steps.find-cache.outputs.cache-hit }}
