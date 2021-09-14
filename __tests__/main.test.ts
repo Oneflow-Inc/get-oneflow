@@ -14,7 +14,11 @@ import * as ssh from '../src/utils/ssh'
 import {ok} from 'assert'
 import * as core from '@actions/core'
 import * as cpExec from '../src/utils/cpExec'
-import {checkComplete, removeComplete} from '../src/utils/cache'
+import {
+  checkComplete,
+  getOneFlowBuildCacheKeys,
+  removeComplete
+} from '../src/utils/cache'
 
 process.env['RUNNER_TOOL_CACHE'] = '~/runner_tool_cache'.replace(
   '~',
@@ -189,11 +193,9 @@ test(
   'cache complete',
   async () => {
     const np = process.execPath
-    const keys = [
-      'tests/pr/test-commit/test-build-type',
-      'tests/degist/test-hash/test-build-type'
-    ]
-    env.setMultilineInput('keys', keys)
+    const sourceDir = '~/oneflow'
+    env.setInput('oneflow-src', sourceDir)
+    const keys = await getOneFlowBuildCacheKeys('test')
     env.setBooleanInput('mark-as-completed', true)
     env.setBooleanInput('check-not-completed', true)
     env.setMultilineInput('runner-labels', [
@@ -216,6 +218,26 @@ test(
     await cpExec.cpExec(
       np,
       path.join(__dirname, '..', 'lib', 'cacheComplete.js')
+    )
+  },
+  MINUTES15
+)
+
+test(
+  'cache complete matrix',
+  async () => {
+    const np = process.execPath
+    const sourceDir = '~/oneflow'
+    env.setInput('oneflow-src', sourceDir)
+    env.setMultilineInput('entries', ['entryA', 'entryB', 'entryC'])
+    env.setMultilineInput('runner-labels', [
+      'self-hosted',
+      'linux',
+      'provision'
+    ])
+    await cpExec.cpExec(
+      np,
+      path.join(__dirname, '..', 'lib', 'cacheCompleteMatrix.js')
     )
   },
   MINUTES15

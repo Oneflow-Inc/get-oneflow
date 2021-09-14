@@ -1,37 +1,33 @@
 import * as core from '@actions/core'
-import {ok} from 'assert'
 import * as cache from './utils/cache'
+
 async function run(): Promise<void> {
   try {
-    const keys: string[] = core.getMultilineInput('keys', {required: true})
-    const matrixKeys: string[] = core.getMultilineInput('matrix-keys', {
+    const entries: string[] = core.getMultilineInput('entries', {
       required: true
     })
     const runnerLabels: string[] = core.getMultilineInput('runner-labels', {
       required: true
     })
-    // TODO: add condition
-    const MATRIX_KEY_PLACEHOLDER = '[matrix-key]'
-    for (const key of keys) {
-      ok(key.includes(MATRIX_KEY_PLACEHOLDER))
-    }
     interface Matrix {
       entry: string[]
       include: unknown[]
     }
-    const matrix: Matrix = {entry: matrixKeys, include: []}
-    for (const matrixKey of matrixKeys) {
+    const matrix: Matrix = {entry: entries, include: []}
+    for (const entry of entries) {
       const found = await cache.checkComplete(
-        keys.map(x => x.replace(MATRIX_KEY_PLACEHOLDER, matrixKey))
+        await cache.getOneFlowBuildCacheKeys(entry)
       )
       matrix.include = matrix.include.concat([
         {
+          entry,
           'cache-hit': !!found,
           'runs-on': found ? 'ubuntu-latest' : runnerLabels
         }
       ])
     }
     core.setOutput('matrix', matrix)
+    core.info(JSON.stringify(matrix, null, 2))
   } catch (error) {
     core.setFailed(error as Error)
   }

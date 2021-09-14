@@ -1,13 +1,13 @@
 name: 'Build/Get OneFlow'
 description: ''
 inputs:
-  keys:
-    description: ''
+  oneflow-src:
+    description: 'path to OneFlow source code'
     required: true
   runner-labels:
     required: true
     description: 'runner labels to output if cache not found'
-  matrix-keys:
+  entries:
     required: true
     description: 'matrix keys to generate matrix output'
 outputs:

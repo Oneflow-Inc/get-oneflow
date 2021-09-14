@@ -2,7 +2,8 @@ import * as core from '@actions/core'
 import * as cache from './utils/cache'
 async function run(): Promise<void> {
   try {
-    const keys: string[] = core.getMultilineInput('keys', {required: true})
+    const entry: string = core.getInput('entry', {required: true})
+    const keys: string[] = await cache.getOneFlowBuildCacheKeys(entry)
     let runnerLabels: string[] = core.getMultilineInput('runner-labels', {
       required: true
     })

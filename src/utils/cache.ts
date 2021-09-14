@@ -1,6 +1,11 @@
 import OSS from 'ali-oss'
 import * as core from '@actions/core'
 import path from 'path'
+import github from '@actions/github'
+import {getPathInput} from './util'
+import * as glob from '@actions/glob'
+import {ok} from 'assert'
+
 function ciCacheBucketStore(): OSS {
   const store = new OSS({
     region: 'oss-cn-beijing',
@@ -51,4 +56,35 @@ export async function removeComplete(keys: string[]): Promise<void> {
       core.info(`[delete fail] ${objectKey}`)
     }
   }
+}
+
+export async function getOneFlowBuildCacheKeys(
+  entry: string
+): Promise<string[]> {
+  const oneflowSrc: string = getPathInput('oneflow-src', {required: true})
+  const patterns = [
+    'core/**/*.h',
+    'core/**/*.cpp',
+    'core/**/*.yaml',
+    'cmake/**/*',
+    'python/oneflow/**/*.py'
+  ]
+    .map(x => path.join(oneflowSrc, x))
+    .join('\n')
+  const ghWorkspace = process.env.GITHUB_WORKSPACE
+  process.env.GITHUB_WORKSPACE = oneflowSrc
+  const globber = await glob.create(patterns)
+  const files = await globber.glob()
+  ok(files.length > 0)
+  const srcHash = await glob.hashFiles(patterns)
+  process.env.GITHUB_WORKSPACE = ghWorkspace
+  return [`digest/${srcHash}`]
+    .concat(
+      github
+        ? [
+            `${github.context.repo.owner}/${github.context.repo.repo}/${github.context.eventName}/${github.context.issue.number}/${github.context.sha}`
+          ]
+        : []
+    )
+    .map(x => (entry ? path.join(x, entry) : x))
 }
