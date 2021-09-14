@@ -7,7 +7,8 @@ function ciCacheBucketStore(): OSS {
     accessKeyId: process.env['OSS_ACCESS_KEY_ID'] as string,
     accessKeySecret: process.env['OSS_ACCESS_KEY_SECRET'] as string,
     bucket: 'oneflow-ci-cache',
-    endpoint: 'https://oss-cn-beijing.aliyuncs.com'
+    endpoint: 'https://oss-cn-beijing.aliyuncs.com',
+    timeout: 60 * 1000 * 60
   })
   return store
 }
