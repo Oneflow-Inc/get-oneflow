@@ -312,9 +312,6 @@ function buildAndMakeWheel(createOptions, docker) {
         const buildScript = util_1.getPathInput('build-script', {
             required: true
         });
-        core.debug('buildAndMakeWheel--------------------------------------');
-        core.info(JSON.stringify(createOptions, null, 2));
-        core.debug('buildAndMakeWheel--------------------------------------');
         const container = yield docker.createContainer(createOptions);
         yield container.start();
         const pythonVersions = core.getMultilineInput('python-versions', {
@@ -436,7 +433,23 @@ function buildOneFlow(tag) {
                 `ONEFLOW_CI_LLVM_DIR=${llvmDir}`
             ].concat(httpProxyEnvs)
         };
-        yield buildAndMakeWheel(createOptions, docker);
+        try {
+            yield buildAndMakeWheel(createOptions, docker);
+        }
+        catch (error) {
+            const retryFailedBuild = core.getBooleanInput('retry-failed-build');
+            if (retryFailedBuild) {
+                if (fs_1.default.existsSync(buildDir)) {
+                    fs_1.default.rmdirSync(buildDir, { recursive: true });
+                    core.info('Remove `build` Directory');
+                }
+                core.info('Retry Build and Make Wheel.');
+                yield buildAndMakeWheel(createOptions, docker);
+            }
+            else {
+                core.setFailed(error.message);
+            }
+        }
     });
 }
 exports.buildOneFlow = buildOneFlow;
@@ -949,8 +962,6 @@ function buildWithConda() {
 }
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
-        core.debug('--------------------------------------');
-        core.debug('--------------------------------------');
         try {
             const buildEnv = core.getInput('oneflow-build-env');
             const action = core.getInput('action');
