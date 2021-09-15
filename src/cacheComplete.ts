@@ -27,6 +27,7 @@ async function run(): Promise<void> {
       core.setOutput('object', found)
     }
     core.setOutput('runs-on', runnerLabels)
+    // TODO: only outputs found keys
     core.setOutput('keys', keys)
     core.setOutput('cache-hit', !!found)
   } catch (error) {

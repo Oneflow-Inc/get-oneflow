@@ -65,10 +65,18 @@ export async function getOneFlowBuildCacheKeys(
   const patterns = [
     'oneflow/core/**/*.h',
     'oneflow/core/**/*.cpp',
+    'oneflow/core/**/*.cuh',
+    'oneflow/core/**/*.cu',
+    'oneflow/core/**/*.proto',
     'oneflow/core/**/*.yaml',
+    'tools/cfg/**/*',
+    'tools/functional**/*',
     'cmake/**/*',
     'python/oneflow/**/*.py'
   ].map(x => path.join(oneflowSrc, x))
+  // add proto files
+  // exclude python test dir or move it from oneflow dir
+  // exclude core and include dir
   const ghWorkspace = process.env.GITHUB_WORKSPACE
   process.env.GITHUB_WORKSPACE = oneflowSrc
   for (const pattern of patterns) {
