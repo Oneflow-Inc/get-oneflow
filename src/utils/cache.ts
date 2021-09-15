@@ -64,6 +64,7 @@ export async function getOneFlowBuildCacheKeys(
   const oneflowSrc: string = getPathInput('oneflow-src', {required: true})
   const patterns = [
     'oneflow/core/**/*.h',
+    'oneflow/core/**/*.hpp',
     'oneflow/core/**/*.cpp',
     'oneflow/core/**/*.cuh',
     'oneflow/core/**/*.cu',
