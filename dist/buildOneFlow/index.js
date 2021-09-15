@@ -106466,22 +106466,6 @@ function buildOneFlow(tag) {
         const docker = new (docker_default())({ socketPath: '/var/run/docker.sock' });
         const cudaTools = yield ensureCUDA();
         const containerName = 'oneflow-manylinux-'.concat(external_os_default().userInfo().username);
-        const containerInfos = yield docker.listContainers();
-        for (const containerInfo of containerInfos) {
-            if (containerInfo.Names.includes(containerName) ||
-                containerInfo.Names.includes('/'.concat(containerName))) {
-                lib_core.info(`removing docker container: ${containerInfo.Names}`);
-                try {
-                    yield docker.getContainer(containerInfo.Id).kill();
-                    yield docker.getContainer(containerInfo.Id).wait({
-                        condition: 'removed'
-                    });
-                }
-                catch (error) {
-                    lib_core.info(JSON.stringify(error));
-                }
-            }
-        }
         let httpProxyEnvs = [];
         const manylinuxCacheDir = getPathInput('manylinux-cache-dir', {
             required: true
@@ -106553,16 +106537,38 @@ function buildOneFlow(tag) {
             ].concat(httpProxyEnvs)
         };
         try {
+            yield killContainer(docker, containerName);
             yield buildAndMakeWheel(createOptions, docker, buildDir, false);
         }
         catch (error) {
             const retryFailedBuild = lib_core.getBooleanInput('retry-failed-build');
             if (retryFailedBuild) {
                 lib_core.info('Retry Build and Make Wheel.');
+                yield killContainer(docker, containerName);
                 yield buildAndMakeWheel(createOptions, docker, buildDir, true);
             }
             else {
                 lib_core.setFailed(error.message);
+            }
+        }
+    });
+}
+function killContainer(docker, containerName) {
+    return docker_awaiter(this, void 0, void 0, function* () {
+        const containerInfos = yield docker.listContainers();
+        for (const containerInfo of containerInfos) {
+            if (containerInfo.Names.includes(containerName) ||
+                containerInfo.Names.includes('/'.concat(containerName))) {
+                lib_core.info(`removing docker container: ${containerInfo.Names}`);
+                try {
+                    yield docker.getContainer(containerInfo.Id).kill();
+                    yield docker.getContainer(containerInfo.Id).wait({
+                        condition: 'removed'
+                    });
+                }
+                catch (error) {
+                    lib_core.info(JSON.stringify(error));
+                }
             }
         }
     });
