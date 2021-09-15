@@ -438,7 +438,7 @@ function buildOneFlow(tag) {
             if (retryFailedBuild) {
                 if (fs_1.default.existsSync(buildDir)) {
                     fs_1.default.rmdirSync(buildDir, { recursive: true });
-                    core.info('Remove `build` Directory');
+                    core.info('Remove build Directory');
                 }
                 core.info('Retry Build and Make Wheel.');
                 yield buildAndMakeWheel(createOptions, docker);

@@ -391,7 +391,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
     if (retryFailedBuild) {
       if (fs.existsSync(buildDir)) {
         fs.rmdirSync(buildDir, {recursive: true})
-        core.info('Remove `build` Directory')
+        core.info('Remove build Directory')
       }
       core.info('Retry Build and Make Wheel.')
       await buildAndMakeWheel(createOptions, docker)
