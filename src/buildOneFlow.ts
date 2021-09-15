@@ -64,7 +64,7 @@ async function buildWithConda(): Promise<void> {
     ])
     const buildDir = 'build'
     await io.mkdirP(buildDir)
-    const condaEnvName = 'oneflow-dev-clang10-v2'
+    const condaEnvName = core.getInput('conda-env-name', {required: true})
     await condaRun(condaEnvName, 'cmake', [
       '-S',
       oneflowSrc,
@@ -73,17 +73,15 @@ async function buildWithConda(): Promise<void> {
       '-B',
       buildDir
     ])
-    if (isSelfHosted()) {
-      await condaRun(condaEnvName, 'cmake', [
-        '--build',
-        buildDir,
-        '--parallel',
-        (await exec.getExecOutput('nproc')).stdout.trim()
-      ])
-      await condaRun(condaEnvName, 'python3', ['setup.py', 'bdist_wheel'], {
-        cwd: path.join(oneflowSrc, 'python')
-      })
-    }
+    await condaRun(condaEnvName, 'cmake', [
+      '--build',
+      buildDir,
+      '--parallel',
+      (await exec.getExecOutput('nproc')).stdout.trim()
+    ])
+    await condaRun(condaEnvName, 'python3', ['setup.py', 'bdist_wheel'], {
+      cwd: path.join(oneflowSrc, 'python')
+    })
   }
 }
 

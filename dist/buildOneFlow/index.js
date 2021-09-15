@@ -106649,7 +106649,7 @@ function buildWithConda() {
             ]);
             const buildDir = 'build';
             yield lib_io.mkdirP(buildDir);
-            const condaEnvName = 'oneflow-dev-clang10-v2';
+            const condaEnvName = lib_core.getInput('conda-env-name', { required: true });
             yield condaRun(condaEnvName, 'cmake', [
                 '-S',
                 oneflowSrc,
@@ -106658,17 +106658,15 @@ function buildWithConda() {
                 '-B',
                 buildDir
             ]);
-            if (util_isSelfHosted()) {
-                yield condaRun(condaEnvName, 'cmake', [
-                    '--build',
-                    buildDir,
-                    '--parallel',
-                    (yield getExecOutput('nproc')).stdout.trim()
-                ]);
-                yield condaRun(condaEnvName, 'python3', ['setup.py', 'bdist_wheel'], {
-                    cwd: external_path_default().join(oneflowSrc, 'python')
-                });
-            }
+            yield condaRun(condaEnvName, 'cmake', [
+                '--build',
+                buildDir,
+                '--parallel',
+                (yield getExecOutput('nproc')).stdout.trim()
+            ]);
+            yield condaRun(condaEnvName, 'python3', ['setup.py', 'bdist_wheel'], {
+                cwd: external_path_default().join(oneflowSrc, 'python')
+            });
         }
     });
 }

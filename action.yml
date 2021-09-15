@@ -24,7 +24,10 @@ inputs:
   # Conda args
   conda-env-file:
     description: 'can be a url or a path'
-    required: true
+    required: false
+  conda-env-name:
+    description: ''
+    required: false
   conda-prefix:
     description: "Miniconda prefix, if it fails to run 'conda --version', will install one there"
     required: false
