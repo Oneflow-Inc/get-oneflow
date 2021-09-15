@@ -340,14 +340,10 @@ function buildOneFlow(tag) {
     return __awaiter(this, void 0, void 0, function* () {
         const oneflowSrc = util_1.getPathInput('oneflow-src', { required: true });
         const wheelhouseDir = util_1.getPathInput('wheelhouse-dir', { required: true });
-        // const buildScript: string = getPathInput('build-script', {
-        //   required: true
-        // })
         const docker = new dockerode_1.default({ socketPath: '/var/run/docker.sock' });
         const cudaTools = yield ensure_1.ensureCUDA();
         const containerName = 'oneflow-manylinux-'.concat(os_1.default.userInfo().username);
         const containerInfos = yield docker.listContainers();
-        // const shouldSymbolicLinkLld = core.getBooleanInput('docker-run-use-lld')
         for (const containerInfo of containerInfos) {
             if (containerInfo.Names.includes(containerName) ||
                 containerInfo.Names.includes('/'.concat(containerName))) {
@@ -434,7 +430,8 @@ function buildOneFlow(tag) {
             ].concat(httpProxyEnvs)
         };
         try {
-            yield buildAndMakeWheel(createOptions, docker);
+            throw new Error('Something bad happened');
+            // await buildAndMakeWheel(createOptions, docker)
         }
         catch (error) {
             const retryFailedBuild = core.getBooleanInput('retry-failed-build');
