@@ -99,7 +99,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: Oneflow-Inc/conda-env
-          ref: 9cd37571cbd6cc6a81fc87faa7f6a43be772ae31
+          ref: 30a7f00eb48ee9009d85a848e720823e5054c66b
           path: conda-env
       - uses: ./
         name: Test conda on gh-hosted
