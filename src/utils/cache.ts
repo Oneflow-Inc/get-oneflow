@@ -62,6 +62,7 @@ export async function getOneFlowBuildCacheKeys(
   entry: string
 ): Promise<string[]> {
   const oneflowSrc: string = getPathInput('oneflow-src', {required: true})
+  // TODO: alternative function for test jobs
   const patterns = [
     'oneflow/core/**/*.h',
     'oneflow/core/**/*.hpp',
@@ -77,7 +78,6 @@ export async function getOneFlowBuildCacheKeys(
     'cmake/**/*.cmake',
     'python/oneflow/**/*.py'
   ].map(x => path.join(oneflowSrc, x))
-  // exclude python test dir or move it from oneflow dir
   const ghWorkspace = process.env.GITHUB_WORKSPACE
   process.env.GITHUB_WORKSPACE = oneflowSrc
   for (const pattern of patterns) {
