@@ -1,9 +1,6 @@
 name: 'Build/Get OneFlow'
 description: ''
 inputs:
-  action:
-    description: 'build-oneflow|mirror-tools'
-    required: false
   # OneFlow args
   oneflow-build-env:
     description: 'environment to build OneFlow: conda, manylinux'
@@ -72,9 +69,33 @@ inputs:
     description: ''
     required: false
     default: false
+  ssh-tank-host:
+    description: ''
+    required: false
+    default: false
+  ssh-tank-path:
+    description: ''
+    required: false
+    default: '/tank'
+  ssh-tank-base-url:
+    description: ''
+    required: true
+  cache-key-oss-bucket:
+    description: 'OSS bucket to save cache keys for build outputs and test results'
+    required: false
+    default: 'oneflow-ci-cache'
+  cache-key-prefixes:
+    description: |
+      Prefix of keys used to save and find artifacts.
+      For instance: pr/[commit], degist/[hash of files].
+      Later you can get artifact with keys to inventory files like pr/[commit]/wheelhouse.json.
+      If key found, build will be skipped.
+      Currently backed by OSS
+    required: false
+
 outputs:
   pip-index-url:
     description: 'pip index url could be use to install oneflow'
 runs:
   using: 'node12'
-  main: 'dist/index.js'
+  main: 'dist/buildOneFlow/index.js'

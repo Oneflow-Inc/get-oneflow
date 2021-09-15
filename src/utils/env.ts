@@ -13,3 +13,7 @@ export function setBooleanInput(name: string, value: Boolean): void {
 export function setMultilineInput(name: string, value: string[]): void {
   process.env[getEnvName(name)] = value.join('\n')
 }
+
+export function setTestState(name: string, value: unknown): void {
+  process.env[`STATE_${name}`] = JSON.stringify(value)
+}

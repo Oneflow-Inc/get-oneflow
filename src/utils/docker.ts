@@ -244,7 +244,9 @@ function getPythonExe(pythonVersion: string): string {
 
 async function buildAndMakeWheel(
   createOptions: Object,
-  docker: Docker
+  docker: Docker,
+  buildDir: string,
+  shouldCleanBuildDir: Boolean
 ): Promise<void> {
   const shouldSymbolicLinkLld = core.getBooleanInput('docker-run-use-lld')
   const oneflowSrc: string = getPathInput('oneflow-src', {required: true})
@@ -254,6 +256,9 @@ async function buildAndMakeWheel(
   })
   const container = await docker.createContainer(createOptions)
   await container.start()
+  if (shouldCleanBuildDir) {
+    await runBash(container, `rm -rf ${path.join(buildDir, '*')}`)
+  }
   const pythonVersions: string[] = core.getMultilineInput('python-versions', {
     required: true
   })
@@ -294,23 +299,6 @@ export async function buildOneFlow(tag: string): Promise<void> {
   const docker = new Docker({socketPath: '/var/run/docker.sock'})
   const cudaTools = await ensureCUDA()
   const containerName = 'oneflow-manylinux-'.concat(os.userInfo().username)
-  const containerInfos = await docker.listContainers()
-  for (const containerInfo of containerInfos) {
-    if (
-      containerInfo.Names.includes(containerName) ||
-      containerInfo.Names.includes('/'.concat(containerName))
-    ) {
-      core.info(`removing docker container: ${containerInfo.Names}`)
-      try {
-        await docker.getContainer(containerInfo.Id).kill()
-        await docker.getContainer(containerInfo.Id).wait({
-          condition: 'removed'
-        })
-      } catch (error) {
-        core.info(JSON.stringify(error))
-      }
-    }
-  }
   let httpProxyEnvs: string[] = []
   const manylinuxCacheDir = getPathInput('manylinux-cache-dir', {
     required: true
@@ -384,18 +372,39 @@ export async function buildOneFlow(tag: string): Promise<void> {
     ].concat(httpProxyEnvs)
   }
   try {
-    await buildAndMakeWheel(createOptions, docker)
+    await killContainer(docker, containerName)
+    await buildAndMakeWheel(createOptions, docker, buildDir, false)
   } catch (error) {
     const retryFailedBuild = core.getBooleanInput('retry-failed-build')
     if (retryFailedBuild) {
-      if (fs.existsSync(buildDir)) {
-        fs.rmdirSync(buildDir, {recursive: true})
-        core.info('Remove `build` Directory')
-      }
       core.info('Retry Build and Make Wheel.')
-      await buildAndMakeWheel(createOptions, docker)
+      await killContainer(docker, containerName)
+      await buildAndMakeWheel(createOptions, docker, buildDir, true)
     } else {
       core.setFailed(error.message)
+    }
+  }
+}
+
+async function killContainer(
+  docker: Docker,
+  containerName: string
+): Promise<void> {
+  const containerInfos = await docker.listContainers()
+  for (const containerInfo of containerInfos) {
+    if (
+      containerInfo.Names.includes(containerName) ||
+      containerInfo.Names.includes('/'.concat(containerName))
+    ) {
+      core.info(`removing docker container: ${containerInfo.Names}`)
+      try {
+        await docker.getContainer(containerInfo.Id).kill()
+        await docker.getContainer(containerInfo.Id).wait({
+          condition: 'removed'
+        })
+      } catch (error) {
+        core.info(JSON.stringify(error))
+      }
     }
   }
 }

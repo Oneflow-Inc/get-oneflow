@@ -1,15 +1,14 @@
 import * as core from '@actions/core'
-import * as exec from './exec'
+import * as exec from './utils/exec'
 import * as io from '@actions/io'
 import * as tc from '@actions/tool-cache'
 import fs from 'fs'
 import os from 'os'
 import {ExecOptions} from '@actions/exec'
 import path from 'path'
-import {ensureConda} from './conda'
-import {buildManylinuxAndTag, buildOneFlow, DOCKER_TOOL_URLS} from './docker'
-import {isSelfHosted} from './util'
-import {TOOLS, mirrorToDownloads} from './ensure'
+import {ensureConda} from './utils/conda'
+import {buildOneFlow} from './utils/docker'
+import {isSelfHosted} from './utils/util'
 
 async function condaRun(
   condaEnvName: string,
@@ -91,53 +90,19 @@ async function buildWithConda(): Promise<void> {
 async function run(): Promise<void> {
   try {
     const buildEnv: string = core.getInput('oneflow-build-env')
-    const action: string = core.getInput('action')
-    switch (action) {
-      case 'mirror-tools':
-        for (const t of TOOLS) {
-          await mirrorToDownloads(t.url)
-        }
-        for (const e of Object.entries(DOCKER_TOOL_URLS)) {
-          await mirrorToDownloads(e[1])
-        }
-
-        break
-
-      case 'build-img':
-        {
-          const manylinuxVersion: string = core.getInput('manylinux-version', {
-            required: true
-          })
-          if (manylinuxVersion === '2014') {
-            const tag = await buildManylinuxAndTag(manylinuxVersion)
-            core.setOutput('tag', tag)
-          } else {
-            core.setFailed(`unsupported manylinuxVersion: ${manylinuxVersion}`)
-          }
-        }
-        break
-      case 'build-oneflow':
-        if (['conda', 'manylinux'].includes(buildEnv) === false) {
-          core.setFailed('oneflow-build-env must be conda or manylinux')
-        }
-        if (buildEnv === 'conda') {
-          await buildWithConda()
-        }
-        if (buildEnv === 'manylinux') {
-          if (isSelfHosted()) {
-            const tag =
-              'registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64:0.1'
-            await exec.exec('docker', ['pull', tag])
-            await buildOneFlow(tag)
-          }
-        }
-        break
-      case 'do-nothing':
-        core.warning(`unsupported action: ${action}`)
-        break
-      default:
-        core.setFailed(`unsupported action: ${action}`)
-        break
+    if (['conda', 'manylinux'].includes(buildEnv) === false) {
+      core.setFailed('oneflow-build-env must be conda or manylinux')
+    }
+    if (buildEnv === 'conda') {
+      await buildWithConda()
+    }
+    if (buildEnv === 'manylinux') {
+      if (isSelfHosted()) {
+        const tag =
+          'registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64:0.1'
+        await exec.exec('docker', ['pull', tag])
+        await buildOneFlow(tag)
+      }
     }
   } catch (error) {
     core.setFailed(error.message)

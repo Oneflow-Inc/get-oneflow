@@ -1,0 +1,22 @@
+name: 'Build/Get OneFlow'
+description: ''
+inputs:
+  oneflow-src:
+    description: 'path to OneFlow source code'
+    required: true
+  runner-labels:
+    required: true
+    description: 'runner labels to output if cache not found'
+  entries:
+    required: true
+    description: 'matrix keys to generate matrix output'
+outputs:
+  matrix:
+    description: 'if cache found, will generate a [ubuntu-latest], in JSON'
+
+runs:
+  using: 'node12'
+  main: '../../dist/cacheCompleteMatrix/index.js'
+branding:
+  icon: 'archive'
+  color: 'gray-dark'

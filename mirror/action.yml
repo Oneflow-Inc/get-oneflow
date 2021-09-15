@@ -1,0 +1,5 @@
+name: 'Mirror Tools'
+description: ''
+runs:
+  using: 'node12'
+  main: '../dist/mirrorTools/index.js'

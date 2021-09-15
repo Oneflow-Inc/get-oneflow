@@ -13,8 +13,15 @@ jobs:
   build: # make sure build/ci work properly
     name: 'Build and test this repo'
     runs-on: ubuntu-latest
+    env:
+      ONEFLOW_SRC: oneflow-src
     steps:
       - uses: actions/checkout@v2
+      - name: Checkout Oneflow-Inc/oneflow
+        uses: actions/checkout@v2
+        with:
+          repository: Oneflow-Inc/oneflow
+          path: ${{ env.ONEFLOW_SRC }}
       - run: |
           npm install
       - run: |
@@ -23,7 +30,6 @@ jobs:
   cancel_previous:
     name: Cancel previous runs
     runs-on: ubuntu-latest
-    if: github.ref != 'refs/heads/master'
     steps:
       - name: Cancel previous runs of outdated commit
         uses: styfle/cancel-workflow-action@0.9.0
@@ -33,14 +39,12 @@ jobs:
 
   mirror-tools: # make sure the action works on a clean machine without building
     name: 'Mirror tools to OSS'
-    runs-on: ubuntu-latest
+    runs-on: [ubuntu-latest]
     steps:
       - uses: actions/checkout@v2
-      - uses: ./
+      - uses: ./mirror
         if: ${{ env.OSS_ACCESS_KEY_ID }}
         name: Mirror tools
-        with:
-          action: mirror-tools
 
   test-build-img:
     name: 'Build image'
@@ -50,8 +54,6 @@ jobs:
       max-parallel: 5
       matrix:
         os: [['self-hosted', 'linux', 'provision'], [ubuntu-latest]]
-    env:
-      ACTION: build-img
     steps:
       - name: Fix permissions
         if: ${{ contains(matrix.os, 'self-hosted') }}
@@ -62,11 +64,10 @@ jobs:
       - uses: ./manylinux
         name: Test build manylinux
         with:
-          action: ${{ env.ACTION }}
           self-hosted: ${{ contains(matrix.os, 'self-hosted') }}
 
   test-build-oneflow:
-    name: 'Build OneFlow'
+    name: 'Build OneFlow Conda'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -74,29 +75,9 @@ jobs:
       matrix:
         oneflow-build-env: ['conda', 'manylinux']
         os: [['self-hosted', 'linux', 'provision'], [ubuntu-latest]]
-        cuda-version: ['none']
         docker-run-use-system-http-proxy: [false]
-        include:
-          - oneflow-build-env: manylinux
-            os: ['self-hosted', 'linux', 'provision']
-            cuda-version: 10.2
-            cmake-init-cache: cmake/caches/ci/cuda-xla.cmake
-            build-script: ci/manylinux/build-gcc7.sh
-            docker-run-use-system-http-proxy: true
-          - oneflow-build-env: manylinux
-            os: ['self-hosted', 'linux', 'provision']
-            cuda-version: 11.4
-            cmake-init-cache: cmake/caches/ci/cuda.cmake
-            build-script: ci/manylinux/build.sh
-            docker-run-use-system-http-proxy: false
-          - oneflow-build-env: manylinux
-            os: ['self-hosted', 'linux', 'provision']
-            cmake-init-cache: cmake/caches/ci/cpu-only.cmake
-            build-script: ci/manylinux/build.sh
-            docker-run-use-system-http-proxy: false
     env:
       ONEFLOW_SRC: oneflow-src-${{ matrix.oneflow-build-env }}
-      ACTION: build-oneflow
     steps:
       - name: Fix permissions
         if: ${{ contains(matrix.os, 'self-hosted') }}
@@ -118,13 +99,12 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: Oneflow-Inc/conda-env
-          ref: 9cd37571cbd6cc6a81fc87faa7f6a43be772ae31
+          ref: 30a7f00eb48ee9009d85a848e720823e5054c66b
           path: conda-env
       - uses: ./
         name: Test conda on gh-hosted
         if: ${{ contains(matrix.os, 'ubuntu-latest') && matrix.oneflow-build-env == 'conda'}}
         with:
-          action: ${{ env.ACTION }}
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/cn/fast/cpu-clang.cmake
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           oneflow-build-env: conda
@@ -133,7 +113,6 @@ jobs:
         name: Test conda on self-hosted
         if: ${{ contains(matrix.os, 'self-hosted') && matrix.oneflow-build-env == 'conda'}}
         with:
-          action: ${{ env.ACTION }}
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/cn/fast/cpu-clang.cmake
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           oneflow-build-env: conda
@@ -141,20 +120,90 @@ jobs:
           conda-installer-url: https://oneflow-static.oss-cn-beijing.aliyuncs.com/downloads/conda-installers/Miniconda3-py39_4.10.3-Linux-x86_64.sh
           conda-prefix: ~/miniconda3-prefixes/py39_4.10.3
           self-hosted: ${{ contains(matrix.os, 'self-hosted') }}
-      - uses: ./
-        name: Test manylinux
-        if: ${{ matrix.oneflow-build-env == 'manylinux'}}
+
+  find-build-cache:
+    name: 'Find cache'
+    runs-on: [ubuntu-latest]
+    env:
+      ONEFLOW_SRC: oneflow-src
+    outputs:
+      matrix: ${{ steps.find-cache.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Checkout Oneflow-Inc/oneflow
+        uses: actions/checkout@v2
         with:
-          action: ${{ env.ACTION }}
-          cmake-init-cache: ${{ env.ONEFLOW_SRC }}/${{ matrix.cmake-init-cache }}
-          build-script: ${{ env.ONEFLOW_SRC }}/${{ matrix.build-script }}
+          repository: Oneflow-Inc/oneflow
+          ref: refine_for_new_ci
+          path: oneflow-src
+      - uses: ./cache-complete/matrix
+        name: find cache
+        id: find-cache
+        with:
+          runner-labels: |
+            self-hosted
+            linux
+            provision
+          oneflow-src: ${{ env.ONEFLOW_SRC }}
+          entries: |
+            cu114
+            cpu-only
+            cu102-xla
+
+  test-build-manylinux:
+    name: 'Build OneFlow manylinux'
+    runs-on: ${{ matrix.runs-on }}
+    needs: [find-build-cache]
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix: ${{ fromJson(needs.find-build-cache.outputs.matrix) }}
+    env:
+      ONEFLOW_SRC: oneflow-src
+    steps:
+      - name: Fix permissions
+        if: ${{ contains(matrix.runs-on, 'self-hosted') }}
+        run: |
+          set -x
+          docker run --rm -v $PWD:/p -w /p busybox chown -R $(id -u):$(id -g) .
+      - name: Remove leftover cuda-installer.log
+        if: ${{ contains(matrix.runs-on, 'self-hosted') }}
+        run: |
+          docker run --rm -v /tmp:/host/tmp -w /p busybox rm -f /host/tmp/cuda-installer.log
+      - name: Checkout this repo
+        uses: actions/checkout@v2
+      - name: Checkout Oneflow-Inc/oneflow
+        uses: actions/checkout@v2
+        with:
+          repository: Oneflow-Inc/oneflow
+          ref: refine_for_new_ci
+          path: ${{ env.ONEFLOW_SRC }}
+      - uses: ./cache-complete
+        name: Save cache if successful
+        id: save-cache
+        with:
+          oneflow-src: ${{ env.ONEFLOW_SRC }}
+          entry: ${{ matrix.entry }}
+          mark-as-completed: ${{ contains(matrix.runs-on, 'self-hosted') }}
+          check-not-completed: ${{ contains(matrix.runs-on, 'self-hosted') }}
+      - name: Fail if cache result not identical to matrix
+        if: ${{ fromJSON(steps.save-cache.outputs.cache-hit) != matrix.cache-hit }}
+        run: |
+          echo "::error file=test.yml,line=204,col=10::steps.save-cache.outputs.cache-hit != matrix.cache-hit"
+          exit 1
+      - uses: ./
+        name: Build manylinux cpu only
+        if: ${{ matrix.entry =='cpu-only' && !matrix.cache-hit }}
+        with:
+          cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/ci/cpu-only.cmake
+          build-script: ${{ env.ONEFLOW_SRC }}/ci/manylinux/build.sh
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           oneflow-build-env: manylinux
           wheelhouse-dir: manylinux-wheelhouse
-          self-hosted: ${{ contains(matrix.os, 'self-hosted') }}
-          cuda-version: ${{ matrix.cuda-version }}
-          manylinux-cache-dir: ~/manylinux-cache-dir/${{ matrix.cuda-version }}
-          docker-run-use-system-http-proxy: ${{ matrix.docker-run-use-system-http-proxy }}
+          self-hosted: ${{ contains(matrix.runs-on, 'self-hosted') }}
+          cuda-version: none
+          manylinux-cache-dir: ~/manylinux-cache-dir/cpu-only
+          docker-run-use-system-http-proxy: false
           docker-run-use-lld: true
           retry-failed-build: true
           python-versions: |
@@ -162,3 +211,79 @@ jobs:
             3.7
             3.8
             3.9
+      - uses: ./
+        name: Build manylinux cu114
+        if: ${{ matrix.entry =='cu114' && !matrix.cache-hit }}
+        with:
+          cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/ci/cuda.cmake
+          build-script: ${{ env.ONEFLOW_SRC }}/ci/manylinux/build.sh
+          oneflow-src: ${{ env.ONEFLOW_SRC }}
+          oneflow-build-env: manylinux
+          wheelhouse-dir: manylinux-wheelhouse
+          self-hosted: ${{ contains(matrix.runs-on, 'self-hosted') }}
+          cuda-version: 11.4
+          manylinux-cache-dir: ~/manylinux-cache-dir/cpu-only
+          docker-run-use-system-http-proxy: false
+          docker-run-use-lld: true
+          retry-failed-build: true
+          python-versions: |
+            3.6
+            3.7
+            3.8
+            3.9
+      - uses: ./
+        name: Build manylinux cu102-xla
+        if: ${{ matrix.entry =='cu102-xla' && !matrix.cache-hit }}
+        with:
+          cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/ci/cuda-xla.cmake
+          build-script: ${{ env.ONEFLOW_SRC }}/ci/manylinux/build-gcc7.sh
+          oneflow-src: ${{ env.ONEFLOW_SRC }}
+          oneflow-build-env: manylinux
+          wheelhouse-dir: manylinux-wheelhouse
+          self-hosted: ${{ contains(matrix.runs-on, 'self-hosted') }}
+          cuda-version: 10.2
+          manylinux-cache-dir: ~/manylinux-cache-dir/cpu-only
+          docker-run-use-system-http-proxy: true
+          docker-run-use-lld: true
+          retry-failed-build: true
+          python-versions: |
+            3.6
+            3.7
+            3.8
+            3.9
+
+  check-build-cache:
+    name: 'Check manylinux build cache'
+    runs-on: [ubuntu-latest]
+    needs: [test-build-manylinux]
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        entry: ['cu102-xla', 'cu114', 'cpu-only']
+    env:
+      ONEFLOW_SRC: oneflow-src
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v2
+      - name: Checkout Oneflow-Inc/oneflow
+        uses: actions/checkout@v2
+        with:
+          repository: Oneflow-Inc/oneflow
+          ref: refine_for_new_ci
+          path: ${{ env.ONEFLOW_SRC }}
+      - uses: ./cache-complete
+        name: find cache
+        id: find-cache
+        with:
+          runner-labels: |
+            self-hosted
+            linux
+            provision
+          oneflow-src: ${{ env.ONEFLOW_SRC }}
+          entry: ${{ matrix.entry }}
+          mark-as-completed: false
+      - name: Check built
+        if: ${{ !fromJSON(steps.find-cache.outputs.cache-hit) }}
+        run: |
+          exit 1

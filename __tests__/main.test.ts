@@ -3,10 +3,22 @@ import * as cp from 'child_process'
 import * as path from 'path'
 import {test} from '@jest/globals'
 import os from 'os'
-import {buildManylinuxAndTag, ensureDocker, buildOneFlow} from '../src/docker'
-import {TOOLS, mirrorToDownloads, ensureCUDA102} from '../src/ensure'
-import * as env from '../src/env'
+import {
+  buildManylinuxAndTag,
+  ensureDocker,
+  buildOneFlow
+} from '../src/utils/docker'
+import {TOOLS, mirrorToDownloads, ensureCUDA102} from '../src/utils/ensure'
+import * as env from '../src/utils/env'
+import * as ssh from '../src/utils/ssh'
 import {ok} from 'assert'
+import * as core from '@actions/core'
+import * as cpExec from '../src/utils/cpExec'
+import {
+  checkComplete,
+  getOneFlowBuildCacheKeys,
+  removeComplete
+} from '../src/utils/cache'
 
 process.env['RUNNER_TOOL_CACHE'] = '~/runner_tool_cache'.replace(
   '~',
@@ -24,7 +36,7 @@ test('test runs', () => {
   process.env['INPUT_SELF-HOSTED'] = 'true'
   env.setInput('action', 'do-nothing')
   const np = process.execPath
-  const ip = path.join(__dirname, '..', 'lib', 'main.js')
+  const ip = path.join(__dirname, '..', 'lib', 'buildOneFlow.js')
   const options: cp.ExecFileSyncOptions = {
     env: process.env
   }
@@ -148,6 +160,89 @@ test(
       return
     }
     await ensureCUDA102()
+  },
+  MINUTES15
+)
+
+test(
+  'ssh tank',
+  async () => {
+    if (isOnPremise() == false) {
+      return
+    }
+    const TEST_SSH = process.env['TEST_SSH'] || ''
+    if (!TEST_SSH) {
+      return
+    }
+    // TODO: generate credential to run the test on gh hosted
+    env.setInput('wheelhouse-dir', '~/manylinux-wheelhouse')
+    // TODO: create file if test dir is empty
+    env.setInput('ssh-tank-host', '127.0.0.1')
+    env.setInput('ssh-tank-path', '~/tank'.replace('~', os.homedir))
+    // TODO: start a python simple http server for testing and shut it down later
+    env.setInput('ssh-tank-base-url', 'http://127.0.0.1:8000')
+    env.setMultilineInput('cache-key-prefixes', [
+      'pr/test-commit/test-build-type',
+      'degist/test-hash/test-build-type'
+    ])
+    await ssh.uploadWheelhouse()
+  },
+  MINUTES15
+)
+
+test(
+  'cache complete',
+  async () => {
+    const np = process.execPath
+    const sourceDir = process.env.ONEFLOW_SRC || '~/oneflow'
+    env.setInput('oneflow-src', sourceDir)
+    const ENTRY = 'test'
+    env.setInput('entry', ENTRY)
+    const keys = await getOneFlowBuildCacheKeys(ENTRY)
+    env.setBooleanInput('mark-as-completed', true)
+    env.setBooleanInput('check-not-completed', true)
+    env.setMultilineInput('runner-labels', [
+      'self-hosted',
+      'linux',
+      'provision'
+    ])
+    await removeComplete(keys)
+    ok(!(await checkComplete(keys)))
+    await cpExec.cpExec(
+      np,
+      path.join(__dirname, '..', 'lib', 'cacheComplete.js')
+    )
+    env.setTestState('keys', keys)
+    await cpExec.cpExec(
+      np,
+      path.join(__dirname, '..', 'lib', 'postCacheComplete.js')
+    )
+    ok(await checkComplete(keys))
+    env.setBooleanInput('check-not-completed', false)
+    await cpExec.cpExec(
+      np,
+      path.join(__dirname, '..', 'lib', 'cacheComplete.js')
+    )
+  },
+  MINUTES15
+)
+
+test(
+  'cache complete matrix',
+  async () => {
+    const np = process.execPath
+    const sourceDir = process.env.ONEFLOW_SRC || '~/oneflow'
+    env.setInput('oneflow-src', sourceDir)
+    env.setMultilineInput('entries', ['entryA', 'entryB', 'entryC'])
+    env.setMultilineInput('runner-labels', [
+      'self-hosted',
+      'linux',
+      'provision'
+    ])
+    await cpExec.cpExec(
+      np,
+      path.join(__dirname, '..', 'lib', 'cacheCompleteMatrix.js')
+    )
   },
   MINUTES15
 )
