@@ -73,17 +73,15 @@ async function buildWithConda(): Promise<void> {
       '-B',
       buildDir
     ])
-    if (isSelfHosted()) {
-      await condaRun(condaEnvName, 'cmake', [
-        '--build',
-        buildDir,
-        '--parallel',
-        (await exec.getExecOutput('nproc')).stdout.trim()
-      ])
-      await condaRun(condaEnvName, 'python3', ['setup.py', 'bdist_wheel'], {
-        cwd: path.join(oneflowSrc, 'python')
-      })
-    }
+    await condaRun(condaEnvName, 'cmake', [
+      '--build',
+      buildDir,
+      '--parallel',
+      (await exec.getExecOutput('nproc')).stdout.trim()
+    ])
+    await condaRun(condaEnvName, 'python3', ['setup.py', 'bdist_wheel'], {
+      cwd: path.join(oneflowSrc, 'python')
+    })
   }
 }
 
