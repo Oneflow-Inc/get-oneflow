@@ -78823,11 +78823,20 @@ function getOneFlowBuildCacheKeys(entry) {
         const oneflowSrc = getPathInput('oneflow-src', { required: true });
         const patterns = [
             'oneflow/core/**/*.h',
+            'oneflow/core/**/*.hpp',
             'oneflow/core/**/*.cpp',
+            'oneflow/core/**/*.cuh',
+            'oneflow/core/**/*.cu',
+            'oneflow/core/**/*.proto',
             'oneflow/core/**/*.yaml',
-            'cmake/**/*',
+            'tools/cfg/**/*.py',
+            'tools/cfg/**/*.cpp',
+            'tools/cfg/**/*.h',
+            'tools/functional/**/*.py',
+            'cmake/**/*.cmake',
             'python/oneflow/**/*.py'
         ].map(x => external_path_default().join(oneflowSrc, x));
+        // exclude python test dir or move it from oneflow dir
         const ghWorkspace = process.env.GITHUB_WORKSPACE;
         process.env.GITHUB_WORKSPACE = oneflowSrc;
         for (const pattern of patterns) {
@@ -78835,7 +78844,13 @@ function getOneFlowBuildCacheKeys(entry) {
             const files = yield globber.glob();
             (0,external_assert_.ok)(files.length > 0, pattern);
         }
-        const srcHash = yield glob.hashFiles(patterns.join('\n'));
+        const excludePatterns = [
+            'python/oneflow/test/**',
+            'python/oneflow/include/**',
+            'python/oneflow/core/**',
+            'python/oneflow/version.py'
+        ].map(x => '!'.concat(external_path_default().join(oneflowSrc, x)));
+        const srcHash = yield glob.hashFiles(patterns.concat(excludePatterns).join('\n'));
         process.env.GITHUB_WORKSPACE = ghWorkspace;
         return [`digest/${srcHash}`]
             .concat(process.env.GITHUB_REPOSITORY

@@ -70,14 +70,14 @@ export async function getOneFlowBuildCacheKeys(
     'oneflow/core/**/*.cu',
     'oneflow/core/**/*.proto',
     'oneflow/core/**/*.yaml',
-    'tools/cfg/**/*',
-    'tools/functional**/*',
-    'cmake/**/*',
+    'tools/cfg/**/*.py',
+    'tools/cfg/**/*.cpp',
+    'tools/cfg/**/*.h',
+    'tools/functional/**/*.py',
+    'cmake/**/*.cmake',
     'python/oneflow/**/*.py'
   ].map(x => path.join(oneflowSrc, x))
-  // add proto files
   // exclude python test dir or move it from oneflow dir
-  // exclude core and include dir
   const ghWorkspace = process.env.GITHUB_WORKSPACE
   process.env.GITHUB_WORKSPACE = oneflowSrc
   for (const pattern of patterns) {
@@ -85,7 +85,15 @@ export async function getOneFlowBuildCacheKeys(
     const files = await globber.glob()
     ok(files.length > 0, pattern)
   }
-  const srcHash = await glob.hashFiles(patterns.join('\n'))
+  const excludePatterns = [
+    'python/oneflow/test/**',
+    'python/oneflow/include/**',
+    'python/oneflow/core/**',
+    'python/oneflow/version.py'
+  ].map(x => '!'.concat(path.join(oneflowSrc, x)))
+  const srcHash = await glob.hashFiles(
+    patterns.concat(excludePatterns).join('\n')
+  )
   process.env.GITHUB_WORKSPACE = ghWorkspace
   return [`digest/${srcHash}`]
     .concat(

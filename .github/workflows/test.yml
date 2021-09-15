@@ -225,6 +225,7 @@ jobs:
           manylinux-cache-dir: ~/manylinux-cache-dir/cpu-only
           docker-run-use-system-http-proxy: false
           docker-run-use-lld: true
+          retry-failed-build: true
           python-versions: |
             3.6
             3.7
@@ -244,6 +245,7 @@ jobs:
           manylinux-cache-dir: ~/manylinux-cache-dir/cpu-only
           docker-run-use-system-http-proxy: true
           docker-run-use-lld: true
+          retry-failed-build: true
           python-versions: |
             3.6
             3.7
