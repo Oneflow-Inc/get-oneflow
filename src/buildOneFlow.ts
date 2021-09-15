@@ -64,7 +64,7 @@ async function buildWithConda(): Promise<void> {
     ])
     const buildDir = 'build'
     await io.mkdirP(buildDir)
-    const condaEnvName = 'oneflow-dev-clang10-v2'
+    const condaEnvName = core.getInput('conda-env-name', {required: true})
     await condaRun(condaEnvName, 'cmake', [
       '-S',
       oneflowSrc,
