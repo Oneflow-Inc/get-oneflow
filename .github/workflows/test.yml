@@ -109,6 +109,7 @@ jobs:
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           oneflow-build-env: conda
           conda-env-file: conda-env/dev/clang10/environment-v2.yml
+          conda-env-name: oneflow-dev-clang10-v2
       - uses: ./
         name: Test conda on self-hosted
         if: ${{ contains(matrix.os, 'self-hosted') && matrix.oneflow-build-env == 'conda'}}
@@ -120,6 +121,7 @@ jobs:
           conda-installer-url: https://oneflow-static.oss-cn-beijing.aliyuncs.com/downloads/conda-installers/Miniconda3-py39_4.10.3-Linux-x86_64.sh
           conda-prefix: ~/miniconda3-prefixes/py39_4.10.3
           self-hosted: ${{ contains(matrix.os, 'self-hosted') }}
+          conda-env-name: oneflow-dev-clang10-v2
 
   find-build-cache:
     name: 'Find cache'
