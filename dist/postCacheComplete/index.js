@@ -78820,6 +78820,7 @@ function removeComplete(keys) {
 function getOneFlowBuildCacheKeys(entry) {
     return cache_awaiter(this, void 0, void 0, function* () {
         const oneflowSrc = getPathInput('oneflow-src', { required: true });
+        // TODO: alternative function for test jobs
         const patterns = [
             'oneflow/core/**/*.h',
             'oneflow/core/**/*.hpp',
@@ -78835,7 +78836,6 @@ function getOneFlowBuildCacheKeys(entry) {
             'cmake/**/*.cmake',
             'python/oneflow/**/*.py'
         ].map(x => path.join(oneflowSrc, x));
-        // exclude python test dir or move it from oneflow dir
         const ghWorkspace = process.env.GITHUB_WORKSPACE;
         process.env.GITHUB_WORKSPACE = oneflowSrc;
         for (const pattern of patterns) {

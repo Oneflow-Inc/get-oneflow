@@ -116,6 +116,7 @@ async function testOneCUDA(cudaVersion: string): Promise<void> {
   env.setInput('self-hosted', 'true')
   env.setInput('cuda-version', cudaVersion)
   env.setBooleanInput('docker-run-use-lld', true)
+  env.setBooleanInput('clear-wheelhouse-dir', true)
   env.setInput(
     'build-script',
     path.join(sourceDir, 'ci/manylinux/build-gcc7.sh')

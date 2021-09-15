@@ -106432,6 +106432,9 @@ function buildAndMakeWheel(createOptions, docker, buildDir, shouldCleanBuildDir)
         const buildScript = getPathInput('build-script', {
             required: true
         });
+        const clearWheelhouseDir = lib_core.getBooleanInput('clear-wheelhouse-dir', {
+            required: false
+        });
         const container = yield docker.createContainer(createOptions);
         yield container.start();
         if (shouldCleanBuildDir) {
@@ -106453,6 +106456,9 @@ function buildAndMakeWheel(createOptions, docker, buildDir, shouldCleanBuildDir)
             yield buildOnePythonVersion(container, buildScript, pythonExe);
         }
         const whlFiles = yield external_fs_default().promises.readdir(distDir);
+        if (clearWheelhouseDir) {
+            yield runBash(container, `rm -rf ${external_path_default().join(wheelhouseDir, '*')}`);
+        }
         (0,external_assert_.ok)(whlFiles.length);
         yield Promise.all(whlFiles.map((whl) => docker_awaiter(this, void 0, void 0, function* () {
             return runExec(container, ['auditwheel', 'repair', whl, '--wheel-dir', wheelhouseDir], { cwd: distDir });

@@ -254,6 +254,12 @@ async function buildAndMakeWheel(
   const buildScript: string = getPathInput('build-script', {
     required: true
   })
+  const clearWheelhouseDir: Boolean = core.getBooleanInput(
+    'clear-wheelhouse-dir',
+    {
+      required: false
+    }
+  )
   const container = await docker.createContainer(createOptions)
   await container.start()
   if (shouldCleanBuildDir) {
@@ -281,6 +287,9 @@ async function buildAndMakeWheel(
     await buildOnePythonVersion(container, buildScript, pythonExe)
   }
   const whlFiles = await fs.promises.readdir(distDir)
+  if (clearWheelhouseDir) {
+    await runBash(container, `rm -rf ${path.join(wheelhouseDir, '*')}`)
+  }
   ok(whlFiles.length)
   await Promise.all(
     whlFiles.map(async (whl: string) =>

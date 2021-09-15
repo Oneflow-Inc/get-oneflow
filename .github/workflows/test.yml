@@ -202,6 +202,7 @@ jobs:
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           oneflow-build-env: manylinux
           wheelhouse-dir: manylinux-wheelhouse
+          clear-wheelhouse-dir: true
           self-hosted: ${{ contains(matrix.runs-on, 'self-hosted') }}
           cuda-version: none
           manylinux-cache-dir: ~/manylinux-cache-dir/cpu-only
@@ -222,6 +223,7 @@ jobs:
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           oneflow-build-env: manylinux
           wheelhouse-dir: manylinux-wheelhouse
+          clear-wheelhouse-dir: true
           self-hosted: ${{ contains(matrix.runs-on, 'self-hosted') }}
           cuda-version: 11.4
           manylinux-cache-dir: ~/manylinux-cache-dir/cpu-only
@@ -242,6 +244,7 @@ jobs:
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           oneflow-build-env: manylinux
           wheelhouse-dir: manylinux-wheelhouse
+          clear-wheelhouse-dir: true
           self-hosted: ${{ contains(matrix.runs-on, 'self-hosted') }}
           cuda-version: 10.2
           manylinux-cache-dir: ~/manylinux-cache-dir/cpu-only
