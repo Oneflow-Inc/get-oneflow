@@ -319,7 +319,7 @@ jobs:
           oneflow-src: ${{ env.ONEFLOW_SRC }}
 
   test-oneflow-doctor:
-    name: 'Build OneFlow manylinux'
+    name: Test suite
     runs-on: ${{ matrix.runs-on }}
     needs: [find-test-cache]
     strategy:
