@@ -14,6 +14,7 @@ import * as ssh from '../src/utils/ssh'
 import {ok} from 'assert'
 import * as core from '@actions/core'
 import * as cpExec from '../src/utils/cpExec'
+import {setTestMatrix} from '../src/utils/matrix'
 import {
   checkComplete,
   getOneFlowBuildCacheKeys,
@@ -184,7 +185,7 @@ test(
     env.setInput('ssh-tank-base-url', 'http://127.0.0.1:8000')
     env.setMultilineInput('cache-key-prefixes', [
       'pr/test-commit/test-build-type',
-      'degist/test-hash/test-build-type'
+      'Digest/test-hash/test-build-type'
     ])
     await ssh.uploadWheelhouse()
   },
@@ -230,7 +231,7 @@ test(
 )
 
 test(
-  'cache complete matrix',
+  'cache build matrix',
   async () => {
     const np = process.execPath
     const sourceDir = process.env.ONEFLOW_SRC || '~/oneflow'
@@ -245,6 +246,22 @@ test(
       np,
       path.join(__dirname, '..', 'lib', 'genBuildMatrix.js')
     )
+  },
+  MINUTES15
+)
+
+test(
+  'cache test matrix',
+  async () => {
+    const np = process.execPath
+    const sourceDir = process.env.ONEFLOW_SRC || '~/oneflow'
+    env.setInput('oneflow-src', sourceDir)
+    env.setMultilineInput('runner-labels', [
+      'self-hosted',
+      'linux',
+      'provision'
+    ])
+    await setTestMatrix()
   },
   MINUTES15
 )

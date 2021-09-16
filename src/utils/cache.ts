@@ -1,7 +1,6 @@
 import OSS from 'ali-oss'
 import * as core from '@actions/core'
 import path from 'path'
-import * as github from '@actions/github'
 import {getPathInput} from './util'
 import * as glob from '@actions/glob'
 import {ok} from 'assert'
@@ -45,6 +44,10 @@ export async function checkComplete(keys: string[]): Promise<string | null> {
   return null
 }
 
+export async function isComplete(key: string): Promise<Boolean> {
+  return !!(await checkComplete([key]))
+}
+
 export async function removeComplete(keys: string[]): Promise<void> {
   const store = ciCacheBucketStore()
   for await (const key of keys) {
@@ -58,8 +61,12 @@ export async function removeComplete(keys: string[]): Promise<void> {
   }
 }
 
-export async function getOneFlowSrcDegist(
+interface OneFlowSrcDigestOpts {
   includeTests: Boolean
+  includeSingleClient: Boolean
+}
+export async function getOneFlowSrcDigest(
+  opts: OneFlowSrcDigestOpts
 ): Promise<string> {
   const oneflowSrc: string = getPathInput('oneflow-src', {required: true})
   // TODO: alternative function for test jobs
@@ -90,8 +97,13 @@ export async function getOneFlowSrcDegist(
     'python/oneflow/core/**',
     'python/oneflow/version.py'
   ].map(x => '!'.concat(path.join(oneflowSrc, x)))
-  if (!includeTests) {
+  if (!opts.includeTests) {
     excludePatterns = excludePatterns.concat(['python/oneflow/test/**'])
+  }
+  if (!opts.includeSingleClient) {
+    excludePatterns = excludePatterns.concat([
+      'python/oneflow/compatible/single_client/**'
+    ])
   }
   const srcHash = await glob.hashFiles(
     patterns.concat(excludePatterns).join('\n')
@@ -100,18 +112,44 @@ export async function getOneFlowSrcDegist(
   return srcHash
 }
 
-export async function getBuildDegist(): Promise<string> {
-  return await getOneFlowSrcDegist(false)
-}
+const DIGEST_CACHE: {[name: string]: string} = {}
 
-export async function getTestDegist(): Promise<string> {
-  return await getOneFlowSrcDegist(true)
+export async function getDigestByType(
+  digestType: 'test' | 'build' | 'single-client-test'
+): Promise<string> {
+  if (DIGEST_CACHE[digestType]) return DIGEST_CACHE[digestType]
+  switch (digestType) {
+    case 'build':
+      DIGEST_CACHE[digestType] = await getOneFlowSrcDigest({
+        includeSingleClient: false,
+        includeTests: false
+      })
+      break
+    case 'test':
+      DIGEST_CACHE[digestType] = await getOneFlowSrcDigest({
+        includeSingleClient: false,
+        includeTests: true
+      })
+      break
+
+    case 'single-client-test':
+      DIGEST_CACHE[digestType] = await getOneFlowSrcDigest({
+        includeSingleClient: true,
+        includeTests: true
+      })
+      break
+
+    default:
+      break
+  }
+  ok(DIGEST_CACHE[digestType])
+  return DIGEST_CACHE[digestType]
 }
 
 export async function getOneFlowBuildCacheKeys(
   entry: string
 ): Promise<string[]> {
-  return [keyFrom({digest: await getBuildDegist(), entry})]
+  return [keyFrom({digest: await getDigestByType('build'), entry})]
 }
 
 interface KeyOpts {
@@ -137,8 +175,8 @@ interface QueryOpts {
 
 export async function queryCache(opts: QueryOpts): Promise<CacheResult> {
   let keys: string[] = []
-  const buildDigest = await getBuildDegist()
-  const testDigest = await getBuildDegist()
+  const buildDigest = await getDigestByType('build')
+  const testDigest = await getDigestByType('test')
   switch (opts.digestType) {
     case 'build':
       keys = keys.concat([keyFrom({digest: buildDigest, entry: opts.entry})])

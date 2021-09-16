@@ -186,7 +186,7 @@ jobs:
         with:
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           entry: ${{ matrix.entry }}
-          mark-as-completed-digest-type: build
+          digest-type: build
           mark-as-completed: ${{ contains(matrix.runs-on, 'self-hosted') }}
       - name: Fail if cache result not identical to matrix
         if: ${{ fromJSON(steps.save-cache.outputs.cache-hit) != matrix.cache-hit }}
@@ -308,10 +308,6 @@ jobs:
           repository: Oneflow-Inc/oneflow
           ref: refine_for_new_ci
           path: oneflow-src
-      - uses: ./throttle
-        with:
-          runner-labels: |
-            provision
       - uses: ./cache-complete/matrix/test
         name: find cache
         id: find-cache
@@ -364,7 +360,7 @@ jobs:
         with:
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           entry: ${{ matrix.entry }}
-          mark-as-completed-digest-type: test
+          digest-type: test
           mark-as-completed: ${{ contains(matrix.runs-on, 'self-hosted') }}
       - name: Fail if cache result not identical to matrix
         if: ${{ fromJSON(steps.save-cache.outputs.cache-hit) != matrix.cache-hit }}
@@ -379,7 +375,7 @@ jobs:
         if: ${{ !fromJson(matrix.cache-hit) }}
         run: |
           docker exec ${{ env.TEST_CONTAINER_NAME }} python3 -m pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
-          docker exec ${{ env.TEST_CONTAINER_NAME }} python3 -m pip install -f ${{env.PIP_INDEX_URL}}/degist/${{matrix.build-degist}}/${{matrix.build-type}} ${{env.PIP_INDEX_TRUST_ARGS}} oneflow
+          docker exec ${{ env.TEST_CONTAINER_NAME }} python3 -m pip install -f ${{env.PIP_INDEX_URL}}/degist/${{steps.save-cache.outputs.build-degist}}/${{matrix.compute-platform}} ${{env.PIP_INDEX_TRUST_ARGS}} oneflow
        - name: Run OneFlow doctor
         if: ${{ !fromJson(matrix.cache-hit) }}
         run: |

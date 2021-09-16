@@ -13,7 +13,7 @@ async function run(): Promise<void> {
       entry: string[]
       include: unknown[]
     }
-    const buildDigest = await cache.getBuildDegist()
+    const buildDigest = await cache.getDigestByType('build')
     const matrix: Matrix = {entry: entries, include: []}
     for (const entry of entries) {
       const keys = [cache.keyFrom({digest: buildDigest, entry})]

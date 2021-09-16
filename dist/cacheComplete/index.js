@@ -73214,6 +73214,11 @@ function checkComplete(keys) {
         return null;
     });
 }
+function isComplete(key) {
+    return cache_awaiter(this, void 0, void 0, function* () {
+        return !!(yield checkComplete([key]));
+    });
+}
 function removeComplete(keys) {
     var keys_3, keys_3_1;
     var e_3, _a;
@@ -73241,7 +73246,7 @@ function removeComplete(keys) {
         }
     });
 }
-function getOneFlowSrcDegist(includeTests) {
+function getOneFlowSrcDigest(opts) {
     return cache_awaiter(this, void 0, void 0, function* () {
         const oneflowSrc = getPathInput('oneflow-src', { required: true });
         // TODO: alternative function for test jobs
@@ -73272,27 +73277,53 @@ function getOneFlowSrcDegist(includeTests) {
             'python/oneflow/core/**',
             'python/oneflow/version.py'
         ].map(x => '!'.concat(external_path_default().join(oneflowSrc, x)));
-        if (!includeTests) {
+        if (!opts.includeTests) {
             excludePatterns = excludePatterns.concat(['python/oneflow/test/**']);
+        }
+        if (!opts.includeSingleClient) {
+            excludePatterns = excludePatterns.concat([
+                'python/oneflow/compatible/single_client/**'
+            ]);
         }
         const srcHash = yield glob.hashFiles(patterns.concat(excludePatterns).join('\n'));
         process.env.GITHUB_WORKSPACE = ghWorkspace;
         return srcHash;
     });
 }
-function getBuildDegist() {
+const DIGEST_CACHE = {};
+function getDigestByType(digestType) {
     return cache_awaiter(this, void 0, void 0, function* () {
-        return yield getOneFlowSrcDegist(false);
-    });
-}
-function getTestDegist() {
-    return cache_awaiter(this, void 0, void 0, function* () {
-        return yield getOneFlowSrcDegist(true);
+        if (DIGEST_CACHE[digestType])
+            return DIGEST_CACHE[digestType];
+        switch (digestType) {
+            case 'build':
+                DIGEST_CACHE[digestType] = yield getOneFlowSrcDigest({
+                    includeSingleClient: false,
+                    includeTests: false
+                });
+                break;
+            case 'test':
+                DIGEST_CACHE[digestType] = yield getOneFlowSrcDigest({
+                    includeSingleClient: false,
+                    includeTests: true
+                });
+                break;
+            case 'single-client-test':
+                DIGEST_CACHE[digestType] = yield getOneFlowSrcDigest({
+                    includeSingleClient: true,
+                    includeTests: true
+                });
+                break;
+            default:
+                break;
+        }
+        (0,external_assert_.ok)(DIGEST_CACHE[digestType]);
+        return DIGEST_CACHE[digestType];
     });
 }
 function getOneFlowBuildCacheKeys(entry) {
     return cache_awaiter(this, void 0, void 0, function* () {
-        return [keyFrom({ digest: yield getBuildDegist(), entry })];
+        return [keyFrom({ digest: yield getDigestByType('build'), entry })];
     });
 }
 function keyFrom(keyOptions) {
@@ -73301,8 +73332,8 @@ function keyFrom(keyOptions) {
 function queryCache(opts) {
     return cache_awaiter(this, void 0, void 0, function* () {
         let keys = [];
-        const buildDigest = yield getBuildDegist();
-        const testDigest = yield getBuildDegist();
+        const buildDigest = yield getDigestByType('build');
+        const testDigest = yield getDigestByType('test');
         switch (opts.digestType) {
             case 'build':
                 keys = keys.concat([keyFrom({ digest: buildDigest, entry: opts.entry })]);
