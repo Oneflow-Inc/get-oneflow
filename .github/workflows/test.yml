@@ -328,9 +328,9 @@ jobs:
       matrix: ${{ fromJson(needs.find-build-cache.outputs.matrix) }}
     env:
       ONEFLOW_SRC: oneflow-src
-      TEST_CONTAINER_NAME: pr-${{ github.event.pull_request.number }}-run-id-${{ github.run_id }}-${test_suite}-test
-      PIP_INDEX_URL: http://192.168.1.22:8000
-      PIP_INDEX_TRUST_ARGS: --trusted-host 192.168.1.22
+      TEST_CONTAINER_NAME: 'pr-${{ github.event.pull_request.number }}-run-id-${{ github.run_id }}-${test_suite}-test'
+      PIP_INDEX_URL: 'http://192.168.1.22:8000'
+      PIP_INDEX_TRUST_ARGS: '--trusted-host 192.168.1.22'
     steps:
       - name: Fix permissions
         if: ${{ contains(matrix.runs-on, 'self-hosted') }}
