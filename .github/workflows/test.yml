@@ -292,3 +292,85 @@ jobs:
         if: ${{ !fromJSON(steps.find-cache.outputs.cache-hit) }}
         run: |
           exit 1
+
+  find-test-cache:
+    name: 'Find test cache'
+    runs-on: [ubuntu-latest]
+    env:
+      ONEFLOW_SRC: oneflow-src
+    outputs:
+      matrix: ${{ steps.find-cache.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Checkout Oneflow-Inc/oneflow
+        uses: actions/checkout@v2
+        with:
+          repository: Oneflow-Inc/oneflow
+          ref: refine_for_new_ci
+          path: oneflow-src
+      - uses: ./throttle
+        with:
+          runner-labels: |
+            provision
+      - uses: ./cache-complete/matrix
+        name: find cache
+        id: find-cache
+        with:
+          runner-labels: |
+            self-hosted
+            linux
+            provision
+          oneflow-src: ${{ env.ONEFLOW_SRC }}
+          entries: |
+            cuda-op-single-client
+            cpu-op-single-client
+            cpu-only
+            cu102-xla
+
+  test-oneflow-doctor:
+    name: 'Build OneFlow manylinux'
+    runs-on: ${{ matrix.runs-on }}
+    needs: [find-test-cache]
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix: ${{ fromJson(needs.find-build-cache.outputs.matrix) }}
+    env:
+      ONEFLOW_SRC: oneflow-src
+      TEST_CONTAINER_NAME: oneflow-ci-test
+    steps:
+      - name: Fix permissions
+        if: ${{ contains(matrix.runs-on, 'self-hosted') }}
+        run: |
+          set -x
+          docker run --rm -v $PWD:/p -w /p busybox chown -R $(id -u):$(id -g) .
+      - uses: actions/checkout@v2
+      - name: Checkout Oneflow-Inc/oneflow
+        uses: actions/checkout@v2
+        with:
+          repository: Oneflow-Inc/oneflow
+          ref: refine_for_new_ci
+          path: oneflow-src
+      - name: Remove container
+        timeout-minutes: 45
+        if: ${{ contains(matrix.runs-on, 'self-hosted') }}
+        run: |
+          docker rm -f ${{ env.TEST_CONTAINER_NAME }} || true
+      - name: Start container
+        if: ${{ !fromJson(matrix.cache-hit) }}
+        run: |
+          docker run ${{ env.TEST_CONTAINER_NAME }} sleep 3600
+      - name: Install OneFlow
+        if: ${{ !fromJson(matrix.cache-hit) }}
+        run: |
+          docker exec ${{ env.TEST_CONTAINER_NAME }} python3 -m pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+          docker exec ${{ env.TEST_CONTAINER_NAME }} python3 -m pip install -f ${{ matrix.pip-index-url }} oneflow
+       - name: Run OneFlow doctor
+        if: ${{ !fromJson(matrix.cache-hit) }}
+        run: |
+          docker exec ${{ env.TEST_CONTAINER_NAME }} python3 -m oneflow --doctor
+      - name: Remove container
+        timeout-minutes: 45
+        if: always()
+        run: |
+          docker rm -f ${{ env.TEST_CONTAINER_NAME }} || true
