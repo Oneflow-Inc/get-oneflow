@@ -138,7 +138,7 @@ jobs:
           repository: Oneflow-Inc/oneflow
           ref: refine_for_new_ci
           path: oneflow-src
-      - uses: ./cache-complete/matrix
+      - uses: ./cache-complete/matrix/build
         name: find cache
         id: find-cache
         with:
@@ -186,8 +186,8 @@ jobs:
         with:
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           entry: ${{ matrix.entry }}
+          mark-as-completed-digest-type: build
           mark-as-completed: ${{ contains(matrix.runs-on, 'self-hosted') }}
-          check-not-completed: ${{ contains(matrix.runs-on, 'self-hosted') }}
       - name: Fail if cache result not identical to matrix
         if: ${{ fromJSON(steps.save-cache.outputs.cache-hit) != matrix.cache-hit }}
         run: |
@@ -312,7 +312,7 @@ jobs:
         with:
           runner-labels: |
             provision
-      - uses: ./cache-complete/matrix
+      - uses: ./cache-complete/matrix/test
         name: find cache
         id: find-cache
         with:
@@ -364,9 +364,8 @@ jobs:
         with:
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           entry: ${{ matrix.entry }}
+          mark-as-completed-digest-type: test
           mark-as-completed: ${{ contains(matrix.runs-on, 'self-hosted') }}
-          check-not-completed: ${{ contains(matrix.runs-on, 'self-hosted') }}
-          is-test: true
       - name: Fail if cache result not identical to matrix
         if: ${{ fromJSON(steps.save-cache.outputs.cache-hit) != matrix.cache-hit }}
         run: |

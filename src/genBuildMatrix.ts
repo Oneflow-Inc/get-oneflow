@@ -13,23 +13,23 @@ async function run(): Promise<void> {
       entry: string[]
       include: unknown[]
     }
+    const buildDigest = await cache.getBuildDegist()
     const matrix: Matrix = {entry: entries, include: []}
     for (const entry of entries) {
-      const found = await cache.checkComplete(
-        await cache.getOneFlowBuildCacheKeys(entry)
-      )
+      const keys = [cache.keyFrom({digest: buildDigest, entry})]
+      const foundKey = await cache.checkComplete(keys)
       matrix.include = matrix.include.concat([
         {
           entry,
-          'cache-hit': !!found,
-          'runs-on': found ? 'ubuntu-latest' : runnerLabels
+          'cache-hit': !!foundKey,
+          'runs-on': foundKey ? 'ubuntu-latest' : runnerLabels
         }
       ])
     }
     core.setOutput('matrix', matrix)
     core.info(JSON.stringify(matrix, null, 2))
   } catch (error) {
-    core.setFailed(error as Error)
+    core.setFailed(error.message)
   }
 }
 

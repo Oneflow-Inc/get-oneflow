@@ -59,7 +59,6 @@ export async function removeComplete(keys: string[]): Promise<void> {
 }
 
 export async function getOneFlowSrcDegist(
-  entry: string,
   includeTests: Boolean
 ): Promise<string> {
   const oneflowSrc: string = getPathInput('oneflow-src', {required: true})
@@ -99,4 +98,63 @@ export async function getOneFlowSrcDegist(
   )
   process.env.GITHUB_WORKSPACE = ghWorkspace
   return srcHash
+}
+
+export async function getBuildDegist(): Promise<string> {
+  return await getOneFlowSrcDegist(false)
+}
+
+export async function getTestDegist(): Promise<string> {
+  return await getOneFlowSrcDegist(true)
+}
+
+export async function getOneFlowBuildCacheKeys(
+  entry: string
+): Promise<string[]> {
+  return [keyFrom({digest: await getBuildDegist(), entry})]
+}
+
+interface KeyOpts {
+  digest: string
+  entry: string
+}
+
+export function keyFrom(keyOptions: KeyOpts): string {
+  return [keyOptions.digest, keyOptions.entry].join('/')
+}
+
+interface CacheResult {
+  buildDigest: string
+  testDigest: string
+  cacheHit: Boolean
+  keys: string[]
+}
+
+interface QueryOpts {
+  entry: string
+  digestType: string
+}
+
+export async function queryCache(opts: QueryOpts): Promise<CacheResult> {
+  let keys: string[] = []
+  const buildDigest = await getBuildDegist()
+  const testDigest = await getBuildDegist()
+  switch (opts.digestType) {
+    case 'build':
+      keys = keys.concat([keyFrom({digest: buildDigest, entry: opts.entry})])
+      break
+    case 'test':
+      keys = keys.concat([keyFrom({digest: testDigest, entry: opts.entry})])
+      break
+    default:
+      throw new Error(`digestType: ${opts.digestType} not supported`)
+  }
+  ok(keys.length > 0)
+  const found = await checkComplete(keys)
+  return {
+    keys,
+    cacheHit: !!found,
+    buildDigest,
+    testDigest
+  }
 }

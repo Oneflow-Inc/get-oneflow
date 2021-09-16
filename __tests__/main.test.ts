@@ -199,6 +199,7 @@ test(
     env.setInput('oneflow-src', sourceDir)
     const ENTRY = 'test'
     env.setInput('entry', ENTRY)
+    env.setInput('digest-type', 'build')
     const keys = await getOneFlowBuildCacheKeys(ENTRY)
     env.setBooleanInput('mark-as-completed', true)
     env.setBooleanInput('check-not-completed', true)
@@ -242,7 +243,7 @@ test(
     ])
     await cpExec.cpExec(
       np,
-      path.join(__dirname, '..', 'lib', 'cacheCompleteMatrix.js')
+      path.join(__dirname, '..', 'lib', 'genBuildMatrix.js')
     )
   },
   MINUTES15

@@ -31,7 +31,7 @@ export async function uploadWheelhouse(): Promise<void> {
   failed.map(core.setFailed)
   successful.map(core.info)
   if (!isSuccessful) {
-    throw Error(`failed to upload to: ${sshTankPath}`)
+    throw new Error(`failed to upload to: ${sshTankPath}`)
     // TODO: remove the directory
   }
   ssh.dispose()
