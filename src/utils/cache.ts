@@ -58,8 +58,9 @@ export async function removeComplete(keys: string[]): Promise<void> {
   }
 }
 
-export async function getOneFlowBuildCacheKeys(
-  entry: string
+export async function getOneFlowSrcDegist(
+  entry: string,
+  includeTests: Boolean
 ): Promise<string[]> {
   const oneflowSrc: string = getPathInput('oneflow-src', {required: true})
   // TODO: alternative function for test jobs
@@ -85,12 +86,14 @@ export async function getOneFlowBuildCacheKeys(
     const files = await globber.glob()
     ok(files.length > 0, pattern)
   }
-  const excludePatterns = [
-    'python/oneflow/test/**',
+  let excludePatterns = [
     'python/oneflow/include/**',
     'python/oneflow/core/**',
     'python/oneflow/version.py'
   ].map(x => '!'.concat(path.join(oneflowSrc, x)))
+  if (!includeTests) {
+    excludePatterns = excludePatterns.concat(['python/oneflow/test/**'])
+  }
   const srcHash = await glob.hashFiles(
     patterns.concat(excludePatterns).join('\n')
   )
