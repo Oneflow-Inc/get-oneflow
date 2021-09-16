@@ -61,7 +61,7 @@ export async function removeComplete(keys: string[]): Promise<void> {
 export async function getOneFlowSrcDegist(
   entry: string,
   includeTests: Boolean
-): Promise<string[]> {
+): Promise<string> {
   const oneflowSrc: string = getPathInput('oneflow-src', {required: true})
   // TODO: alternative function for test jobs
   const patterns = [
@@ -98,13 +98,5 @@ export async function getOneFlowSrcDegist(
     patterns.concat(excludePatterns).join('\n')
   )
   process.env.GITHUB_WORKSPACE = ghWorkspace
-  return [`digest/${srcHash}`]
-    .concat(
-      process.env.GITHUB_REPOSITORY
-        ? [
-            `${github.context.repo.owner}/${github.context.repo.repo}/${github.context.eventName}/${github.context.issue.number}/${github.context.sha}`
-          ]
-        : []
-    )
-    .map(x => (entry ? path.join(x, entry) : x))
+  return srcHash
 }
