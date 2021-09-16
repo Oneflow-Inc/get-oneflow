@@ -338,6 +338,8 @@ jobs:
     env:
       ONEFLOW_SRC: oneflow-src
       TEST_CONTAINER_NAME: pr-${{ github.event.pull_request.number }}-run-id-${{ github.run_id }}-${test_suite}-test
+      PIP_INDEX_HOST: http://192.168.1.13:8000
+      PIP_INDEX_TRUST_ARGS: --trusted-host 192.168.1.13
     steps:
       - name: Fix permissions
         if: ${{ contains(matrix.runs-on, 'self-hosted') }}
@@ -379,7 +381,7 @@ jobs:
         if: ${{ !fromJson(matrix.cache-hit) }}
         run: |
           docker exec ${{ env.TEST_CONTAINER_NAME }} python3 -m pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
-          docker exec ${{ env.TEST_CONTAINER_NAME }} python3 -m pip install -f ${{ matrix.pip-index-url }} oneflow
+          docker exec ${{ env.TEST_CONTAINER_NAME }} python3 -m pip install -f ${{env.PIP_INDEX_HOST}}/${{matrix.build-degist}}/${{matrix.build-type}} oneflow ${{env.PIP_INDEX_TRUST_ARGS}}
        - name: Run OneFlow doctor
         if: ${{ !fromJson(matrix.cache-hit) }}
         run: |
