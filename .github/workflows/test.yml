@@ -367,7 +367,6 @@ jobs:
           mark-as-completed: ${{ contains(matrix.runs-on, 'self-hosted') }}
           check-not-completed: ${{ contains(matrix.runs-on, 'self-hosted') }}
           is-test: true
-          is-single-client: ${{ matrix.is-single-client }}
       - name: Fail if cache result not identical to matrix
         if: ${{ fromJSON(steps.save-cache.outputs.cache-hit) != matrix.cache-hit }}
         run: |
