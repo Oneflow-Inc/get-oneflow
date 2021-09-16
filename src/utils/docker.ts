@@ -46,7 +46,7 @@ export async function ensureDocker(): Promise<void> {
       'https://oneflow-static.oss-cn-beijing.aliyuncs.com/img/quay.iopypamanylinux_2_24_x86_64.tar.gz'
     )
   } catch (error) {
-    core.setFailed(error.message)
+    core.setFailed(error as Error)
   }
 }
 
@@ -390,7 +390,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
       await killContainer(docker, containerName)
       await buildAndMakeWheel(createOptions, docker, buildDir, true)
     } else {
-      core.setFailed(error.message)
+      core.setFailed(error as Error)
     }
   }
 }

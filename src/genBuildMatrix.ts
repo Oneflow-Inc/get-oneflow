@@ -29,7 +29,7 @@ async function run(): Promise<void> {
     core.setOutput('matrix', matrix)
     core.info(JSON.stringify(matrix, null, 2))
   } catch (error) {
-    core.setFailed(error.message)
+    core.setFailed(error as Error)
   }
 }
 
