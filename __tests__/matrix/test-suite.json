@@ -1,7 +1,6 @@
 [
     {
         "entry": "single-client-cuda-op",
-        "is-single-client": true,
         "runs-on": [
             "self-hosted",
             "linux",
@@ -10,7 +9,6 @@
     },
     {
         "entry": "single-client-cuda-xla-op",
-        "is-single-client": true,
         "runs-on": [
             "self-hosted",
             "linux",
@@ -19,6 +17,5 @@
     },
     {
         "entry": "cuda",
-        "is-single-client": true
     }
 ]
