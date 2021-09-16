@@ -15,7 +15,7 @@
         "package-cacheComplete": "ncc build -o dist/cacheComplete src/cacheComplete.ts",
         "package-postCacheComplete": "ncc build -o dist/postCacheComplete src/postCacheComplete.ts",
         "package-cacheCompleteMatrix": "ncc build -o dist/cacheCompleteMatrix src/cacheCompleteMatrix.ts",
-        "package": "concurrently \"npm:package-*\"",
+        "package": "concurrently 'npm:package-*'",
         "test": "jest",
         "all": "npm run build && npm run format && npm run lint && npm run package && npm test",
         "fast": "npm run build && npm run package && npm test",
