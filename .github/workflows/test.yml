@@ -149,8 +149,8 @@ jobs:
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           entries: |
             cu114
-            cpu-only
-            cu102-xla
+            cpu
+            cu102_xla
 
   test-build-manylinux:
     name: 'Build OneFlow manylinux'
@@ -195,9 +195,9 @@ jobs:
           exit 1
       - uses: ./
         name: Build manylinux cpu only
-        if: ${{ matrix.entry =='cpu-only' && !matrix.cache-hit }}
+        if: ${{ matrix.entry =='cpu' && !matrix.cache-hit }}
         with:
-          cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/ci/cpu-only.cmake
+          cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/ci/cpu.cmake
           build-script: ${{ env.ONEFLOW_SRC }}/ci/manylinux/build.sh
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           oneflow-build-env: manylinux
@@ -205,7 +205,7 @@ jobs:
           clear-wheelhouse-dir: true
           self-hosted: ${{ contains(matrix.runs-on, 'self-hosted') }}
           cuda-version: none
-          manylinux-cache-dir: ~/manylinux-cache-dir/cpu-only
+          manylinux-cache-dir: ~/manylinux-cache-dir/cpu
           docker-run-use-system-http-proxy: false
           docker-run-use-lld: true
           retry-failed-build: true
@@ -226,7 +226,7 @@ jobs:
           clear-wheelhouse-dir: true
           self-hosted: ${{ contains(matrix.runs-on, 'self-hosted') }}
           cuda-version: 11.4
-          manylinux-cache-dir: ~/manylinux-cache-dir/cpu-only
+          manylinux-cache-dir: ~/manylinux-cache-dir/cpu
           docker-run-use-system-http-proxy: false
           docker-run-use-lld: true
           retry-failed-build: true
@@ -236,8 +236,8 @@ jobs:
             3.8
             3.9
       - uses: ./
-        name: Build manylinux cu102-xla
-        if: ${{ matrix.entry =='cu102-xla' && !matrix.cache-hit }}
+        name: Build manylinux cu102_xla
+        if: ${{ matrix.entry =='cu102_xla' && !matrix.cache-hit }}
         with:
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/ci/cuda-xla.cmake
           build-script: ${{ env.ONEFLOW_SRC }}/ci/manylinux/build-gcc7.sh
@@ -247,7 +247,7 @@ jobs:
           clear-wheelhouse-dir: true
           self-hosted: ${{ contains(matrix.runs-on, 'self-hosted') }}
           cuda-version: 10.2
-          manylinux-cache-dir: ~/manylinux-cache-dir/cpu-only
+          manylinux-cache-dir: ~/manylinux-cache-dir/cpu
           docker-run-use-system-http-proxy: true
           docker-run-use-lld: true
           retry-failed-build: true
@@ -265,7 +265,7 @@ jobs:
       fail-fast: false
       max-parallel: 5
       matrix:
-        entry: ['cu102-xla', 'cu114', 'cpu-only']
+        entry: ['cu102_xla', 'cu114', 'cpu']
     env:
       ONEFLOW_SRC: oneflow-src
     steps:
@@ -324,8 +324,8 @@ jobs:
           entries: |
             cuda-op-single-client
             cpu-op-single-client
-            cpu-only
-            cu102-xla
+            cpu
+            cu102_xla
 
   test-oneflow-doctor:
     name: 'Build OneFlow manylinux'
