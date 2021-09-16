@@ -15,9 +15,8 @@ inputs:
     description: 'if true, will mark keys as completed when this job is success'
     default: false
   digest-type:
-    required: false
+    required: true
     description: 'build|test'
-    default: false
 outputs:
   runs-on:
     description: 'if cache found, will generate a [ubuntu-latest], in JSON'
