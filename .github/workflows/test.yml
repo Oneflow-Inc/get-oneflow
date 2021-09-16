@@ -325,7 +325,7 @@ jobs:
     strategy:
       fail-fast: false
       max-parallel: 2
-      matrix: ${{ fromJson(needs.find-build-cache.outputs.matrix) }}
+      matrix: ${{ fromJson(needs.find-test-cache.outputs.matrix) }}
     env:
       ONEFLOW_SRC: oneflow-src
       TEST_CONTAINER_NAME: 'pr-${{ github.event.pull_request.number }}-run-id-${{ github.run_id }}-${{ matrix.entry }}-test'
