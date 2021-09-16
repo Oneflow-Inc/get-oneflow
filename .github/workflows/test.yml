@@ -39,7 +39,7 @@ jobs:
 
   mirror-tools: # make sure the action works on a clean machine without building
     name: 'Mirror tools to OSS'
-    runs-on: [ubuntu-latest]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: ./mirror
@@ -125,7 +125,7 @@ jobs:
 
   find-build-cache:
     name: 'Find cache'
-    runs-on: [ubuntu-latest]
+    runs-on: ubuntu-latest
     env:
       ONEFLOW_SRC: oneflow-src
     outputs:
@@ -259,7 +259,7 @@ jobs:
 
   check-build-cache:
     name: 'Check manylinux build cache'
-    runs-on: [ubuntu-latest]
+    runs-on: ubuntu-latest
     needs: [test-build-manylinux]
     strategy:
       fail-fast: false
@@ -295,7 +295,7 @@ jobs:
 
   find-test-cache:
     name: 'Find test cache'
-    runs-on: [ubuntu-latest]
+    runs-on: ubuntu-latest
     env:
       ONEFLOW_SRC: oneflow-src
     outputs:
@@ -373,7 +373,7 @@ jobs:
           docker exec ${{ env.TEST_CONTAINER_NAME }} python3 -m pip install oneflow \
             -f ${{ env.PIP_INDEX_URL }}/degist/${{ steps.save-cache.outputs.build-degist }}/${{ matrix.compute-platform }} \
             ${{ env.PIP_INDEX_TRUST_ARGS }}
-       - name: Run OneFlow doctor
+      - name: Run OneFlow doctor
         if: ${{ !fromJson(matrix.cache-hit) }}
         run: |
           docker exec ${{ env.TEST_CONTAINER_NAME }} python3 -m oneflow --doctor
