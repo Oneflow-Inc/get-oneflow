@@ -317,11 +317,6 @@ jobs:
             linux
             provision
           oneflow-src: ${{ env.ONEFLOW_SRC }}
-          entries: |
-            cuda-op-single-client
-            cpu-op-single-client
-            cpu
-            cu102_xla
 
   test-oneflow-doctor:
     name: 'Build OneFlow manylinux'
