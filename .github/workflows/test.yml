@@ -372,7 +372,7 @@ jobs:
           docker exec ${{ env.TEST_CONTAINER_NAME }} python3 -m pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
           docker exec ${{ env.TEST_CONTAINER_NAME }} python3 -m pip install oneflow \
             -f ${{ env.PIP_INDEX_URL }}/degist/${{ steps.save-cache.outputs.build-degist }}/${{ matrix.compute-platform }} \
-            ${{env.PIP_INDEX_TRUST_ARGS}}
+            ${{ env.PIP_INDEX_TRUST_ARGS }}
        - name: Run OneFlow doctor
         if: ${{ !fromJson(matrix.cache-hit) }}
         run: |
