@@ -358,10 +358,6 @@ jobs:
         if: ${{ contains(matrix.runs-on, 'self-hosted') }}
         run: |
           docker rm -f ${{ env.TEST_CONTAINER_NAME }} || true
-      - name: Start container
-        if: ${{ !fromJson(matrix.cache-hit) }}
-        run: |
-          docker run ${{ env.TEST_CONTAINER_NAME }} sleep 3600
       - uses: ./cache-complete
         name: Save cache if successful
         id: save-cache
@@ -377,6 +373,10 @@ jobs:
         run: |
           echo "::error file=test.yml,line=204,col=10::steps.save-cache.outputs.cache-hit != matrix.cache-hit"
           exit 1
+      - name: Start container
+        if: ${{ !fromJson(matrix.cache-hit) }}
+        run: |
+          docker run ${{ env.TEST_CONTAINER_NAME }} sleep 3600
       - name: Install OneFlow
         if: ${{ !fromJson(matrix.cache-hit) }}
         run: |
