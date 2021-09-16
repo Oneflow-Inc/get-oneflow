@@ -10,6 +10,7 @@ type Test =
   | 'dataloader'
   | 'model'
   | 'misc'
+  | 'do-nothing'
 
 interface EntryInclude {
   entry: string
@@ -138,9 +139,24 @@ export async function setTestMatrix(): Promise<void> {
       entry: string[]
       include: EntryInclude[]
     }
-    const entryIncludes = (await getTests()).concat(
+    let entryIncludes = (await getTests()).concat(
       await getSingleClientOpTests()
     )
+    if (entryIncludes.length === 0) {
+      entryIncludes = [
+        {
+          entry: 'do-nothing',
+          device: 'cpu',
+          'is-single-client': false,
+          'compute-platform': 'cpu',
+          'cache-hit': false,
+          'runs-on': 'ubuntu-latest',
+          'is-distributed': false,
+          'test-type': 'do-nothing',
+          'is-xla': false
+        }
+      ]
+    }
     checkUniqueIncludesByEntry(entryIncludes)
     const matrix: Matrix = {
       entry: entryIncludes.map(x => x.entry),

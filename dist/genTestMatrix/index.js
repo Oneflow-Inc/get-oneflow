@@ -73484,7 +73484,22 @@ function checkUniqueIncludesByEntry(entryIncludes) {
 function setTestMatrix() {
     return matrix_awaiter(this, void 0, void 0, function* () {
         try {
-            const entryIncludes = (yield getTests()).concat(yield getSingleClientOpTests());
+            let entryIncludes = (yield getTests()).concat(yield getSingleClientOpTests());
+            if (entryIncludes.length === 0) {
+                entryIncludes = [
+                    {
+                        entry: 'do-nothing',
+                        device: 'cpu',
+                        'is-single-client': false,
+                        'compute-platform': 'cpu',
+                        'cache-hit': false,
+                        'runs-on': 'ubuntu-latest',
+                        'is-distributed': false,
+                        'test-type': 'do-nothing',
+                        'is-xla': false
+                    }
+                ];
+            }
             checkUniqueIncludesByEntry(entryIncludes);
             const matrix = {
                 entry: entryIncludes.map(x => x.entry),
