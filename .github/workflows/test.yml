@@ -360,6 +360,21 @@ jobs:
         if: ${{ !fromJson(matrix.cache-hit) }}
         run: |
           docker run ${{ env.TEST_CONTAINER_NAME }} sleep 3600
+      - uses: ./cache-complete
+        name: Save cache if successful
+        id: save-cache
+        with:
+          oneflow-src: ${{ env.ONEFLOW_SRC }}
+          entry: ${{ matrix.entry }}
+          mark-as-completed: ${{ contains(matrix.runs-on, 'self-hosted') }}
+          check-not-completed: ${{ contains(matrix.runs-on, 'self-hosted') }}
+          is-test: true
+          is-single-client: ${{ matrix.is-single-client }}
+      - name: Fail if cache result not identical to matrix
+        if: ${{ fromJSON(steps.save-cache.outputs.cache-hit) != matrix.cache-hit }}
+        run: |
+          echo "::error file=test.yml,line=204,col=10::steps.save-cache.outputs.cache-hit != matrix.cache-hit"
+          exit 1
       - name: Install OneFlow
         if: ${{ !fromJson(matrix.cache-hit) }}
         run: |
@@ -371,6 +386,6 @@ jobs:
           docker exec ${{ env.TEST_CONTAINER_NAME }} python3 -m oneflow --doctor
       - name: Remove container
         timeout-minutes: 45
-        if: always()
+        if: ${{ always() && contains(matrix.runs-on, 'self-hosted') }}
         run: |
           docker rm -f ${{ env.TEST_CONTAINER_NAME }} || true
