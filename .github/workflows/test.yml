@@ -162,6 +162,8 @@ jobs:
       matrix: ${{ fromJson(needs.find-build-cache.outputs.matrix) }}
     env:
       ONEFLOW_SRC: oneflow-src
+      MANYLINUX_CACHE_DIR: ~/manylinux-cache-dir/${{ matrix.entry }}
+      WHEELHOUSE_DIR: manylinux-wheelhouse
     steps:
       - name: Fix permissions
         if: ${{ contains(matrix.runs-on, 'self-hosted') }}
@@ -201,11 +203,11 @@ jobs:
           build-script: ${{ env.ONEFLOW_SRC }}/ci/manylinux/build.sh
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           oneflow-build-env: manylinux
-          wheelhouse-dir: manylinux-wheelhouse
+          wheelhouse-dir: ${{ env.WHEELHOUSE_DIR }}
           clear-wheelhouse-dir: true
           self-hosted: ${{ contains(matrix.runs-on, 'self-hosted') }}
           cuda-version: none
-          manylinux-cache-dir: ~/manylinux-cache-dir/${{ matrix.entry }}
+          manylinux-cache-dir: ${{ env.MANYLINUX_CACHE_DIR }}
           docker-run-use-system-http-proxy: false
           docker-run-use-lld: true
           retry-failed-build: true
@@ -222,11 +224,11 @@ jobs:
           build-script: ${{ env.ONEFLOW_SRC }}/ci/manylinux/build.sh
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           oneflow-build-env: manylinux
-          wheelhouse-dir: manylinux-wheelhouse
+          wheelhouse-dir: ${{ env.WHEELHOUSE_DIR }}
           clear-wheelhouse-dir: true
           self-hosted: ${{ contains(matrix.runs-on, 'self-hosted') }}
           cuda-version: 11.4
-          manylinux-cache-dir: ~/manylinux-cache-dir/${{ matrix.entry }}
+          manylinux-cache-dir: ${{ env.MANYLINUX_CACHE_DIR }}
           docker-run-use-system-http-proxy: false
           docker-run-use-lld: true
           retry-failed-build: true
@@ -243,11 +245,11 @@ jobs:
           build-script: ${{ env.ONEFLOW_SRC }}/ci/manylinux/build-gcc7.sh
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           oneflow-build-env: manylinux
-          wheelhouse-dir: manylinux-wheelhouse
+          wheelhouse-dir: ${{ env.WHEELHOUSE_DIR }}
           clear-wheelhouse-dir: true
           self-hosted: ${{ contains(matrix.runs-on, 'self-hosted') }}
           cuda-version: 10.2
-          manylinux-cache-dir: ~/manylinux-cache-dir/${{ matrix.entry }}
+          manylinux-cache-dir: ${{ env.MANYLINUX_CACHE_DIR }}
           docker-run-use-system-http-proxy: true
           docker-run-use-lld: true
           retry-failed-build: true
@@ -256,6 +258,26 @@ jobs:
             3.7
             3.8
             3.9
+      - name: Upload whl
+        if: ${{ !fromJson(matrix.cache-hit) }}
+        uses: ./degist/download
+        with:
+          tank: ${{ matrix.compute-platform }}
+          digest: ${{ matrix.digest }}
+          entry: ${{ matrix.compute-platform }}
+          ssh-tank-host: 192.168.1.23
+          src-dir: ${{ env.MANYLINUX_CACHE_DIR }}/build/bin
+          dst-dir: bin
+      - name: uploa
+        if: ${{ !fromJson(matrix.cache-hit) }}
+        uses: ./degist/download
+        with:
+          tank: ${{ matrix.compute-platform }}
+          digest: ${{ matrix.digest }}
+          entry: ${{ matrix.compute-platform }}
+          ssh-tank-host: 192.168.1.23
+          src-dir: ${{ env.WHEELHOUSE_DIR }}
+          dst-dir: whl
 
   check-build-cache:
     name: 'Check manylinux build cache'
@@ -364,12 +386,20 @@ jobs:
         run: |
           echo "::error file=test.yml,line=204,col=10::steps.save-cache.outputs.cache-hit != matrix.cache-hit"
           exit 1
+      - name: Download
+        if: ${{ !fromJson(matrix.cache-hit) }}
+        uses: ./degist/download
+        with:
+          tank: ${{ matrix.compute-platform }}
+          digest: ${{ matrix.digest }}
+          entry: ${{ matrix.compute-platform }}
+          ssh-tank-host: 192.168.1.23
       - name: Start container
         if: ${{ !fromJson(matrix.cache-hit) }}
         run: |
           docker run -d --privileged --network host --shm-size=8g \
             ${TEST_WITH_TF_IMG_TAG} \
-            dataset:/dataset:ro -v /model_zoo:/model_zoo:ro \
+            -v /dataset:/dataset:ro -v /model_zoo:/model_zoo:ro \
             sleep 3600
       - name: Install OneFlow
         if: ${{ !fromJson(matrix.cache-hit) }}
