@@ -260,7 +260,7 @@ jobs:
             3.9
       - name: Upload bin
         if: ${{ !fromJson(matrix.cache-hit) }}
-        uses: ./degist/download
+        uses: ./degist/upload
         with:
           tank: ${{ matrix.compute-platform }}
           digest: ${{ matrix.digest }}
@@ -270,7 +270,7 @@ jobs:
           dst-dir: bin
       - name: Upload whl
         if: ${{ !fromJson(matrix.cache-hit) }}
-        uses: ./degist/download
+        uses: ./degist/upload
         with:
           tank: ${{ matrix.compute-platform }}
           digest: ${{ matrix.digest }}
