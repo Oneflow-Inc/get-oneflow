@@ -262,7 +262,7 @@ jobs:
         if: ${{ !fromJson(matrix.cache-hit) }}
         uses: ./degist/upload
         with:
-          digest: ${{ matrix.digest }}
+          digest: ${{ steps.save-cache.outputs.build-digest }}
           entry: ${{ matrix.compute-platform }}
           ssh-tank-host: 192.168.1.23
           src-dir: ${{ env.MANYLINUX_CACHE_DIR }}/build/bin
@@ -390,7 +390,7 @@ jobs:
         uses: ./degist/download
         id: download-digest
         with:
-          digest: ${{ matrix.digest }}
+          digest: ${{ steps.save-cache.outputs.build-digest }}
           entry: ${{ matrix.compute-platform }}
           ssh-tank-host: 192.168.1.23
       - name: Start container
