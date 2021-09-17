@@ -213,9 +213,6 @@ jobs:
           retry-failed-build: true
           python-versions: |
             3.6
-            3.7
-            3.8
-            3.9
       - uses: ./
         name: Build manylinux cu114
         if: ${{ matrix.entry =='cu114' && !matrix.cache-hit }}
@@ -263,7 +260,7 @@ jobs:
         uses: ./degist/upload
         with:
           digest: ${{ steps.save-cache.outputs.build-digest }}
-          entry: ${{ matrix.compute-platform }}
+          entry: ${{ matrix.entry }}
           ssh-tank-host: 192.168.1.23
           src-dir: ${{ env.MANYLINUX_CACHE_DIR }}/build/bin
           dst-dir: bin
@@ -272,7 +269,7 @@ jobs:
         uses: ./degist/upload
         with:
           digest: ${{ matrix.digest }}
-          entry: ${{ matrix.compute-platform }}
+          entry: ${{ matrix.entry }}
           ssh-tank-host: 192.168.1.23
           src-dir: ${{ env.WHEELHOUSE_DIR }}
           dst-dir: whl
