@@ -258,7 +258,7 @@ jobs:
             3.7
             3.8
             3.9
-      - name: Upload whl
+      - name: Upload bin
         if: ${{ !fromJson(matrix.cache-hit) }}
         uses: ./degist/download
         with:
@@ -268,7 +268,7 @@ jobs:
           ssh-tank-host: 192.168.1.23
           src-dir: ${{ env.MANYLINUX_CACHE_DIR }}/build/bin
           dst-dir: bin
-      - name: uploa
+      - name: Upload whl
         if: ${{ !fromJson(matrix.cache-hit) }}
         uses: ./degist/download
         with:
