@@ -147,9 +147,6 @@ export async function mirrorToDownloads(url: string): Promise<void> {
   } catch (error) {
     core.info(`[absent-url] ${url}`)
     core.info(`[absent-key] ${objectKey}`)
-    if (isSelfHosted()) {
-      return
-    }
     const downloaded = await tc.downloadTool(url)
     await store.put(objectKey, downloaded, {
       timeout: 60 * 1000 * 60

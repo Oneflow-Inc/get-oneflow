@@ -105149,7 +105149,7 @@ function util_getPathInput(name, options) {
     return val;
 }
 function util_isSelfHosted() {
-    return lib_core.getBooleanInput('self-hosted', { required: false });
+    return core.getBooleanInput('self-hosted', { required: false });
 }
 function getTempDirectory() {
     const tempDirectory = process.env['RUNNER_TEMP'] || '';
@@ -105349,9 +105349,6 @@ function mirrorToDownloads(url) {
         catch (error) {
             lib_core.info(`[absent-url] ${url}`);
             lib_core.info(`[absent-key] ${objectKey}`);
-            if (util_isSelfHosted()) {
-                return;
-            }
             const downloaded = yield tool_cache.downloadTool(url);
             yield store.put(objectKey, downloaded, {
                 timeout: 60 * 1000 * 60

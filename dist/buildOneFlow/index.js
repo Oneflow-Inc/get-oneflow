@@ -106119,9 +106119,6 @@ function mirrorToDownloads(url) {
         catch (error) {
             core.info(`[absent-url] ${url}`);
             core.info(`[absent-key] ${objectKey}`);
-            if (isSelfHosted()) {
-                return;
-            }
             const downloaded = yield tc.downloadTool(url);
             yield store.put(objectKey, downloaded, {
                 timeout: 60 * 1000 * 60
