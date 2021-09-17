@@ -1,6 +1,12 @@
 name: 'Upload by digest'
 description: ''
 inputs:
+  src-dir:
+    description: 'path to OneFlow source code'
+    required: true
+  dst-dir:
+    description: 'path to OneFlow source code'
+    required: true
   entry:
     description: ''
     required: true
