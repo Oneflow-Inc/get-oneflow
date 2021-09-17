@@ -52032,6 +52032,16 @@ function extractTarX(file, dest, flags = 'xz') {
 function isOnPremise() {
     return process.platform === 'linux' && os.hostname().includes('oneflow');
 }
+function runAndSetFailed(f) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            yield f();
+        }
+        catch (error) {
+            lib_core.setFailed(error);
+        }
+    });
+}
 
 // EXTERNAL MODULE: ./node_modules/ssh2-sftp-client/src/index.js
 var src = __nccwpck_require__(7551);
@@ -52132,7 +52142,8 @@ function downloadByDigest() {
 
 ;// CONCATENATED MODULE: ./src/downloadByDigest.ts
 
-downloadByDigest();
+
+runAndSetFailed(downloadByDigest);
 
 })();
 

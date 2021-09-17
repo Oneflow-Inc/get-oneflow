@@ -105210,6 +105210,16 @@ function util_extractTarX(file, dest, flags = 'xz') {
 function isOnPremise() {
     return process.platform === 'linux' && os.hostname().includes('oneflow');
 }
+function runAndSetFailed(f) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            yield f();
+        }
+        catch (error) {
+            core.setFailed(error);
+        }
+    });
+}
 
 // EXTERNAL MODULE: external "fs"
 var external_fs_ = __nccwpck_require__(35747);

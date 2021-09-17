@@ -73126,6 +73126,16 @@ function extractTarX(file, dest, flags = 'xz') {
 function isOnPremise() {
     return process.platform === 'linux' && os.hostname().includes('oneflow');
 }
+function runAndSetFailed(f) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            yield f();
+        }
+        catch (error) {
+            core.setFailed(error);
+        }
+    });
+}
 
 // EXTERNAL MODULE: ./node_modules/@actions/glob/lib/glob.js
 var glob = __nccwpck_require__(8090);

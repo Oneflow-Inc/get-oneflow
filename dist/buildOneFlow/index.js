@@ -105982,6 +105982,16 @@ function extractTarX(file, dest, flags = 'xz') {
 function isOnPremise() {
     return process.platform === 'linux' && os.hostname().includes('oneflow');
 }
+function runAndSetFailed(f) {
+    return util_awaiter(this, void 0, void 0, function* () {
+        try {
+            yield f();
+        }
+        catch (error) {
+            core.setFailed(error);
+        }
+    });
+}
 
 // EXTERNAL MODULE: ./node_modules/ali-oss/lib/client.js
 var client = __nccwpck_require__(92399);

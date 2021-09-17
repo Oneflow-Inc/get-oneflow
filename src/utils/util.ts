@@ -87,3 +87,11 @@ export async function extractTarX(
 export function isOnPremise(): boolean {
   return process.platform === 'linux' && os.hostname().includes('oneflow')
 }
+
+export async function runAndSetFailed(f: Function): Promise<void> {
+  try {
+    await f()
+  } catch (error) {
+    core.setFailed(error as Error)
+  }
+}

@@ -1,3 +1,4 @@
 import {downloadByDigest} from './utils/ssh'
+import {runAndSetFailed} from './utils/util'
 
-downloadByDigest()
+runAndSetFailed(downloadByDigest)

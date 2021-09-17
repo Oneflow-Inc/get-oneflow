@@ -1,3 +1,4 @@
 import {uploadByDigest} from './utils/ssh'
+import {runAndSetFailed} from './utils/util'
 
-uploadByDigest
+runAndSetFailed(uploadByDigest)
