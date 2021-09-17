@@ -330,6 +330,7 @@ jobs:
     env:
       ONEFLOW_SRC: oneflow-src
       TEST_CONTAINER_NAME: 'pr-${{ github.event.pull_request.number }}-run-id-${{ github.run_id }}-${{ matrix.entry }}-test'
+      TEST_WITH_TF_IMG_TAG: registry.cn-beijing.aliyuncs.com/oneflow/test-with-tf-2.4.0:b8b5eb2bdee6928fefd61ccabf8fb2d680835aeb
       PIP_INDEX_URL: 'http://192.168.1.22:8000'
       PIP_INDEX_TRUST_ARGS: '--trusted-host 192.168.1.22'
     steps:
@@ -366,7 +367,7 @@ jobs:
       - name: Start container
         if: ${{ !fromJson(matrix.cache-hit) }}
         run: |
-          docker run --privileged --network host --shm-size=8g ${TEST_CONTAINER_NAME} sleep 3600
+          docker run --privileged --network host --shm-size=8g ${TEST_WITH_TF_IMG_TAG} sleep 3600
       - name: Install OneFlow
         if: ${{ !fromJson(matrix.cache-hit) }}
         run: |
