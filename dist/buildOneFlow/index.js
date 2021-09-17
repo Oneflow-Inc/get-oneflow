@@ -105979,6 +105979,9 @@ function extractTarX(file, dest, flags = 'xz') {
         return dest;
     });
 }
+function isOnPremise() {
+    return process.platform === 'linux' && os.hostname().includes('oneflow');
+}
 
 // EXTERNAL MODULE: ./node_modules/ali-oss/lib/client.js
 var client = __nccwpck_require__(92399);

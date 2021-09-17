@@ -16,10 +16,13 @@
         "package-postCacheComplete": "ncc build -o dist/postCacheComplete src/postCacheComplete.ts",
         "package-genBuildMatrix": "ncc build -o dist/genBuildMatrix src/genBuildMatrix.ts",
         "package-genTestMatrix": "ncc build -o dist/genTestMatrix src/genTestMatrix.ts",
+        "package-uploadByDigest": "ncc build -o dist/uploadByDigest src/uploadByDigest.ts",
+        "package-downloadByDigest": "ncc build -o dist/downloadByDigest src/downloadByDigest.ts",
         "package": "concurrently 'npm:package-*'",
         "test": "jest",
         "all": "npm run build && npm run format && npm run lint && npm run package && npm test",
         "fast": "npm run build && npm run package && npm test",
+        "test-ssh": "npm run build && TEST_SSH=1 npm run test -- __tests__/ssh.test.ts",
         "pub": "rm -rf dist && npm run all && git add . && git commit -m publishing && git push"
     },
     "repository": {
@@ -43,6 +46,7 @@
         "ali-oss": "^6.16.0",
         "dockerode": "^3.3.0",
         "node-ssh": "^12.0.0",
+        "ssh2-sftp-client": "^7.0.4",
         "uuid": "^8.3.2"
     },
     "devDependencies": {
@@ -51,6 +55,7 @@
         "@types/node": "^16.3.3",
         "@types/semver": "^7.3.8",
         "@types/ssh2": "^0.5.48",
+        "@types/ssh2-sftp-client": "^7.0.0",
         "@types/uuid": "^8.3.1",
         "@typescript-eslint/parser": "^4.28.3",
         "@vercel/ncc": "^0.30.0",

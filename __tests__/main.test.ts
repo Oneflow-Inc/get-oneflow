@@ -20,6 +20,7 @@ import {
   getOneFlowBuildCacheKeys,
   removeComplete
 } from '../src/utils/cache'
+import {isOnPremise} from '../src/utils/util'
 
 process.env['RUNNER_TOOL_CACHE'] = '~/runner_tool_cache'.replace(
   '~',
@@ -49,9 +50,6 @@ test('test runs', () => {
   }
 })
 
-function isOnPremise(): boolean {
-  return process.platform === 'linux' && os.hostname().includes('oneflow')
-}
 test(
   'test real cmake',
   () => {
@@ -163,32 +161,6 @@ test(
       return
     }
     await ensureCUDA102()
-  },
-  MINUTES15
-)
-
-test(
-  'ssh tank',
-  async () => {
-    if (isOnPremise() == false) {
-      return
-    }
-    const TEST_SSH = process.env['TEST_SSH'] || ''
-    if (!TEST_SSH) {
-      return
-    }
-    // TODO: generate credential to run the test on gh hosted
-    env.setInput('wheelhouse-dir', '~/manylinux-wheelhouse')
-    // TODO: create file if test dir is empty
-    env.setInput('ssh-tank-host', '127.0.0.1')
-    env.setInput('ssh-tank-path', '~/tank'.replace('~', os.homedir))
-    // TODO: start a python simple http server for testing and shut it down later
-    env.setInput('ssh-tank-base-url', 'http://127.0.0.1:8000')
-    env.setMultilineInput('cache-key-prefixes', [
-      'pr/test-commit/test-build-type',
-      'Digest/test-hash/test-build-type'
-    ])
-    await ssh.uploadWheelhouse()
   },
   MINUTES15
 )

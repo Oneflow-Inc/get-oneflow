@@ -1,0 +1,45 @@
+name: 'Download by digest'
+description: ''
+inputs:
+  src-dir:
+    description: 'path to OneFlow source code'
+    required: true
+  dst-dir:
+    description: 'path to OneFlow source code'
+    required: true
+  entry:
+    description: ''
+    required: true
+  digest:
+    description: ''
+    required: true
+  ssh-tank-host:
+    description: ''
+    required: false
+  ssh-tank-path:
+    description: ''
+    required: false
+    default: '/tank'
+  digest-cache-dir:
+    description: ''
+    required: false
+    default: '~/digest-cache'
+
+outputs:
+  runs-on:
+    description: 'if cache found, will generate a [ubuntu-latest], in JSON'
+  build-cache-hit:
+    description: ''
+  test-cache-hit:
+    description: ''
+  build-digest:
+    description: ''
+  test-digest:
+    description: ''
+
+runs:
+  using: 'node12'
+  main: '../../dist/downloadByDigest/index.js'
+branding:
+  icon: 'archive'
+  color: 'gray-dark'

@@ -105209,6 +105209,9 @@ function util_extractTarX(file, dest, flags = 'xz') {
         return dest;
     });
 }
+function isOnPremise() {
+    return process.platform === 'linux' && os.hostname().includes('oneflow');
+}
 
 // EXTERNAL MODULE: external "fs"
 var external_fs_ = __nccwpck_require__(35747);

@@ -73123,6 +73123,9 @@ function extractTarX(file, dest, flags = 'xz') {
         return dest;
     });
 }
+function isOnPremise() {
+    return process.platform === 'linux' && os.hostname().includes('oneflow');
+}
 
 // EXTERNAL MODULE: ./node_modules/@actions/glob/lib/glob.js
 var glob = __nccwpck_require__(8090);

@@ -83,3 +83,7 @@ export async function extractTarX(
 
   return dest
 }
+
+export function isOnPremise(): boolean {
+  return process.platform === 'linux' && os.hostname().includes('oneflow')
+}
