@@ -148,8 +148,9 @@ test(
 )
 
 test(
-  'build mirror',
+  'mirror tools',
   async () => {
+    if (!process.env['TEST_MANYLINUX']) return
     await Promise.all(TOOLS.map(t => mirrorToDownloads(t.url)))
   },
   MINUTES15

@@ -16,7 +16,7 @@ export function getPathInput(name: string, options?: InputOptions): string {
 }
 
 export function isSelfHosted(): boolean {
-  return core.getBooleanInput('self-hosted')
+  return core.getBooleanInput('self-hosted', {required: false})
 }
 
 export function getTempDirectory(): string {

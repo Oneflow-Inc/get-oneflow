@@ -105149,7 +105149,7 @@ function util_getPathInput(name, options) {
     return val;
 }
 function util_isSelfHosted() {
-    return lib_core.getBooleanInput('self-hosted');
+    return lib_core.getBooleanInput('self-hosted', { required: false });
 }
 function getTempDirectory() {
     const tempDirectory = process.env['RUNNER_TEMP'] || '';

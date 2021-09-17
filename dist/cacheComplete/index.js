@@ -73065,7 +73065,7 @@ function getPathInput(name, options) {
     return val;
 }
 function isSelfHosted() {
-    return core.getBooleanInput('self-hosted');
+    return core.getBooleanInput('self-hosted', { required: false });
 }
 function getTempDirectory() {
     const tempDirectory = process.env['RUNNER_TEMP'] || '';
