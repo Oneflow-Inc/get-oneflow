@@ -367,7 +367,7 @@ jobs:
       - name: Start container
         if: ${{ !fromJson(matrix.cache-hit) }}
         run: |
-          docker run --privileged --network host --shm-size=8g ${TEST_WITH_TF_IMG_TAG} sleep 3600
+          docker run -d --privileged --network host --shm-size=8g ${TEST_WITH_TF_IMG_TAG} sleep 3600
       - name: Install OneFlow
         if: ${{ !fromJson(matrix.cache-hit) }}
         run: |
