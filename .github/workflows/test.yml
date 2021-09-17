@@ -401,8 +401,8 @@ jobs:
         if: ${{ !fromJson(matrix.cache-hit) }}
         working-directory: ${ONEFLOW_SRC}
         env:
-          ONEFLOW_WHEEL_PATH: ${{ steps.entry-dir.outputs.entry-dir }}/whl
-          ONEFLOW_BIN_PATH: ${{ steps.entry-dir.outputs.entry-dir }}/bin
+          ONEFLOW_WHEEL_PATH: ${{ steps.download-digest.outputs.entry-dir }}/whl
+          ONEFLOW_BIN_PATH: ${{ steps.download-digest.outputs.entry-dir }}/bin
         run: |
           docker run -d --privileged --network host --shm-size=8g \
             ${TEST_WITH_TF_IMG_TAG} \
