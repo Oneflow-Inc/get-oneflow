@@ -271,7 +271,7 @@ jobs:
         if: ${{ !fromJson(matrix.cache-hit) }}
         uses: ./degist/upload
         with:
-          digest: ${{ matrix.digest }}
+          digest: ${{ steps.save-cache.outputs.build-digest }}
           entry: ${{ matrix.entry }}
           ssh-tank-host: ${{ env.SSH_TANK_HOST }}
           ssh-tank-path: ${{ env.SSH_TANK_PATH }}
