@@ -88,7 +88,7 @@ export function isOnPremise(): boolean {
   return process.platform === 'linux' && os.hostname().includes('oneflow')
 }
 
-export async function runAndSetFailed(f: Function): Promise<void> {
+export async function runAndSetFailed(f: () => Promise<void>): Promise<void> {
   try {
     await f()
   } catch (error) {
