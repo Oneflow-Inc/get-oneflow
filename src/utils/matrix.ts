@@ -6,9 +6,9 @@ type Device = 'cuda' | 'cpu' | 'cuda-xla' | 'cpu-xla'
 type Test =
   | 'legacy-benchmark'
   | 'legacy-op'
+  | 'legacy-model'
   | 'module'
   | 'dataloader'
-  | 'model'
   | 'misc'
   | 'do-nothing'
 
@@ -69,7 +69,7 @@ function getRunnerLabel(device: Device): RunnerLabel {
 async function getSingleClientOpTests(): Promise<EntryInclude[]> {
   const includes: EntryInclude[] = []
   const devices: Device[] = ['cuda', 'cpu', 'cuda-xla']
-  const tests: Test[] = ['legacy-op', 'model', 'legacy-benchmark']
+  const tests: Test[] = ['legacy-op', 'legacy-model', 'legacy-benchmark']
   for (const device of devices) {
     for (const isDistributed of [true, false]) {
       for (const test of tests) {
@@ -106,7 +106,7 @@ async function getTests(): Promise<EntryInclude[]> {
       for (const test of tests) {
         const digest = await cache.getDigestByType('single-client-test')
         const entry = `${device}-${test}${isDistributed ? '-distributed' : ''}`
-        if (test === 'model' && isDistributed) continue
+        if (test === 'legacy-model' && isDistributed) continue
         if (test === 'legacy-benchmark' && device !== 'cuda') continue
         if (isDistributed && test !== 'module') continue
         const cacheHit = await cache.isComplete(cache.keyFrom({entry, digest}))
