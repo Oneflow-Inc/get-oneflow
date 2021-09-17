@@ -68,6 +68,7 @@ export async function downloadByDigest(): Promise<void> {
     }
     fs.mkdirSync(digestDir, {recursive: true})
   }
+  core.setOutput('entry-dir', entryDir) // setOutput before return
   if (fs.existsSync(entryDir)) {
     core.info(`[exist] ${entryDir}`)
     return
@@ -92,5 +93,4 @@ export async function downloadByDigest(): Promise<void> {
     throw error
   }
   await sftp.end()
-  core.setOutput('entry-dir', entryDir)
 }

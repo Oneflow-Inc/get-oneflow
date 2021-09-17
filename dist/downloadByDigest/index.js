@@ -52125,6 +52125,7 @@ function downloadByDigest() {
             }
             external_fs_.mkdirSync(digestDir, { recursive: true });
         }
+        lib_core.setOutput('entry-dir', entryDir); // setOutput return
         if (external_fs_.existsSync(entryDir)) {
             lib_core.info(`[exist] ${entryDir}`);
             return;
@@ -52149,7 +52150,6 @@ function downloadByDigest() {
             throw error;
         }
         yield sftp.end();
-        lib_core.setOutput('entry-dir', entryDir);
     });
 }
 
