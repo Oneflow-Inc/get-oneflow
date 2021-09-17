@@ -164,6 +164,8 @@ jobs:
       ONEFLOW_SRC: oneflow-src
       MANYLINUX_CACHE_DIR: ~/manylinux-cache-dir/${{ matrix.entry }}
       WHEELHOUSE_DIR: manylinux-wheelhouse
+      SSH_TANK_HOST: 192.168.1.23
+      SSH_TANK_PATH: /home/ci-user/tank
     steps:
       - name: Fix permissions
         if: ${{ contains(matrix.runs-on, 'self-hosted') }}
@@ -261,7 +263,8 @@ jobs:
         with:
           digest: ${{ steps.save-cache.outputs.build-digest }}
           entry: ${{ matrix.entry }}
-          ssh-tank-host: 192.168.1.23
+          ssh-tank-host: ${{ env.SSH_TANK_HOST }}
+          ssh-tank-path: ${{ env.SSH_TANK_PATH }}
           src-dir: ${{ env.MANYLINUX_CACHE_DIR }}/build/bin
           dst-dir: bin
       - name: Upload whl
@@ -270,7 +273,8 @@ jobs:
         with:
           digest: ${{ matrix.digest }}
           entry: ${{ matrix.entry }}
-          ssh-tank-host: 192.168.1.23
+          ssh-tank-host: ${{ env.SSH_TANK_HOST }}
+          ssh-tank-path: ${{ env.SSH_TANK_PATH }}
           src-dir: ${{ env.WHEELHOUSE_DIR }}
           dst-dir: whl
 
