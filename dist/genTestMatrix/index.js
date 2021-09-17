@@ -73422,7 +73422,7 @@ function getSingleClientOpTests() {
     return matrix_awaiter(this, void 0, void 0, function* () {
         const includes = [];
         const devices = ['cuda', 'cpu', 'cuda-xla'];
-        const tests = ['legacy-op', 'model', 'legacy-benchmark'];
+        const tests = ['legacy-op', 'legacy-model', 'legacy-benchmark'];
         for (const device of devices) {
             for (const isDistributed of [true, false]) {
                 for (const test of tests) {
@@ -73464,7 +73464,7 @@ function getTests() {
                 for (const test of tests) {
                     const digest = yield getDigestByType('single-client-test');
                     const entry = `${device}-${test}${isDistributed ? '-distributed' : ''}`;
-                    if (test === 'model' && isDistributed)
+                    if (test === 'legacy-model' && isDistributed)
                         continue;
                     if (test === 'legacy-benchmark' && device !== 'cuda')
                         continue;
