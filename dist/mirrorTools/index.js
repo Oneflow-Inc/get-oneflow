@@ -105247,6 +105247,12 @@ const CUDA102 = {
     version: '10.2.89',
     dirName: ''
 };
+const CUDA11_0_UPDATE_1 = {
+    name: 'cuda-toolkit',
+    url: 'https://developer.download.nvidia.com/compute/cuda/11.0.3/local_installers/cuda_11.0.3_450.51.06_linux.run',
+    version: '11.0.3',
+    dirName: ''
+};
 const CUDA11_1_1 = {
     name: 'cuda-toolkit',
     url: 'https://developer.download.nvidia.com/compute/cuda/11.1.1/local_installers/cuda_11.1.1_455.32.00_linux.run',
@@ -105454,6 +105460,15 @@ function ensure_ensureCUDA() {
                 cudaSemver: CUDA11_1_1.version
             };
         }
+        else if (cudaVersion === '11.4') {
+            const cuda = CUDA11_0_UPDATE_1;
+            return {
+                cudaToolkit: yield ensure_ensureTool(cuda),
+                cudnn: yield ensure_ensureTool(CUDNN114),
+                cudaVersion,
+                cudaSemver: cuda.version
+            };
+        }
         else {
             if (parseInt(cudaVersion)) {
                 throw new Error(`unsupported cudaVersion: ${cudaVersion}`);
@@ -105512,7 +105527,7 @@ function ensureDocker() {
             yield load_img('quay.io/pypa/manylinux_2_24_x86_64', 'https://oneflow-static.oss-cn-beijing.aliyuncs.com/img/quay.iopypamanylinux_2_24_x86_64.tar.gz');
         }
         catch (error) {
-            core.setFailed(error.message);
+            core.setFailed(error);
         }
     });
 }
@@ -105784,7 +105799,7 @@ function buildOneFlow(tag) {
                 yield buildAndMakeWheel(createOptions, docker, buildDir, true);
             }
             else {
-                core.setFailed(error.message);
+                core.setFailed(error);
             }
         }
     });
@@ -105845,7 +105860,7 @@ function run() {
             }
         }
         catch (error) {
-            lib_core.setFailed(error.message);
+            lib_core.setFailed(error);
         }
     });
 }

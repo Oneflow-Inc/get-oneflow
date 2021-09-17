@@ -32,6 +32,14 @@ export const CUDA102 = {
   dirName: ''
 }
 
+export const CUDA11_0_UPDATE_1 = {
+  name: 'cuda-toolkit',
+  url:
+    'https://developer.download.nvidia.com/compute/cuda/11.0.3/local_installers/cuda_11.0.3_450.51.06_linux.run',
+  version: '11.0.3',
+  dirName: ''
+}
+
 export const CUDA11_1_1 = {
   name: 'cuda-toolkit',
   url:
@@ -276,6 +284,14 @@ export async function ensureCUDA(): Promise<CUDATools | null> {
       cudnn: await ensureTool(CUDNN114),
       cudaVersion,
       cudaSemver: CUDA11_1_1.version
+    }
+  } else if (cudaVersion === '11.4') {
+    const cuda = CUDA11_0_UPDATE_1
+    return {
+      cudaToolkit: await ensureTool(cuda),
+      cudnn: await ensureTool(CUDNN114),
+      cudaVersion,
+      cudaSemver: cuda.version
     }
   } else {
     if (parseInt(cudaVersion)) {

@@ -73384,7 +73384,7 @@ function run() {
             }
         }
         catch (error) {
-            lib_core.setFailed(error.message);
+            lib_core.setFailed(error);
         }
     });
 }

@@ -73510,7 +73510,7 @@ function setTestMatrix() {
             lib_core.info(JSON.stringify(matrix, null, 2));
         }
         catch (error) {
-            lib_core.setFailed(error.message);
+            lib_core.setFailed(error);
         }
     });
 }
