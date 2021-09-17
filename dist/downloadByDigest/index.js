@@ -52103,10 +52103,9 @@ function uploadByDigest() {
                 // TODO: remove the directory
             }
         }
-        catch (error) {
+        finally {
             ssh.dispose();
         }
-        ssh.dispose();
     });
 }
 function downloadByDigest() {
@@ -52125,7 +52124,7 @@ function downloadByDigest() {
             }
             external_fs_.mkdirSync(digestDir, { recursive: true });
         }
-        lib_core.setOutput('entry-dir', entryDir); // setOutput return
+        lib_core.setOutput('entry-dir', entryDir); // setOutput before return
         if (external_fs_.existsSync(entryDir)) {
             lib_core.info(`[exist] ${entryDir}`);
             return;
@@ -52145,11 +52144,9 @@ function downloadByDigest() {
             lib_core.info(`[to] ${entryDir}`);
             yield sftp.downloadDir(remoteDir, entryDir);
         }
-        catch (error) {
+        finally {
             yield sftp.end();
-            throw error;
         }
-        yield sftp.end();
     });
 }
 

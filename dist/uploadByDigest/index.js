@@ -52174,10 +52174,9 @@ function uploadByDigest() {
                 // TODO: remove the directory
             }
         }
-        catch (error) {
+        finally {
             ssh.dispose();
         }
-        ssh.dispose();
     });
 }
 function downloadByDigest() {
@@ -52196,7 +52195,7 @@ function downloadByDigest() {
             }
             fs.mkdirSync(digestDir, { recursive: true });
         }
-        core.setOutput('entry-dir', entryDir); // setOutput return
+        core.setOutput('entry-dir', entryDir); // setOutput before return
         if (fs.existsSync(entryDir)) {
             core.info(`[exist] ${entryDir}`);
             return;
@@ -52216,11 +52215,9 @@ function downloadByDigest() {
             core.info(`[to] ${entryDir}`);
             yield sftp.downloadDir(remoteDir, entryDir);
         }
-        catch (error) {
+        finally {
             yield sftp.end();
-            throw error;
         }
-        yield sftp.end();
     });
 }
 
