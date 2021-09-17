@@ -205,7 +205,7 @@ jobs:
           clear-wheelhouse-dir: true
           self-hosted: ${{ contains(matrix.runs-on, 'self-hosted') }}
           cuda-version: none
-          manylinux-cache-dir: ~/manylinux-cache-dir/cpu
+          manylinux-cache-dir: ~/manylinux-cache-dir/${{ matrix.entry }}
           docker-run-use-system-http-proxy: false
           docker-run-use-lld: true
           retry-failed-build: true
@@ -226,7 +226,7 @@ jobs:
           clear-wheelhouse-dir: true
           self-hosted: ${{ contains(matrix.runs-on, 'self-hosted') }}
           cuda-version: 11.4
-          manylinux-cache-dir: ~/manylinux-cache-dir/cpu
+          manylinux-cache-dir: ~/manylinux-cache-dir/${{ matrix.entry }}
           docker-run-use-system-http-proxy: false
           docker-run-use-lld: true
           retry-failed-build: true
@@ -247,7 +247,7 @@ jobs:
           clear-wheelhouse-dir: true
           self-hosted: ${{ contains(matrix.runs-on, 'self-hosted') }}
           cuda-version: 10.2
-          manylinux-cache-dir: ~/manylinux-cache-dir/cpu
+          manylinux-cache-dir: ~/manylinux-cache-dir/${{ matrix.entry }}
           docker-run-use-system-http-proxy: true
           docker-run-use-lld: true
           retry-failed-build: true
