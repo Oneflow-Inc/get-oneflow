@@ -396,13 +396,16 @@ jobs:
         if: ${{ !fromJson(matrix.cache-hit) }}
         working-directory: ${ONEFLOW_SRC}
         env:
-          ENTRY_DIR: ${{ steps.entry-dir.outputs.entry-dir }}
+          ONEFLOW_WHEEL_PATH: ${{ steps.entry-dir.outputs.entry-dir }}/whl
+          ONEFLOW_BIN_PATH: ${{ steps.entry-dir.outputs.entry-dir }}/bin
         run: |
           docker run -d --privileged --network host --shm-size=8g \
             ${TEST_WITH_TF_IMG_TAG} \
             -v /dataset:/dataset:ro -v /model_zoo:/model_zoo:ro \
-            -v ${ENTRY_DIR}:${ENTRY_DIR}:ro \
-            -e ONEFLOW_WHEEL_PATH=${ENTRY_DIR} \
+            -v ${ONEFLOW_WHEEL_PATH}:${ONEFLOW_WHEEL_PATH}:ro \
+            -v ${ONEFLOW_BIN_PATH}:${ONEFLOW_BIN_PATH}:ro \
+            -e ONEFLOW_WHEEL_PATH=${ONEFLOW_WHEEL_PATH} \
+            -e ONEFLOW_BIN_PATH=${ONEFLOW_BIN_PATH} \
             -v $PWD:$PWD \
             -w $PWD \
             sleep 3600
