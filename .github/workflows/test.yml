@@ -124,7 +124,7 @@ jobs:
           conda-env-name: oneflow-dev-clang10-v2
 
   find-build-cache:
-    name: 'Find cache'
+    name: 'Find build cache'
     runs-on: ubuntu-latest
     env:
       ONEFLOW_SRC: oneflow-src
