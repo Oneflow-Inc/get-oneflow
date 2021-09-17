@@ -52177,6 +52177,7 @@ function uploadByDigest() {
         catch (error) {
             ssh.dispose();
         }
+        ssh.dispose();
     });
 }
 function downloadByDigest() {
@@ -52210,12 +52211,15 @@ function downloadByDigest() {
                 privateKey: fs.readFileSync(path.join(os.userInfo().homedir, '.ssh/id_rsa'))
             });
             const remoteDir = getEntryDir(sshTankPath, digest, entry);
+            core.info(`[from] ${remoteDir}`);
+            core.info(`[to] ${entryDir}`);
             yield sftp.downloadDir(remoteDir, entryDir);
         }
         catch (error) {
             yield sftp.end();
             throw error;
         }
+        yield sftp.end();
         core.setOutput('entry-dir', entryDir);
     });
 }

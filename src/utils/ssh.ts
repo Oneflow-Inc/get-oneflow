@@ -50,6 +50,7 @@ export async function uploadByDigest(): Promise<void> {
   } catch (error) {
     ssh.dispose()
   }
+  ssh.dispose()
 }
 
 export async function downloadByDigest(): Promise<void> {
@@ -83,10 +84,13 @@ export async function downloadByDigest(): Promise<void> {
       )
     })
     const remoteDir = getEntryDir(sshTankPath, digest, entry)
+    core.info(`[from] ${remoteDir}`)
+    core.info(`[to] ${entryDir}`)
     await sftp.downloadDir(remoteDir, entryDir)
   } catch (error) {
     await sftp.end()
     throw error
   }
+  await sftp.end()
   core.setOutput('entry-dir', entryDir)
 }
