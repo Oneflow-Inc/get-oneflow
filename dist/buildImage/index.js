@@ -105306,7 +105306,8 @@ const TOOLS = [
         version: '10.1.243',
         dirName: 'cuda_10.1.243_418.87.00_linux'
     },
-    CUDNN102
+    CUDNN102,
+    CUDA11_0_UPDATE_1
 ];
 function ossStore() {
     const store = new (client_default())({
