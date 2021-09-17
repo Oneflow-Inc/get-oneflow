@@ -412,6 +412,7 @@ jobs:
             -e ONEFLOW_BIN_PATH=${ONEFLOW_BIN_PATH} \
             -v $PWD:$PWD \
             -w $PWD \
+            --name ${{ env.TEST_CONTAINER_NAME }} \
             ${TEST_WITH_TF_IMG_TAG} \
             sleep 3600
       - name: Install OneFlow
