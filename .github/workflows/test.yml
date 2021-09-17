@@ -399,7 +399,7 @@ jobs:
           ssh-tank-path: ${{ env.SSH_TANK_PATH }}
       - name: Start container
         if: ${{ !fromJson(matrix.cache-hit) }}
-        working-directory: ${ONEFLOW_SRC}
+        working-directory: ${{ env.ONEFLOW_SRC }}
         env:
           ONEFLOW_WHEEL_PATH: ${{ steps.download-digest.outputs.entry-dir }}/whl
           ONEFLOW_BIN_PATH: ${{ steps.download-digest.outputs.entry-dir }}/bin
