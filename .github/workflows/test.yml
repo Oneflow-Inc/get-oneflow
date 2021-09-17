@@ -262,7 +262,6 @@ jobs:
         if: ${{ !fromJson(matrix.cache-hit) }}
         uses: ./degist/upload
         with:
-          tank: ${{ matrix.compute-platform }}
           digest: ${{ matrix.digest }}
           entry: ${{ matrix.compute-platform }}
           ssh-tank-host: 192.168.1.23
@@ -272,7 +271,6 @@ jobs:
         if: ${{ !fromJson(matrix.cache-hit) }}
         uses: ./degist/upload
         with:
-          tank: ${{ matrix.compute-platform }}
           digest: ${{ matrix.digest }}
           entry: ${{ matrix.compute-platform }}
           ssh-tank-host: 192.168.1.23
@@ -391,7 +389,6 @@ jobs:
         uses: ./degist/download
         id: download-digest
         with:
-          tank: ${{ matrix.compute-platform }}
           digest: ${{ matrix.digest }}
           entry: ${{ matrix.compute-platform }}
           ssh-tank-host: 192.168.1.23
