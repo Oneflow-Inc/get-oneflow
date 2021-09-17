@@ -355,6 +355,8 @@ jobs:
       TEST_WITH_TF_IMG_TAG: registry.cn-beijing.aliyuncs.com/oneflow/test-with-tf-2.4.0:b8b5eb2bdee6928fefd61ccabf8fb2d680835aeb
       PIP_INDEX_URL: 'http://192.168.1.22:8000'
       PIP_INDEX_TRUST_ARGS: '--trusted-host 192.168.1.22'
+      SSH_TANK_HOST: 192.168.1.23
+      SSH_TANK_PATH: /home/ci-user/tank
     steps:
       - name: Fix permissions
         if: ${{ contains(matrix.runs-on, 'self-hosted') }}
@@ -393,7 +395,8 @@ jobs:
         with:
           digest: ${{ steps.save-cache.outputs.build-digest }}
           entry: ${{ matrix.compute-platform }}
-          ssh-tank-host: 192.168.1.23
+          ssh-tank-host: ${{ env.SSH_TANK_HOST }}
+          ssh-tank-path: ${{ env.SSH_TANK_PATH }}
       - name: Start container
         if: ${{ !fromJson(matrix.cache-hit) }}
         working-directory: ${ONEFLOW_SRC}

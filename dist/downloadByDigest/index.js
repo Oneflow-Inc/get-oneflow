@@ -52072,36 +52072,40 @@ function uploadByDigest() {
         const entry = core.getInput('entry', { required: true });
         const srcDir = util.getPathInput('src-dir');
         const dstDir = core.getInput('dst-dir', { required: true });
-        const ssh = new NodeSSH();
         const sshTankHost = core.getInput('ssh-tank-host', { required: true });
         const sshTankPath = core.getInput('ssh-tank-path', { required: true });
-        yield ssh.connect({
-            host: sshTankHost,
-            username: os.userInfo().username,
-            privateKey: path.join(os.userInfo().homedir, '.ssh/id_rsa')
-        });
-        // TODO: check the directory doesn't exist
-        const failed = [];
-        const successful = [];
-        const isSuccessful = yield ssh.putDirectory(srcDir, path.join(getEntryDir(sshTankPath, digest, entry), dstDir), {
-            recursive: true,
-            concurrency: 10,
-            tick(localPath, remotePath, error) {
-                if (error) {
-                    failed.push(localPath);
+        const ssh = new NodeSSH();
+        try {
+            yield ssh.connect({
+                host: sshTankHost,
+                username: os.userInfo().username,
+                privateKey: path.join(os.userInfo().homedir, '.ssh/id_rsa')
+            });
+            // TODO: check the directory doesn't exist
+            const failed = [];
+            const successful = [];
+            const isSuccessful = yield ssh.putDirectory(srcDir, path.join(getEntryDir(sshTankPath, digest, entry), dstDir), {
+                recursive: true,
+                concurrency: 10,
+                tick(localPath, remotePath, error) {
+                    if (error) {
+                        failed.push(localPath);
+                    }
+                    else {
+                        successful.push(localPath);
+                    }
                 }
-                else {
-                    successful.push(localPath);
-                }
+            });
+            failed.map(core.setFailed);
+            successful.map(core.info);
+            if (!isSuccessful) {
+                throw new Error(`failed to upload to: ${sshTankPath}`);
+                // TODO: remove the directory
             }
-        });
-        failed.map(core.setFailed);
-        successful.map(core.info);
-        if (!isSuccessful) {
-            throw new Error(`failed to upload to: ${sshTankPath}`);
-            // TODO: remove the directory
         }
-        ssh.dispose();
+        catch (error) {
+            ssh.dispose();
+        }
     });
 }
 function downloadByDigest() {
@@ -52128,14 +52132,19 @@ function downloadByDigest() {
             external_fs_.mkdirSync(entryDir, { recursive: true });
         }
         const sftp = new (src_default())();
-        yield sftp.connect({
-            host: sshTankHost,
-            username: external_os_default().userInfo().username,
-            privateKey: external_fs_.readFileSync(external_path_default().join(external_os_default().userInfo().homedir, '.ssh/id_rsa'))
-        });
-        const remoteDir = getEntryDir(sshTankPath, digest, entry);
-        yield sftp.downloadDir(remoteDir, entryDir);
-        yield sftp.end();
+        try {
+            yield sftp.connect({
+                host: sshTankHost,
+                username: external_os_default().userInfo().username,
+                privateKey: external_fs_.readFileSync(external_path_default().join(external_os_default().userInfo().homedir, '.ssh/id_rsa'))
+            });
+            const remoteDir = getEntryDir(sshTankPath, digest, entry);
+            yield sftp.downloadDir(remoteDir, entryDir);
+        }
+        catch (error) {
+            yield sftp.end();
+            throw error;
+        }
         lib_core.setOutput('entry-dir', entryDir);
     });
 }

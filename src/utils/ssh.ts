@@ -14,39 +14,42 @@ export async function uploadByDigest(): Promise<void> {
   const entry = core.getInput('entry', {required: true})
   const srcDir = util.getPathInput('src-dir')
   const dstDir = core.getInput('dst-dir', {required: true})
-  const ssh = new NodeSSH()
   const sshTankHost = core.getInput('ssh-tank-host', {required: true})
   const sshTankPath = core.getInput('ssh-tank-path', {required: true})
-  await ssh.connect({
-    host: sshTankHost,
-    username: os.userInfo().username,
-    privateKey: path.join(os.userInfo().homedir, '.ssh/id_rsa')
-  })
-  // TODO: check the directory doesn't exist
-  const failed: string[] = []
-  const successful: string[] = []
-  const isSuccessful = await ssh.putDirectory(
-    srcDir,
-    path.join(getEntryDir(sshTankPath, digest, entry), dstDir),
-    {
-      recursive: true,
-      concurrency: 10,
-      tick(localPath, remotePath, error) {
-        if (error) {
-          failed.push(localPath)
-        } else {
-          successful.push(localPath)
+  const ssh = new NodeSSH()
+  try {
+    await ssh.connect({
+      host: sshTankHost,
+      username: os.userInfo().username,
+      privateKey: path.join(os.userInfo().homedir, '.ssh/id_rsa')
+    })
+    // TODO: check the directory doesn't exist
+    const failed: string[] = []
+    const successful: string[] = []
+    const isSuccessful = await ssh.putDirectory(
+      srcDir,
+      path.join(getEntryDir(sshTankPath, digest, entry), dstDir),
+      {
+        recursive: true,
+        concurrency: 10,
+        tick(localPath, remotePath, error) {
+          if (error) {
+            failed.push(localPath)
+          } else {
+            successful.push(localPath)
+          }
         }
       }
+    )
+    failed.map(core.setFailed)
+    successful.map(core.info)
+    if (!isSuccessful) {
+      throw new Error(`failed to upload to: ${sshTankPath}`)
+      // TODO: remove the directory
     }
-  )
-  failed.map(core.setFailed)
-  successful.map(core.info)
-  if (!isSuccessful) {
-    throw new Error(`failed to upload to: ${sshTankPath}`)
-    // TODO: remove the directory
+  } catch (error) {
+    ssh.dispose()
   }
-  ssh.dispose()
 }
 
 export async function downloadByDigest(): Promise<void> {
@@ -71,13 +74,19 @@ export async function downloadByDigest(): Promise<void> {
     fs.mkdirSync(entryDir, {recursive: true})
   }
   const sftp = new Client()
-  await sftp.connect({
-    host: sshTankHost,
-    username: os.userInfo().username,
-    privateKey: fs.readFileSync(path.join(os.userInfo().homedir, '.ssh/id_rsa'))
-  })
-  const remoteDir = getEntryDir(sshTankPath, digest, entry)
-  await sftp.downloadDir(remoteDir, entryDir)
-  await sftp.end()
+  try {
+    await sftp.connect({
+      host: sshTankHost,
+      username: os.userInfo().username,
+      privateKey: fs.readFileSync(
+        path.join(os.userInfo().homedir, '.ssh/id_rsa')
+      )
+    })
+    const remoteDir = getEntryDir(sshTankPath, digest, entry)
+    await sftp.downloadDir(remoteDir, entryDir)
+  } catch (error) {
+    await sftp.end()
+    throw error
+  }
   core.setOutput('entry-dir', entryDir)
 }
