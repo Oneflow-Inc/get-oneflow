@@ -52126,6 +52126,7 @@ function downloadByDigest() {
         const remoteDir = getEntryDir(sshTankPath, digest, entry);
         yield sftp.downloadDir(remoteDir, entryDir);
         yield sftp.end();
+        lib_core.setOutput('entry-dir', entryDir);
     });
 }
 

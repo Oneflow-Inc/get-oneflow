@@ -389,6 +389,7 @@ jobs:
       - name: Download
         if: ${{ !fromJson(matrix.cache-hit) }}
         uses: ./degist/download
+        id: download-digest
         with:
           tank: ${{ matrix.compute-platform }}
           digest: ${{ matrix.digest }}
@@ -396,18 +397,23 @@ jobs:
           ssh-tank-host: 192.168.1.23
       - name: Start container
         if: ${{ !fromJson(matrix.cache-hit) }}
+        working-directory: ${ONEFLOW_SRC}
+        env:
+          ENTRY_DIR: ${{ steps.entry-dir.outputs.entry-dir }}
         run: |
           docker run -d --privileged --network host --shm-size=8g \
             ${TEST_WITH_TF_IMG_TAG} \
             -v /dataset:/dataset:ro -v /model_zoo:/model_zoo:ro \
+            -v ${ENTRY_DIR}:${ENTRY_DIR}:ro \
+            -e ONEFLOW_WHEEL_PATH=${ENTRY_DIR} \
+            -v $PWD:$PWD \
+            -w $PWD \
             sleep 3600
       - name: Install OneFlow
         if: ${{ !fromJson(matrix.cache-hit) }}
         run: |
           docker exec ${TEST_CONTAINER_NAME} python3 -m pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
-          docker exec ${TEST_CONTAINER_NAME} python3 -m pip install oneflow \
-            -f ${{ env.PIP_INDEX_URL }}/degist/${{ steps.save-cache.outputs.build-degist }}/${{ matrix.compute-platform }} \
-            ${PIP_INDEX_TRUST_ARGS}
+          docker exec ${TEST_CONTAINER_NAME} bash ci/test/try_install.sh
       - name: Run OneFlow doctor
         if: ${{ !fromJson(matrix.cache-hit) }}
         run: |

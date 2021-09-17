@@ -26,15 +26,7 @@ inputs:
     default: '~/digest-cache'
 
 outputs:
-  runs-on:
-    description: 'if cache found, will generate a [ubuntu-latest], in JSON'
-  build-cache-hit:
-    description: ''
-  test-cache-hit:
-    description: ''
-  build-digest:
-    description: ''
-  test-digest:
+  entry-dir:
     description: ''
 
 runs:

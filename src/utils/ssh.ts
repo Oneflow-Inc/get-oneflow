@@ -79,4 +79,5 @@ export async function downloadByDigest(): Promise<void> {
   const remoteDir = getEntryDir(sshTankPath, digest, entry)
   await sftp.downloadDir(remoteDir, entryDir)
   await sftp.end()
+  core.setOutput('entry-dir', entryDir)
 }
