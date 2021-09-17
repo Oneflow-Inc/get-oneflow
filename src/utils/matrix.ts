@@ -45,7 +45,7 @@ function getComputePlatform(device: Device): string {
     case 'cuda':
       return 'cu114'
     case 'cuda-xla':
-      return 'cu102_xla'
+      return 'cu110_xla'
 
     default:
       throw new Error(device)
