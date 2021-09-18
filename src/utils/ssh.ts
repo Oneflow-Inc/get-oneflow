@@ -72,8 +72,6 @@ export async function downloadByDigest(): Promise<void> {
   if (fs.existsSync(entryDir)) {
     core.info(`[exist] ${entryDir}`)
     return
-  } else {
-    fs.mkdirSync(entryDir, {recursive: true})
   }
   const sftp = new Client()
   try {

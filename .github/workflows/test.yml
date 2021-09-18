@@ -191,7 +191,7 @@ jobs:
           entry: ${{ matrix.entry }}
           digest-type: build
           mark-as-completed: ${{ contains(matrix.runs-on, 'self-hosted') }}
-      - name: Fail if cache result not identical to matrix
+      - name: Check digest and fail if cache result not identical to matrix
         if: ${{ fromJSON(steps.save-cache.outputs.cache-hit) != matrix.cache-hit }}
         run: |
           echo "::error file=test.yml,line=204,col=10::steps.save-cache.outputs.cache-hit != matrix.cache-hit"
@@ -377,7 +377,7 @@ jobs:
           entry: ${{ matrix.entry }}
           digest-type: test
           mark-as-completed: ${{ contains(matrix.runs-on, 'self-hosted') }}
-      - name: Fail if cache result not identical to matrix
+      - name: Check digest and fail if cache result not identical to matrix
         if: ${{ fromJSON(steps.save-cache.outputs.cache-hit) != matrix.cache-hit }}
         run: |
           echo "::error file=test.yml,line=204,col=10::steps.save-cache.outputs.cache-hit != matrix.cache-hit"
