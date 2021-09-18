@@ -391,6 +391,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
       await buildAndMakeWheel(createOptions, docker, buildDir, true)
     } else {
       core.setFailed(error as Error)
+      throw error
     }
   }
 }

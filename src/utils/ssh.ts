@@ -42,6 +42,7 @@ export async function uploadByDigest(): Promise<void> {
       }
     )
     failed.map(core.setFailed)
+    core.info(`[to] ${sshTankPath}`)
     successful.map(core.info)
     if (!isSuccessful) {
       throw new Error(`failed to upload to: ${sshTankPath}`)

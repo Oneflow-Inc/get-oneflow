@@ -29,16 +29,16 @@ async function testOneCUDA(cudaVersion: string): Promise<void> {
     'INPUT_MANYLINUX-CACHE-DIR'
   ] = '~/manylinux-cache-dirs/unittest-'.concat(cudaVersion)
   process.env['INPUT_WHEELHOUSE-DIR'] = '~/manylinux-wheelhouse'
-  process.env['INPUT_PYTHON-VERSIONS'] = '3.6\n3.7'
+  process.env['INPUT_PYTHON-VERSIONS'] = '3.6'
   env.setInput('self-hosted', 'true')
   env.setInput('cuda-version', cudaVersion)
-  env.setBooleanInput('docker-run-use-lld', true)
+  env.setBooleanInput('docker-run-use-lld', false)
   env.setBooleanInput('clear-wheelhouse-dir', true)
   env.setInput(
     'build-script',
     path.join(sourceDir, 'ci/manylinux/build-gcc7.sh')
   )
-  env.setBooleanInput('retry-failed-build', true)
+  env.setBooleanInput('retry-failed-build', false)
   if (cudaVersion === '11.4') {
     env.setBooleanInput('docker-run-use-system-http-proxy', false)
     env.setInput('build-script', path.join(sourceDir, 'ci/manylinux/build.sh'))

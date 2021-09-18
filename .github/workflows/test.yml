@@ -228,7 +228,7 @@ jobs:
           cuda-version: '10.2'
           manylinux-cache-dir: ${{ env.MANYLINUX_CACHE_DIR }}
           docker-run-use-system-http-proxy: false
-          docker-run-use-lld: true
+          docker-run-use-lld: false
           retry-failed-build: true
           python-versions: |
             3.7
@@ -435,7 +435,7 @@ jobs:
         run: |
           docker exec ${{ env.TEST_CONTAINER_NAME }} python3 -m oneflow --doctor
       - name: Run oneflow_testexe
-        if: ${{ !fromJson(matrix.cache-hit) }}
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'misc' }}
         run: |
           chmod +x ${{ steps.download-digest.outputs.entry-dir }}/bin/oneflow_testexe
           docker exec ${{ env.TEST_CONTAINER_NAME }} ${{ steps.download-digest.outputs.entry-dir }}/bin/oneflow_testexe

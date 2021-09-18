@@ -107,7 +107,7 @@ async function getTests(): Promise<EntryInclude[]> {
       for (const test of tests) {
         const digest = await cache.getDigestByType('single-client-test')
         const entry = `${device}-${test}${isDistributed ? '-distributed' : ''}`
-        if (test === 'legacy-model' && isDistributed) continue
+        if (test === 'legacy-model' && device !== 'cuda') continue
         if (test === 'legacy-benchmark' && device !== 'cuda') continue
         if (isDistributed && test !== 'module') continue
         const cacheHit = await cache.isComplete(cache.keyFrom({entry, digest}))
