@@ -283,7 +283,7 @@ export async function ensureCUDA(): Promise<CUDATools | null> {
       cudaVersion,
       cudaSemver: CUDA11_1_1.version
     }
-  } else if (cudaVersion === '11.4') {
+  } else if (cudaVersion === '11.0') {
     const cuda = CUDA11_0_UPDATE_1
     return {
       cudaToolkit: await ensureTool(cuda),
