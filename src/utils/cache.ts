@@ -158,7 +158,7 @@ interface KeyOpts {
 }
 
 export function keyFrom(keyOptions: KeyOpts): string {
-  return [keyOptions.digest, keyOptions.entry].join('/')
+  return ['digest', keyOptions.digest, keyOptions.entry].join('/')
 }
 
 interface CacheResult {
