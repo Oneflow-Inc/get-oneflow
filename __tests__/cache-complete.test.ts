@@ -5,7 +5,6 @@ import os from 'os'
 import * as env from '../src/utils/env'
 import {ok} from 'assert'
 import * as cpExec from '../src/utils/cpExec'
-import {setTestMatrix} from '../src/utils/matrix'
 import {
   checkComplete,
   getOneFlowBuildCacheKeys,
@@ -74,22 +73,6 @@ test(
       np,
       path.join(__dirname, '..', 'lib', 'genBuildMatrix.js')
     )
-  },
-  MINUTES15
-)
-
-test(
-  'cache test matrix',
-  async () => {
-    const np = process.execPath
-    const sourceDir = process.env.ONEFLOW_SRC || '~/oneflow'
-    env.setInput('oneflow-src', sourceDir)
-    env.setMultilineInput('runner-labels', [
-      'self-hosted',
-      'linux',
-      'provision'
-    ])
-    await setTestMatrix()
   },
   MINUTES15
 )
