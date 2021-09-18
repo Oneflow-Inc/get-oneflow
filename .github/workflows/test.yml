@@ -428,6 +428,7 @@ jobs:
       - name: Install OneFlow
         if: ${{ !fromJson(matrix.cache-hit) }}
         run: |
+          ls ${{ steps.download-digest.outputs.entry-dir }}/whl
           docker exec ${TEST_CONTAINER_NAME} python3 -m pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
           docker exec ${TEST_CONTAINER_NAME} python3 -m pip install --find-links=${{ steps.download-digest.outputs.entry-dir }}/whl oneflow
       - name: Run OneFlow doctor
