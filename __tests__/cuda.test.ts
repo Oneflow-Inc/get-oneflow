@@ -22,8 +22,7 @@ const MINUTES15 = 1000 * 60 * 15
 
 async function testOneCUDA(cudaVersion: string): Promise<void> {
   env.setBooleanInput('docker-run-use-system-http-proxy', true) // xla needs it to download nested pkgs
-  process.env['INPUT_CMAKE-INIT-CACHE'] =
-    '~/oneflow/cmake/caches/ci/cuda-xla.cmake'
+  process.env['INPUT_CMAKE-INIT-CACHE'] = '~/oneflow/cmake/caches/ci/cuda.cmake'
   const sourceDir = '~/oneflow'
   process.env['INPUT_ONEFLOW-SRC'] = sourceDir
   process.env[
