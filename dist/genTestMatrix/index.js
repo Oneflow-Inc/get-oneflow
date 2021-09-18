@@ -73399,7 +73399,7 @@ function getComputePlatform(device) {
         case 'cpu':
             return 'cpu';
         case 'cuda':
-            return 'cu114';
+            return 'cu102';
         case 'cuda-xla':
             return 'cu110_xla';
         default:

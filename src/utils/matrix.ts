@@ -38,12 +38,13 @@ function getRunsOn(deviceLabel: RunnerLabel): string[] {
   return runnerLabels.concat([deviceLabel])
 }
 
-function getComputePlatform(device: Device): string {
+type ComputePlatform = 'cpu' | 'cu102' | 'cu110_xla'
+function getComputePlatform(device: Device): ComputePlatform {
   switch (device) {
     case 'cpu':
       return 'cpu'
     case 'cuda':
-      return 'cu114'
+      return 'cu102'
     case 'cuda-xla':
       return 'cu110_xla'
 

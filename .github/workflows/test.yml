@@ -147,7 +147,7 @@ jobs:
             provision
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           entries: |
-            cu114
+            cu102
             cpu
             cu110_xla
 
@@ -215,8 +215,8 @@ jobs:
           python-versions: |
             3.6
       - uses: ./
-        name: Build manylinux cu114
-        if: ${{ matrix.entry =='cu114' && !matrix.cache-hit }}
+        name: Build manylinux cu102
+        if: ${{ matrix.entry =='cu102' && !matrix.cache-hit }}
         with:
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/ci/cuda.cmake
           build-script: ${{ env.ONEFLOW_SRC }}/ci/manylinux/build.sh
@@ -285,7 +285,7 @@ jobs:
       fail-fast: false
       max-parallel: 5
       matrix:
-        entry: ['cu110_xla', 'cu114', 'cpu']
+        entry: ['cu110_xla', 'cu102', 'cpu']
     env:
       ONEFLOW_SRC: oneflow-src
     steps:
