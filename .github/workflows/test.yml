@@ -346,6 +346,7 @@ jobs:
       ONEFLOW_SRC: oneflow-src
       TEST_CONTAINER_NAME: 'pr-${{ github.event.pull_request.number }}-run-id-${{ github.run_id }}-${{ matrix.entry }}-test'
       TEST_WITH_TF_IMG_TAG: registry.cn-beijing.aliyuncs.com/oneflow/test-with-tf-2.4.0:b8b5eb2bdee6928fefd61ccabf8fb2d680835aeb
+      TEST_WITH_TORCH_IMG_TAG: registry.cn-beijing.aliyuncs.com/oneflow/test-with-pytorch-1.9.0:0.1
       PIP_INDEX_URL: 'http://192.168.1.22:8000'
       PIP_INDEX_TRUST_ARGS: '--trusted-host 192.168.1.22'
       SSH_TANK_HOST: 192.168.1.23
@@ -398,6 +399,7 @@ jobs:
           ONEFLOW_BIN_PATH: ${{ steps.download-digest.outputs.entry-dir }}/bin
         run: |
           docker run -d --privileged --network host --shm-size=8g \
+            --cap-add=SYS_PTRACE --security-opt seccomp=unconfined \
             -v /dataset:/dataset:ro -v /model_zoo:/model_zoo:ro \
             -v ${ONEFLOW_WHEEL_PATH}:${ONEFLOW_WHEEL_PATH}:ro \
             -v ${ONEFLOW_BIN_PATH}:${ONEFLOW_BIN_PATH}:ro \
