@@ -26,26 +26,23 @@ export async function uploadByDigest(): Promise<void> {
     // TODO: check the directory doesn't exist
     const failed: string[] = []
     const successful: string[] = []
-    const isSuccessful = await ssh.putDirectory(
-      srcDir,
-      path.join(getEntryDir(sshTankPath, digest, entry), dstDir),
-      {
-        recursive: true,
-        concurrency: 10,
-        tick(localPath, remotePath, error) {
-          if (error) {
-            failed.push(localPath)
-          } else {
-            successful.push(localPath)
-          }
+    const tankDst = path.join(getEntryDir(sshTankPath, digest, entry), dstDir)
+    const isSuccessful = await ssh.putDirectory(srcDir, tankDst, {
+      recursive: true,
+      concurrency: 10,
+      tick(localPath, remotePath, error) {
+        if (error) {
+          failed.push(localPath)
+        } else {
+          successful.push(localPath)
         }
       }
-    )
+    })
     failed.map(core.setFailed)
-    core.info(`[to] ${sshTankPath}`)
+    core.info(`[to] ${tankDst}`)
     successful.map(core.info)
     if (!isSuccessful) {
-      throw new Error(`failed to upload to: ${sshTankPath}`)
+      throw new Error(`failed to upload to: ${tankDst}`)
       // TODO: remove the directory
     }
   } finally {
