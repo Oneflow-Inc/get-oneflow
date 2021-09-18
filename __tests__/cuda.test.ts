@@ -29,7 +29,7 @@ async function testOneCUDA(cudaVersion: string): Promise<void> {
     'INPUT_MANYLINUX-CACHE-DIR'
   ] = '~/manylinux-cache-dirs/unittest-'.concat(cudaVersion)
   process.env['INPUT_WHEELHOUSE-DIR'] = '~/manylinux-wheelhouse'
-  process.env['INPUT_PYTHON-VERSIONS'] = '3.6'
+  process.env['INPUT_PYTHON-VERSIONS'] = '3.8'
   env.setInput('self-hosted', 'true')
   env.setInput('cuda-version', cudaVersion)
   env.setBooleanInput('docker-run-use-lld', false)
