@@ -436,6 +436,7 @@ jobs:
       - name: Run oneflow_testexe
         if: ${{ !fromJson(matrix.cache-hit) }}
         run: |
+          chmod +x ${{ steps.download-digest.outputs.entry-dir }}/bin/oneflow_testexe
           docker exec ${{ env.TEST_CONTAINER_NAME }} ${{ steps.download-digest.outputs.entry-dir }}/bin/oneflow_testexe
       - name: Remove container
         timeout-minutes: 45
