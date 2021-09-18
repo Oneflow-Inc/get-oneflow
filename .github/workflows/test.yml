@@ -391,6 +391,14 @@ jobs:
           entry: ${{ matrix.compute-platform }}
           ssh-tank-host: ${{ env.SSH_TANK_HOST }}
           ssh-tank-path: ${{ env.SSH_TANK_PATH }}
+      - name: Set tf container
+        if: ${{ fromJSON(matrix.is-single-client) }}
+        run: |
+          echo "TEST_IMG_TAG=${TEST_WITH_TF_IMG_TAG}" >> $GITHUB_ENV
+      - name: Set pytorch container
+        if: ${{ !fromJSON(matrix.is-single-client) }}
+        run: |
+          echo "TEST_IMG_TAG=${TEST_WITH_TORCH_IMG_TAG}" >> $GITHUB_ENV
       - name: Start container
         if: ${{ !fromJson(matrix.cache-hit) }}
         working-directory: ${{ env.ONEFLOW_SRC }}
@@ -410,7 +418,7 @@ jobs:
             -v $PWD:$PWD \
             -w $PWD \
             --name ${{ env.TEST_CONTAINER_NAME }} \
-            ${TEST_WITH_TF_IMG_TAG} \
+            ${TEST_IMG_TAG} \
             sleep 3600
       - name: Test container
         if: ${{ !fromJson(matrix.cache-hit) }}
