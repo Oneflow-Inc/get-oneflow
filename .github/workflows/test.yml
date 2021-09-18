@@ -104,7 +104,7 @@ jobs:
         name: Test conda on gh-hosted
         if: ${{ contains(matrix.os, 'ubuntu-latest') }}
         with:
-          cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/cn/fast/cpu-clang.cmake
+          cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/ci/gh-hosted/cpu-clang.cmake
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           oneflow-build-env: conda
           conda-env-file: conda-env/dev/clang10/environment-v2.yml
