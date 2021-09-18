@@ -213,6 +213,7 @@ jobs:
           docker-run-use-lld: true
           retry-failed-build: true
           python-versions: |
+            3.6
             3.7
       - uses: ./
         name: Build manylinux cu102
@@ -231,6 +232,7 @@ jobs:
           docker-run-use-lld: false
           retry-failed-build: true
           python-versions: |
+            3.6
             3.7
       - uses: ./
         name: Build manylinux cu110_xla
