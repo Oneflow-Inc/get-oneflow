@@ -386,7 +386,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
   } catch (error) {
     const retryFailedBuild = core.getBooleanInput('retry-failed-build')
     if (retryFailedBuild) {
-      core.info('Retry Build and Make Wheel.')
+      core.warning('Retry Build and Make Wheel.')
       await killContainer(docker, containerName)
       await buildAndMakeWheel(createOptions, docker, buildDir, true)
     } else {
