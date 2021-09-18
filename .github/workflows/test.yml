@@ -71,7 +71,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
-      max-parallel: 3
+      max-parallel: 5
       matrix:
         os: [['self-hosted', 'linux', 'provision'], [ubuntu-latest]]
         docker-run-use-system-http-proxy: [false]
