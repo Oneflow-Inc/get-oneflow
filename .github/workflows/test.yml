@@ -73,11 +73,10 @@ jobs:
       fail-fast: false
       max-parallel: 3
       matrix:
-        oneflow-build-env: ['conda', 'manylinux']
         os: [['self-hosted', 'linux', 'provision'], [ubuntu-latest]]
         docker-run-use-system-http-proxy: [false]
     env:
-      ONEFLOW_SRC: oneflow-src-${{ matrix.oneflow-build-env }}
+      ONEFLOW_SRC: oneflow-src
     steps:
       - name: Fix permissions
         if: ${{ contains(matrix.os, 'self-hosted') }}
@@ -103,7 +102,7 @@ jobs:
           path: conda-env
       - uses: ./
         name: Test conda on gh-hosted
-        if: ${{ contains(matrix.os, 'ubuntu-latest') && matrix.oneflow-build-env == 'conda'}}
+        if: ${{ contains(matrix.os, 'ubuntu-latest') }}
         with:
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/cn/fast/cpu-clang.cmake
           oneflow-src: ${{ env.ONEFLOW_SRC }}
@@ -112,7 +111,7 @@ jobs:
           conda-env-name: oneflow-dev-clang10-v2
       - uses: ./
         name: Test conda on self-hosted
-        if: ${{ contains(matrix.os, 'self-hosted') && matrix.oneflow-build-env == 'conda'}}
+        if: ${{ contains(matrix.os, 'self-hosted') }}
         with:
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/cn/fast/cpu-clang.cmake
           oneflow-src: ${{ env.ONEFLOW_SRC }}
