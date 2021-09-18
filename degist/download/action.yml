@@ -24,7 +24,7 @@ outputs:
     description: ''
 
 runs:
-  using: 'node12'
+  using: 'node14'
   main: '../../dist/downloadByDigest/index.js'
 branding:
   icon: 'archive'

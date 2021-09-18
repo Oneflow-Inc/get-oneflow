@@ -15,7 +15,7 @@ outputs:
     description: 'if cache found, will generate a [ubuntu-latest], in JSON'
 
 runs:
-  using: 'node12'
+  using: 'node14'
   main: '../../../dist/genBuildMatrix/index.js'
 branding:
   icon: 'archive'
