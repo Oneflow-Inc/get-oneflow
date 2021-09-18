@@ -30,7 +30,7 @@ outputs:
     description: ''
 
 runs:
-  using: 'node14'
+  using: 'node12'
   main: '../dist/cacheComplete/index.js'
   post: '../dist/postCacheComplete/index.js'
   post-if: success()

@@ -22,7 +22,7 @@ inputs:
     default: '/tank'
 
 runs:
-  using: 'node14'
+  using: 'node12'
   main: '../../dist/uploadByDigest/index.js'
 branding:
   icon: 'archive'

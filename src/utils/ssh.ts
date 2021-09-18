@@ -63,7 +63,7 @@ export async function downloadByDigest(): Promise<void> {
   if (!fs.existsSync(digestDir)) {
     // remove all if it is a different digestDir
     if (fs.existsSync(cacheDir)) {
-      fs.rmSync(cacheDir, {recursive: true, force: true})
+      fs.rmdirSync(cacheDir, {recursive: true})
     }
     fs.mkdirSync(digestDir, {recursive: true})
   }
