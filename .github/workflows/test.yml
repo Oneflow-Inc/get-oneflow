@@ -401,8 +401,8 @@ jobs:
             -v /dataset:/dataset:ro -v /model_zoo:/model_zoo:ro \
             -v ${ONEFLOW_WHEEL_PATH}:${ONEFLOW_WHEEL_PATH}:ro \
             -v ${ONEFLOW_BIN_PATH}:${ONEFLOW_BIN_PATH}:ro \
-            -v $HOME/test-docker-cache/dot-local:/root/.local \
-            -v $HOME/test-docker-cache/dot-cache:/root/.cache \
+            -v $HOME/test-container-cache/dot-local:/root/.local \
+            -v $HOME/test-container-cache/dot-cache:/root/.cache \
             -e ONEFLOW_WHEEL_PATH=${ONEFLOW_WHEEL_PATH} \
             -e ONEFLOW_BIN_PATH=${ONEFLOW_BIN_PATH} \
             -v $PWD:$PWD \
