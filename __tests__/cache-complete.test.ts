@@ -25,7 +25,7 @@ test(
     const np = process.execPath
     const sourceDir = process.env.ONEFLOW_SRC || '~/oneflow'
     env.setInput('oneflow-src', sourceDir)
-    const ENTRY = 'test'
+    const ENTRY = 'jest-test'
     env.setInput('entry', ENTRY)
     env.setInput('digest-type', 'build')
     const keys = await getOneFlowBuildCacheKeys(ENTRY)
