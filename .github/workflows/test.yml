@@ -213,7 +213,7 @@ jobs:
           docker-run-use-lld: true
           retry-failed-build: true
           python-versions: |
-            3.6
+            3.7
       - uses: ./
         name: Build manylinux cu102
         if: ${{ matrix.entry =='cu102' && !matrix.cache-hit }}
@@ -231,10 +231,7 @@ jobs:
           docker-run-use-lld: true
           retry-failed-build: true
           python-versions: |
-            3.6
             3.7
-            3.8
-            3.9
       - uses: ./
         name: Build manylinux cu110_xla
         if: ${{ matrix.entry =='cu110_xla' && !matrix.cache-hit }}
@@ -253,9 +250,6 @@ jobs:
           retry-failed-build: true
           python-versions: |
             3.6
-            3.7
-            3.8
-            3.9
       - name: Upload bin
         if: ${{ !fromJson(matrix.cache-hit) }}
         uses: ./degist/upload
