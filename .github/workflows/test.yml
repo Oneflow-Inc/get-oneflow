@@ -414,6 +414,10 @@ jobs:
             --name ${{ env.TEST_CONTAINER_NAME }} \
             ${TEST_WITH_TF_IMG_TAG} \
             sleep 3600
+      - name: Test container
+        if: ${{ !fromJson(matrix.cache-hit) }}
+        run: |
+          docker exec ${{ env.TEST_CONTAINER_NAME }} ls
       - name: Install OneFlow
         if: ${{ !fromJson(matrix.cache-hit) }}
         run: |
