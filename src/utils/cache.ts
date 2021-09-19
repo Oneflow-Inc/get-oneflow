@@ -71,7 +71,7 @@ export async function getOneFlowSrcDigest(
 ): Promise<string> {
   const oneflowSrc: string = getPathInput('oneflow-src', {required: true})
   // TODO: alternative function for test jobs
-  const patterns = [
+  let patterns = [
     'oneflow/core/**/*.h',
     'oneflow/core/**/*.hpp',
     'oneflow/core/**/*.cpp',
@@ -98,7 +98,9 @@ export async function getOneFlowSrcDigest(
     'python/oneflow/core/**',
     'python/oneflow/version.py'
   ].map(x => '!'.concat(path.join(oneflowSrc, x)))
-  if (!opts.includeTests) {
+  if (opts.includeTests) {
+    patterns = patterns.concat(['docs/**/*.rst'])
+  } else {
     excludePatterns = excludePatterns.concat(['python/oneflow/test/**'])
   }
   if (!opts.includeSingleClient) {
