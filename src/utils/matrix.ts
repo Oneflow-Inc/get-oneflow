@@ -9,8 +9,6 @@ type Test =
   | 'legacy-model'
   | 'module'
   | 'dataloader'
-  | 'tensor'
-  | 'graph'
   | 'misc'
   | 'do-nothing'
 
