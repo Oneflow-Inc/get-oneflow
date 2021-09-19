@@ -70,7 +70,29 @@ export async function getOneFlowSrcDigest(
   opts: OneFlowSrcDigestOpts
 ): Promise<string> {
   const oneflowSrc: string = getPathInput('oneflow-src', {required: true})
+  const ghWorkspace = process.env.GITHUB_WORKSPACE
+  process.env.GITHUB_WORKSPACE = oneflowSrc
   // TODO: alternative function for test jobs
+  const {patterns, excludePatterns} = getPatterns(oneflowSrc, opts)
+  for (const pattern of patterns) {
+    const globber = await glob.create(pattern)
+    const files = await globber.glob()
+    ok(files.length > 0, `no files found: ${pattern}`)
+  }
+  core.info(`[hash] ${JSON.stringify(opts, null, 2)}`)
+  const finalPatterns = patterns.concat(excludePatterns).join('\n')
+  const srcHash = await glob.hashFiles(finalPatterns)
+  process.env.GITHUB_WORKSPACE = ghWorkspace
+  core.info(finalPatterns)
+  return srcHash
+}
+
+const DIGEST_CACHE: {[name: string]: string} = {}
+
+export function getPatterns(
+  oneflowSrc: string,
+  opts: OneFlowSrcDigestOpts
+): {patterns: string[]; excludePatterns: string[]} {
   let patterns = [
     'oneflow/core/**/*.h',
     'oneflow/core/**/*.hpp',
@@ -85,19 +107,13 @@ export async function getOneFlowSrcDigest(
     'tools/functional/**/*.py',
     'cmake/**/*.cmake',
     'python/oneflow/**/*.py'
-  ].map(x => path.join(oneflowSrc, x))
-  const ghWorkspace = process.env.GITHUB_WORKSPACE
-  process.env.GITHUB_WORKSPACE = oneflowSrc
-  for (const pattern of patterns) {
-    const globber = await glob.create(pattern)
-    const files = await globber.glob()
-    ok(files.length > 0, pattern)
-  }
+  ]
+
   let excludePatterns = [
     'python/oneflow/include/**',
     'python/oneflow/core/**',
     'python/oneflow/version.py'
-  ].map(x => '!'.concat(path.join(oneflowSrc, x)))
+  ]
   if (opts.includeTests) {
     patterns = patterns.concat([
       'docs/**/*.rst',
@@ -106,21 +122,22 @@ export async function getOneFlowSrcDigest(
       'docs/Makefile'
     ])
   } else {
-    excludePatterns = excludePatterns.concat(['python/oneflow/test/**'])
+    excludePatterns = excludePatterns.concat([
+      'python/oneflow/test/**',
+      'python/oneflow/compatible/single_client/test/**'
+    ])
   }
   if (!opts.includeSingleClient) {
     excludePatterns = excludePatterns.concat([
       'python/oneflow/compatible/single_client/**'
     ])
   }
-  const srcHash = await glob.hashFiles(
-    patterns.concat(excludePatterns).join('\n')
+  excludePatterns = excludePatterns.map(x =>
+    '!'.concat(path.join(oneflowSrc, x))
   )
-  process.env.GITHUB_WORKSPACE = ghWorkspace
-  return srcHash
+  patterns = patterns.map(x => path.join(oneflowSrc, x))
+  return {patterns, excludePatterns}
 }
-
-const DIGEST_CACHE: {[name: string]: string} = {}
 
 export async function getDigestByType(
   digestType: 'test' | 'build' | 'single-client-test'
