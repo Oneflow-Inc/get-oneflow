@@ -32,6 +32,7 @@ export async function uploadByDigest(): Promise<void> {
       concurrency: 10,
       tick(localPath, remotePath, error) {
         if (error) {
+          core.setFailed(error)
           failed.push(localPath)
         } else {
           successful.push(localPath)
