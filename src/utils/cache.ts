@@ -74,11 +74,13 @@ export async function getOneFlowSrcDigest(
   process.env.GITHUB_WORKSPACE = oneflowSrc
   // TODO: alternative function for test jobs
   const {patterns, excludePatterns} = getPatterns(oneflowSrc, opts)
-  for (const pattern of patterns) {
-    const globber = await glob.create(pattern)
-    const files = await globber.glob()
-    ok(files.length > 0, `no files found: ${pattern}`)
-  }
+  await Promise.all(
+    patterns.map(async (pattern: string) => {
+      const globber = await glob.create(pattern)
+      const files = await globber.glob()
+      ok(files.length > 0, `no files found: ${pattern}`)
+    })
+  )
   core.info(`[hash] ${JSON.stringify(opts, null, 2)}`)
   const finalPatterns = patterns.concat(excludePatterns).join('\n')
   const srcHash = await glob.hashFiles(finalPatterns)
