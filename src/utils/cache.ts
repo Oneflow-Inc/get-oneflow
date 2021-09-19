@@ -3,6 +3,7 @@ import * as core from '@actions/core'
 import path from 'path'
 import {getPathInput} from './util'
 import * as glob from '@actions/glob'
+import * as gh from '@actions/github'
 import {ok} from 'assert'
 
 function ciCacheBucketStore(): OSS {
@@ -158,7 +159,14 @@ interface KeyOpts {
 }
 
 export function keyFrom(keyOptions: KeyOpts): string {
-  return ['digest', keyOptions.digest, keyOptions.entry].join('/')
+  gh.context.repo.repo
+  return [
+    'digest',
+    gh.context.repo.owner,
+    gh.context.repo.repo,
+    keyOptions.digest,
+    keyOptions.entry
+  ].join('/')
 }
 
 interface CacheResult {

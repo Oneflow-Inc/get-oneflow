@@ -79,6 +79,7 @@ async function getSingleClientOpTests(): Promise<EntryInclude[]> {
         if (test === 'legacy-model' && device !== 'cuda') continue
         if (test === 'legacy-benchmark' && device !== 'cuda') continue
         if (isDistributed && test !== 'legacy-op') continue
+        if (isDistributed && device !== 'cuda') continue
         const cacheHit = await cache.isComplete(cache.keyFrom({entry, digest}))
         if (cacheHit) continue
         includes.push({
