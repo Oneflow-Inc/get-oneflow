@@ -99,7 +99,12 @@ export async function getOneFlowSrcDigest(
     'python/oneflow/version.py'
   ].map(x => '!'.concat(path.join(oneflowSrc, x)))
   if (opts.includeTests) {
-    patterns = patterns.concat(['docs/**/*.rst'])
+    patterns = patterns.concat([
+      'docs/**/*.rst',
+      'docs/**/*.py',
+      'docs/**/*.txt',
+      'docs/Makefile'
+    ])
   } else {
     excludePatterns = excludePatterns.concat(['python/oneflow/test/**'])
   }
