@@ -109,6 +109,7 @@ async function getTests(): Promise<EntryInclude[]> {
         const digest = await cache.getDigestByType('single-client-test')
         const entry = `${device}-${test}${isDistributed ? '-distributed' : ''}`
         if (isDistributed && test !== 'module') continue
+        if (isDistributed && device !== 'cuda') continue
         const cacheHit = await cache.isComplete(cache.keyFrom({entry, digest}))
         if (cacheHit) continue
         includes.push({
