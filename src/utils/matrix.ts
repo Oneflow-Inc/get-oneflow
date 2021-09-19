@@ -8,7 +8,6 @@ type Test =
   | 'legacy-op'
   | 'legacy-model'
   | 'module'
-  | 'dataloader'
   | 'misc'
   | 'do-nothing'
 
@@ -102,7 +101,7 @@ async function getSingleClientOpTests(): Promise<EntryInclude[]> {
 async function getTests(): Promise<EntryInclude[]> {
   const includes: EntryInclude[] = []
   const devices: Device[] = ['cuda', 'cpu']
-  const tests: Test[] = ['module', 'dataloader', 'misc']
+  const tests: Test[] = ['module', 'misc']
   for (const device of devices) {
     for (const isDistributed of [true, false]) {
       for (const test of tests) {
