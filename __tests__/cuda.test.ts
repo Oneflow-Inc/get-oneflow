@@ -18,7 +18,7 @@ process.env['RUNNER_TOOL_CACHE'] = '~/runner_tool_cache'.replace(
   os.homedir
 )
 process.env['RUNNER_TEMP'] = '~/runner_temp'.replace('~', os.homedir)
-const MINUTES15 = 1000 * 60 * 15
+const MINUTES30 = 1000 * 60 * 30
 
 async function testOneCUDA(cudaVersion: string): Promise<void> {
   env.setBooleanInput('docker-run-use-system-http-proxy', true) // xla needs it to download nested pkgs
@@ -29,7 +29,7 @@ async function testOneCUDA(cudaVersion: string): Promise<void> {
     'INPUT_MANYLINUX-CACHE-DIR'
   ] = '~/manylinux-cache-dirs/unittest-'.concat(cudaVersion)
   process.env['INPUT_WHEELHOUSE-DIR'] = '~/manylinux-wheelhouse'
-  process.env['INPUT_PYTHON-VERSIONS'] = '3.8'
+  env.setMultilineInput('python-versions', ['3.6', '3.7', '3.8'])
   env.setInput('self-hosted', 'true')
   env.setInput('cuda-version', cudaVersion)
   env.setBooleanInput('docker-run-use-lld', false)
@@ -60,5 +60,5 @@ test(
   async () => {
     await testOneCUDA('10.2')
   },
-  MINUTES15
+  MINUTES30
 )
