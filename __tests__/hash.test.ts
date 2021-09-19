@@ -1,11 +1,10 @@
 import * as process from 'process'
-import * as path from 'path'
 import {test} from '@jest/globals'
 import os from 'os'
 import * as env from '../src/utils/env'
-import {ok} from 'assert'
-import * as cpExec from '../src/utils/cpExec'
 import * as cache from '../src/utils/cache'
+import * as glob from '@actions/glob'
+import {ok} from 'assert'
 
 process.env['RUNNER_TOOL_CACHE'] = '~/runner_tool_cache'.replace(
   '~',
@@ -21,9 +20,10 @@ test(
   'cache complete',
   async () => {
     const np = process.execPath
-    const sourceDir = process.env.ONEFLOW_SRC || '~/oneflow'
-    env.setInput('oneflow-src', sourceDir)
+    const oneflowSrc = process.env.ONEFLOW_SRC || '~/oneflow'
+    env.setInput('oneflow-src', oneflowSrc)
     const ENTRY = 'jest-test'
+    process.env.GITHUB_WORKSPACE = oneflowSrc
     env.setInput('entry', ENTRY)
     env.setInput('digest-type', 'build')
     env.setBooleanInput('mark-as-completed', true)
@@ -33,10 +33,16 @@ test(
       'linux',
       'provision'
     ])
-    const hash = await cache.getOneFlowSrcDigest({
+    const {patterns, excludePatterns} = cache.getPatterns(oneflowSrc, {
       includeTests: false,
       includeSingleClient: false
     })
+    const finalPatterns = patterns.concat(excludePatterns).join('\n')
+    const globber = await glob.create(finalPatterns)
+    const files = await globber.glob()
+    for (const f of files) {
+      ok(!f.includes('python/oneflow/test/'))
+    }
   },
   MINUTES15
 )
