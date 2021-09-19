@@ -385,7 +385,7 @@ jobs:
           echo "::error file=test.yml,line=204,col=10::steps.save-cache.outputs.cache-hit != matrix.cache-hit"
           exit 1
       - name: Download wheel and binary
-        if: ${{ !fromJson(matrix.cache-hit) }}
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type != do-nothing }}
         uses: ./degist/download
         id: download-digest
         with:
