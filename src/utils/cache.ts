@@ -149,7 +149,7 @@ export async function getDigestByType(
   switch (digestType) {
     case 'build':
       DIGEST_CACHE[digestType] = await getOneFlowSrcDigest({
-        includeSingleClient: false,
+        includeSingleClient: true,
         includeTests: false
       })
       break
