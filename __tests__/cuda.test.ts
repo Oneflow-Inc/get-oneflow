@@ -29,7 +29,7 @@ async function testOneCUDA(cudaVersion: string): Promise<void> {
     'INPUT_MANYLINUX-CACHE-DIR'
   ] = '~/manylinux-cache-dirs/unittest-'.concat(cudaVersion)
   process.env['INPUT_WHEELHOUSE-DIR'] = '~/manylinux-wheelhouse'
-  env.setMultilineInput('python-versions', ['3.6', '3.7', '3.8'])
+  env.setMultilineInput('python-versions', ['3.7', '3.8'])
   env.setInput('self-hosted', 'true')
   env.setInput('cuda-version', cudaVersion)
   env.setBooleanInput('docker-run-use-lld', false)
@@ -46,7 +46,10 @@ async function testOneCUDA(cudaVersion: string): Promise<void> {
   }
   if (cudaVersion === 'none') {
     env.setBooleanInput('docker-run-use-system-http-proxy', false)
-    env.setInput('build-script', path.join(sourceDir, 'ci/manylinux/build.sh'))
+    env.setInput(
+      'build-script',
+      path.join(sourceDir, 'ci/manylinux/build-gcc7.sh')
+    )
     env.setInput('cmake-init-cache', '~/oneflow/cmake/caches/ci/cpu.cmake')
     env.setBooleanInput('docker-run-use-lld', true)
   }
