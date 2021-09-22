@@ -43,6 +43,10 @@ test(
     for (const f of files) {
       ok(!f.includes('python/oneflow/test/'))
     }
+    await cache.getOneFlowSrcDigest({
+      includeTests: true,
+      includeSingleClient: true
+    })
   },
   MINUTES15
 )

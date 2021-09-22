@@ -44,6 +44,12 @@ async function testOneCUDA(cudaVersion: string): Promise<void> {
     env.setInput('build-script', path.join(sourceDir, 'ci/manylinux/build.sh'))
     env.setInput('cmake-init-cache', '~/oneflow/cmake/caches/ci/cuda.cmake')
   }
+  if (cudaVersion === 'none') {
+    env.setBooleanInput('docker-run-use-system-http-proxy', false)
+    env.setInput('build-script', path.join(sourceDir, 'ci/manylinux/build.sh'))
+    env.setInput('cmake-init-cache', '~/oneflow/cmake/caches/ci/cpu.cmake')
+    env.setBooleanInput('docker-run-use-lld', true)
+  }
   const manylinuxVersion = '2014'
   let tag = ''
   const TEST_MANYLINUX = process.env['TEST_MANYLINUX'] || ''
@@ -58,7 +64,8 @@ async function testOneCUDA(cudaVersion: string): Promise<void> {
 test(
   'build manylinux pip',
   async () => {
-    await testOneCUDA('10.2')
+    await testOneCUDA('none')
+    // await testOneCUDA('10.2')
   },
   MINUTES30
 )
