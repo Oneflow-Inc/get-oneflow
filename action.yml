@@ -60,6 +60,10 @@ inputs:
   clear-wheelhouse-dir:
     description: 'clear wheelhouse-dir'
     required: false
+  wheel-audit:
+    description: 'clear wheelhouse-dir'
+    required: false
+    default: true
   build-script:
     description: 'a bash script to build oneflow'
     required: true

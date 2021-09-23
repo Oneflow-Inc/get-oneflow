@@ -249,6 +249,9 @@ async function buildAndMakeWheel(
   shouldCleanBuildDir: Boolean
 ): Promise<void> {
   const shouldSymbolicLinkLld = core.getBooleanInput('docker-run-use-lld')
+  const shouldAuditWheel = core.getBooleanInput('wheel-audit', {
+    required: false
+  })
   const oneflowSrc: string = getPathInput('oneflow-src', {required: true})
   const wheelhouseDir: string = getPathInput('wheelhouse-dir', {required: true})
   const buildScript: string = getPathInput('build-script', {
@@ -291,15 +294,18 @@ async function buildAndMakeWheel(
     await runBash(container, `rm -rf ${path.join(wheelhouseDir, '*')}`)
   }
   ok(whlFiles.length)
-  await Promise.all(
-    whlFiles.map(async (whl: string) =>
-      runExec(
-        container,
-        ['auditwheel', 'repair', whl, '--wheel-dir', wheelhouseDir],
-        {cwd: distDir}
+  // TODO: copy from dist
+  if (shouldAuditWheel) {
+    await Promise.all(
+      whlFiles.map(async (whl: string) =>
+        runExec(
+          container,
+          ['auditwheel', 'repair', whl, '--wheel-dir', wheelhouseDir],
+          {cwd: distDir}
+        )
       )
     )
-  )
+  }
 }
 
 export async function buildOneFlow(tag: string): Promise<void> {

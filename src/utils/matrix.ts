@@ -37,7 +37,7 @@ function getRunsOn(deviceLabel: RunnerLabel): string[] {
   return runnerLabels.concat([deviceLabel])
 }
 
-type ComputePlatform = 'cpu' | 'cu102' | 'cu110_xla'
+type ComputePlatform = 'cpu' | 'cu102' | 'cu110_xla' | 'cu101_xla'
 function getComputePlatform(device: Device): ComputePlatform {
   switch (device) {
     case 'cpu':
@@ -45,7 +45,7 @@ function getComputePlatform(device: Device): ComputePlatform {
     case 'cuda':
       return 'cu102'
     case 'cuda-xla':
-      return 'cu110_xla'
+      return 'cu101_xla'
 
     default:
       throw new Error(device)

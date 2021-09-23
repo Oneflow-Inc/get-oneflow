@@ -37,7 +37,7 @@ test(
       'pr/test-commit/test-build-type',
       'Digest/test-hash/test-build-type'
     ])
-    env.setInput('entry', 'cu110_xla')
+    env.setInput('entry', 'cu101_xla')
     await ssh.uploadByDigest()
     await ssh.downloadByDigest()
   },

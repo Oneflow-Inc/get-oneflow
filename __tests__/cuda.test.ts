@@ -20,7 +20,7 @@ process.env['RUNNER_TOOL_CACHE'] = '~/runner_tool_cache'.replace(
 )
 process.env['RUNNER_TEMP'] = '~/runner_temp'.replace('~', os.homedir)
 const MINUTES30 = 1000 * 60 * 30
-type TestCudaVersion = '11.4' | '11.0' | '10.2' | 'none'
+type TestCudaVersion = '11.4' | '11.0' | '10.2' | '10.1' | 'none'
 async function testOneCUDA(
   cudaVersion: TestCudaVersion,
   withXLA: Boolean
@@ -31,6 +31,7 @@ async function testOneCUDA(
   process.env['INPUT_WHEELHOUSE-DIR'] = '~/manylinux-wheelhouse'
   if (withXLA) {
     ok(cudaVersion !== 'none')
+    env.setBooleanInput('wheel-audit', true)
     env.setInput(
       'cmake-init-cache',
       path.join(sourceDir, 'cmake/caches/ci/cuda-xla.cmake')
@@ -54,7 +55,7 @@ async function testOneCUDA(
   process.env[
     'INPUT_MANYLINUX-CACHE-DIR'
   ] = '~/manylinux-cache-dirs/unittest-'.concat(cudaVersion)
-  env.setMultilineInput('python-versions', ['3.6', '3.8'])
+  env.setMultilineInput('python-versions', ['3.6'])
   env.setInput('self-hosted', 'true')
   env.setInput('cuda-version', cudaVersion)
   env.setBooleanInput('docker-run-use-lld', false)
@@ -81,7 +82,7 @@ test(
   async () => {
     // await testOneCUDA('none', false)
     // await testOneCUDA('10.2')
-    await testOneCUDA('11.0', true)
+    await testOneCUDA('10.1', true)
   },
   MINUTES30
 )

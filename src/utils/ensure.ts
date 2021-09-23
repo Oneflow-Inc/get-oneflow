@@ -24,6 +24,14 @@ export const LLVM12 = {
   dirName: 'clang+llvm-12.0.1-x86_64-linux-gnu-ubuntu-16.04'
 }
 
+export const CUDA101 = {
+  name: 'cuda-toolkit',
+  url:
+    'https://developer.download.nvidia.com/compute/cuda/10.1/Prod/local_installers/cuda_10.1.243_418.87.00_linux.run',
+  version: '10.1.243',
+  dirName: ''
+}
+
 export const CUDA102 = {
   name: 'cuda-toolkit',
   url:
@@ -95,14 +103,8 @@ export const TOOLS: Tool[] = [
     version: '11.4.1',
     dirName: 'cuda_11.4.1_470.57.02_linux'
   },
+  CUDA101,
   CUDA102,
-  {
-    name: 'cuda-toolkit',
-    url:
-      'https://developer.download.nvidia.com/compute/cuda/10.1/Prod/local_installers/cuda_10.1.243_418.87.00_linux.run',
-    version: '10.1.243',
-    dirName: 'cuda_10.1.243_418.87.00_linux'
-  },
   CUDNN102,
   CUDA11_0_UPDATE_1
 ]
@@ -194,7 +196,13 @@ export async function ensureTool(tool: Tool): Promise<string> {
     if (!archivePath) {
       core.info(`[not-found] ${archiveName}`)
       const allArchiveVersions = tc.findAllVersions(archiveName)
-      core.info(`[all-versions] ${JSON.stringify(allArchiveVersions, null, 2)}`)
+      core.info(
+        `[all-versions] [${tool.name}] ${JSON.stringify(
+          allArchiveVersions,
+          null,
+          2
+        )}`
+      )
       const downloaded = await tc.downloadTool(downloadURL)
       const archivePathCached = await tc.cacheFile(
         downloaded,
@@ -269,7 +277,14 @@ interface CUDATools {
 
 export async function ensureCUDA(): Promise<CUDATools | null> {
   const cudaVersion: string = core.getInput('cuda-version', {required: false})
-  if (cudaVersion === '10.2') {
+  if (cudaVersion === '10.1') {
+    return {
+      cudaToolkit: await ensureTool(CUDA101),
+      cudnn: await ensureTool(CUDNN102),
+      cudaVersion,
+      cudaSemver: CUDA101.version
+    }
+  } else if (cudaVersion === '10.2') {
     return {
       cudaToolkit: await ensureTool(CUDA102),
       cudnn: await ensureTool(CUDNN102),
@@ -293,7 +308,7 @@ export async function ensureCUDA(): Promise<CUDATools | null> {
     }
   } else {
     if (parseInt(cudaVersion)) {
-      throw new Error(`unsupported cudaVersion: ${cudaVersion}`)
+      throw new Error(`unsupported cuda version: ${cudaVersion}`)
     }
     return null
   }
