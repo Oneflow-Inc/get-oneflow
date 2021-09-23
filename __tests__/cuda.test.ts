@@ -8,6 +8,7 @@ import {
   ensureDocker,
   buildOneFlow
 } from '../src/utils/docker'
+import * as core from '@actions/core'
 import {TOOLS, mirrorToDownloads, ensureCUDA102} from '../src/utils/ensure'
 import * as env from '../src/utils/env'
 import {ok} from 'assert'
@@ -19,26 +20,22 @@ process.env['RUNNER_TOOL_CACHE'] = '~/runner_tool_cache'.replace(
 )
 process.env['RUNNER_TEMP'] = '~/runner_temp'.replace('~', os.homedir)
 const MINUTES30 = 1000 * 60 * 30
-
-async function testOneCUDA(cudaVersion: string): Promise<void> {
+type TestCudaVersion = '11.4' | '11.0' | '10.2' | 'none'
+async function testOneCUDA(
+  cudaVersion: TestCudaVersion,
+  withXLA: Boolean
+): Promise<void> {
   env.setBooleanInput('docker-run-use-system-http-proxy', true) // xla needs it to download nested pkgs
   process.env['INPUT_CMAKE-INIT-CACHE'] = '~/oneflow/cmake/caches/ci/cuda.cmake'
   const sourceDir = '~/oneflow'
-  process.env['INPUT_ONEFLOW-SRC'] = sourceDir
-  process.env[
-    'INPUT_MANYLINUX-CACHE-DIR'
-  ] = '~/manylinux-cache-dirs/unittest-'.concat(cudaVersion)
   process.env['INPUT_WHEELHOUSE-DIR'] = '~/manylinux-wheelhouse'
-  env.setMultilineInput('python-versions', ['3.7', '3.8'])
-  env.setInput('self-hosted', 'true')
-  env.setInput('cuda-version', cudaVersion)
-  env.setBooleanInput('docker-run-use-lld', false)
-  env.setBooleanInput('clear-wheelhouse-dir', true)
-  env.setInput(
-    'build-script',
-    path.join(sourceDir, 'ci/manylinux/build-gcc7.sh')
-  )
-  env.setBooleanInput('retry-failed-build', false)
+  if (withXLA) {
+    ok(cudaVersion !== 'none')
+    env.setInput(
+      'cmake-init-cache',
+      path.join(sourceDir, 'cmake/caches/ci/cuda-xla.cmake')
+    )
+  }
   if (cudaVersion === '11.4') {
     env.setBooleanInput('docker-run-use-system-http-proxy', false)
     env.setInput('build-script', path.join(sourceDir, 'ci/manylinux/build.sh'))
@@ -53,6 +50,20 @@ async function testOneCUDA(cudaVersion: string): Promise<void> {
     env.setInput('cmake-init-cache', '~/oneflow/cmake/caches/ci/cpu.cmake')
     env.setBooleanInput('docker-run-use-lld', true)
   }
+  process.env['INPUT_ONEFLOW-SRC'] = sourceDir
+  process.env[
+    'INPUT_MANYLINUX-CACHE-DIR'
+  ] = '~/manylinux-cache-dirs/unittest-'.concat(cudaVersion)
+  env.setMultilineInput('python-versions', ['3.6', '3.8'])
+  env.setInput('self-hosted', 'true')
+  env.setInput('cuda-version', cudaVersion)
+  env.setBooleanInput('docker-run-use-lld', false)
+  env.setBooleanInput('clear-wheelhouse-dir', true)
+  env.setInput(
+    'build-script',
+    path.join(sourceDir, 'ci/manylinux/build-gcc7.sh')
+  )
+  env.setBooleanInput('retry-failed-build', false)
   const manylinuxVersion = '2014'
   let tag = ''
   const TEST_MANYLINUX = process.env['TEST_MANYLINUX'] || ''
@@ -64,11 +75,13 @@ async function testOneCUDA(cudaVersion: string): Promise<void> {
     await buildOneFlow(tag)
   }
 }
+
 test(
   'build manylinux pip',
   async () => {
-    await testOneCUDA('none')
+    // await testOneCUDA('none', false)
     // await testOneCUDA('10.2')
+    await testOneCUDA('11.0', true)
   },
   MINUTES30
 )
