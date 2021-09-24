@@ -124,6 +124,7 @@ export function getPatterns(
       'docs/**/*.txt',
       'docs/Makefile',
       'ci/test/parallel_run.py',
+      'ci/test/distributed_run.py',
       'ci/test/**/*.sh'
     ])
   } else {
