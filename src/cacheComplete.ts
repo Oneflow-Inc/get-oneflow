@@ -1,5 +1,4 @@
 import * as core from '@actions/core'
-import {ok} from 'assert'
 import * as cache from './utils/cache'
 async function run(): Promise<void> {
   try {
