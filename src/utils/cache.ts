@@ -143,9 +143,8 @@ export function getPatterns(
   return {patterns, excludePatterns}
 }
 
-export async function getDigestByType(
-  digestType: 'test' | 'build' | 'single-client-test'
-): Promise<string> {
+export type DigestType = 'test' | 'build' | 'single-client-test'
+export async function getDigestByType(digestType: DigestType): Promise<string> {
   if (DIGEST_CACHE[digestType]) return DIGEST_CACHE[digestType]
   switch (digestType) {
     case 'build':

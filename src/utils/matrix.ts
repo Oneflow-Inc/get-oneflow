@@ -21,6 +21,7 @@ interface EntryInclude {
   'is-distributed': Boolean
   'is-single-client': Boolean
   'is-xla': Boolean
+  'digest-type': cache.DigestType
 }
 function isXla(device: Device): Boolean {
   return device === 'cuda-xla' || device === 'cpu-xla'
@@ -70,6 +71,7 @@ async function getSingleClientOpTests(): Promise<EntryInclude[]> {
   const includes: EntryInclude[] = []
   const devices: Device[] = ['cuda', 'cpu', 'cuda-xla']
   const tests: Test[] = ['legacy-op', 'legacy-model', 'legacy-benchmark']
+  const digestType = 'single-client-test'
   for (const device of devices) {
     for (const isDistributed of [true, false]) {
       for (const test of tests) {
@@ -91,7 +93,8 @@ async function getSingleClientOpTests(): Promise<EntryInclude[]> {
           'runs-on': getRunsOn(getRunnerLabel(device)),
           'is-distributed': isDistributed,
           'test-type': test,
-          'is-xla': isXla(device)
+          'is-xla': isXla(device),
+          'digest-type': digestType
         })
       }
     }
@@ -103,10 +106,11 @@ async function getTests(): Promise<EntryInclude[]> {
   const includes: EntryInclude[] = []
   const devices: Device[] = ['cuda', 'cpu']
   const tests: Test[] = ['module', 'misc']
+  const digestType = 'test'
   for (const device of devices) {
     for (const isDistributed of [true, false]) {
       for (const test of tests) {
-        const digest = await cache.getDigestByType('single-client-test')
+        const digest = await cache.getDigestByType(digestType)
         const entry = `${device}-${test}${isDistributed ? '-distributed' : ''}`
         if (isDistributed && test !== 'module') continue
         if (isDistributed && device !== 'cuda') continue
@@ -121,7 +125,8 @@ async function getTests(): Promise<EntryInclude[]> {
           'runs-on': getRunsOn(getRunnerLabel(device)),
           'is-distributed': isDistributed,
           'test-type': test,
-          'is-xla': false
+          'is-xla': false,
+          'digest-type': digestType
         })
       }
     }
@@ -154,7 +159,8 @@ export async function setTestMatrix(): Promise<void> {
           'runs-on': 'ubuntu-latest',
           'is-distributed': false,
           'test-type': 'do-nothing',
-          'is-xla': false
+          'is-xla': false,
+          'digest-type': 'test'
         }
       ]
     }
