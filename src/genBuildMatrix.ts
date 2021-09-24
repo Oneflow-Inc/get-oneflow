@@ -1,24 +1,33 @@
 import * as core from '@actions/core'
 import * as cache from './utils/cache'
+import * as matrix from './utils/matrix'
+
+type Include = {
+  entry: matrix.ComputePlatform
+  'cache-hit': boolean
+  'runs-on': 'ubuntu-latest' | string[]
+}
 
 async function run(): Promise<void> {
   try {
-    const entries: string[] = core.getMultilineInput('entries', {
-      required: true
-    })
+    const entries: matrix.ComputePlatform[] = core.getMultilineInput(
+      'entries',
+      {
+        required: true
+      }
+    ) as matrix.ComputePlatform[]
     const runnerLabels: string[] = core.getMultilineInput('runner-labels', {
       required: true
     })
-    interface Matrix {
-      entry: string[]
-      include: unknown[]
-    }
     const buildDigest = await cache.getDigestByType('build')
-    const matrix: Matrix = {entry: entries, include: []}
+    let entryIncludes: Include[] = []
     for (const entry of entries) {
       const keys = [cache.keyFrom({digest: buildDigest, entry})]
       const foundKey = await cache.checkComplete(keys)
-      matrix.include = matrix.include.concat([
+      if (foundKey) {
+        continue
+      }
+      entryIncludes = entryIncludes.concat([
         {
           entry,
           'cache-hit': !!foundKey,
@@ -26,7 +35,15 @@ async function run(): Promise<void> {
         }
       ])
     }
-    core.setOutput('matrix', matrix)
+    if (entryIncludes.length === 0) {
+      entryIncludes = [
+        {entry: 'do-nothing', 'cache-hit': false, 'runs-on': 'ubuntu-latest'}
+      ]
+    }
+    core.setOutput('matrix', {
+      entry: entryIncludes.map(x => x.entry),
+      include: entryIncludes
+    })
     core.info(JSON.stringify(matrix, null, 2))
   } catch (error) {
     core.setFailed(error as Error)
