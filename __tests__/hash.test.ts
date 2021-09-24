@@ -25,7 +25,8 @@ test(
     const ENTRY = 'jest-test'
     process.env.GITHUB_WORKSPACE = oneflowSrc
     env.setInput('entry', ENTRY)
-    env.setInput('digest-type', 'build')
+    // TODO: test multiple types of digest
+    env.setInput('digest-type', 'single-client-test')
     env.setBooleanInput('mark-as-completed', true)
     env.setBooleanInput('check-not-completed', true)
     env.setMultilineInput('runner-labels', [

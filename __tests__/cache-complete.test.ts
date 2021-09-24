@@ -29,7 +29,8 @@ test(
     env.setInput('oneflow-src', sourceDir)
     const ENTRY = 'jest-test'
     env.setInput('entry', ENTRY)
-    env.setInput('digest-type', 'build')
+    // TODO: test multiple types of digest
+    env.setInput('digest-type', 'single-client-test')
     const keys = await getOneFlowBuildCacheKeys(ENTRY)
     env.setBooleanInput('mark-as-completed', true)
     env.setBooleanInput('check-not-completed', true)

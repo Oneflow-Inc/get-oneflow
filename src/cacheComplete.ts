@@ -5,7 +5,6 @@ async function run(): Promise<void> {
   try {
     const entry: string = core.getInput('entry', {required: true})
     const digestType: string = core.getInput('digest-type', {required: true})
-    ok(['build', 'test'].includes(digestType))
     const cacheResult = await cache.queryCache({entry, digestType})
     const buildDigest = cacheResult.buildDigest
     const testDigest = cacheResult.testDigest
