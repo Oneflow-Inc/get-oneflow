@@ -208,15 +208,21 @@ interface QueryOpts {
   digestType: string
 }
 
+// TODO: code is ugly
 export async function queryCache(opts: QueryOpts): Promise<CacheResult> {
   let keys: string[] = []
   const buildDigest = await getDigestByType('build')
-  const testDigest = await getDigestByType('test')
+  let testDigest = ''
   switch (opts.digestType) {
     case 'build':
       keys = keys.concat([keyFrom({digest: buildDigest, entry: opts.entry})])
       break
     case 'test':
+      testDigest = await getDigestByType('test')
+      keys = keys.concat([keyFrom({digest: testDigest, entry: opts.entry})])
+      break
+    case 'single-client-test':
+      testDigest = await getDigestByType('single-client-test')
       keys = keys.concat([keyFrom({digest: testDigest, entry: opts.entry})])
       break
     default:
