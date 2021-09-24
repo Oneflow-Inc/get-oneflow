@@ -170,7 +170,7 @@ export async function getDigestByType(digestType: DigestType): Promise<string> {
     default:
       break
   }
-  ok(DIGEST_CACHE[digestType])
+  ok(DIGEST_CACHE[digestType], `digestType: ${digestType} not found`)
   return DIGEST_CACHE[digestType]
 }
 
@@ -228,7 +228,7 @@ export async function queryCache(opts: QueryOpts): Promise<CacheResult> {
     default:
       throw new Error(`digestType: ${opts.digestType} not supported`)
   }
-  ok(keys.length > 0)
+  ok(keys.length > 0, `keys.length: ${keys.length}`)
   const found = await checkComplete(keys)
   return {
     keys,
