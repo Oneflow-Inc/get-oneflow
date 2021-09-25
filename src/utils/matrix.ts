@@ -9,7 +9,6 @@ type Test =
   | 'legacy-model'
   | 'module'
   | 'misc'
-  | 'do-nothing'
 
 interface EntryInclude {
   entry: string
@@ -38,12 +37,7 @@ function getRunsOn(deviceLabel: RunnerLabel): string[] {
   return runnerLabels.concat([deviceLabel])
 }
 
-export type ComputePlatform =
-  | 'cpu'
-  | 'cu102'
-  | 'cu110_xla'
-  | 'cu101_xla'
-  | 'do-nothing'
+export type ComputePlatform = 'cpu' | 'cu102' | 'cu110_xla' | 'cu101_xla'
 function getComputePlatform(device: Device): ComputePlatform {
   switch (device) {
     case 'cpu':
@@ -88,7 +82,6 @@ async function getSingleClientOpTests(): Promise<EntryInclude[]> {
         if (isDistributed && test !== 'legacy-op') continue
         if (isDistributed && device !== 'cuda') continue
         const cacheHit = await cache.isComplete(cache.keyFrom({entry, digest}))
-        if (cacheHit) continue
         includes.push({
           entry,
           device,
@@ -120,7 +113,6 @@ async function getTests(): Promise<EntryInclude[]> {
         if (isDistributed && test !== 'module') continue
         if (isDistributed && device !== 'cuda') continue
         const cacheHit = await cache.isComplete(cache.keyFrom({entry, digest}))
-        if (cacheHit) continue
         includes.push({
           entry,
           device,
@@ -150,25 +142,10 @@ export async function setTestMatrix(): Promise<void> {
       entry: string[]
       include: EntryInclude[]
     }
-    let entryIncludes = (await getTests()).concat(
+    const entryIncludes = (await getTests()).concat(
       await getSingleClientOpTests()
     )
-    if (entryIncludes.length === 0) {
-      entryIncludes = [
-        {
-          entry: 'do-nothing',
-          device: 'cpu',
-          'is-single-client': false,
-          'compute-platform': 'cpu',
-          'cache-hit': false,
-          'runs-on': 'ubuntu-latest',
-          'is-distributed': false,
-          'test-type': 'do-nothing',
-          'is-xla': false,
-          'digest-type': 'test'
-        }
-      ]
-    }
+    ok(entryIncludes.length !== 0, 'entryIncludes.length !== 0')
     checkUniqueIncludesByEntry(entryIncludes)
     const matrix: Matrix = {
       entry: entryIncludes.map(x => x.entry),

@@ -1,4 +1,5 @@
 import * as core from '@actions/core'
+import {ok} from 'assert'
 import * as cache from './utils/cache'
 import * as matrix from './utils/matrix'
 
@@ -24,9 +25,6 @@ async function run(): Promise<void> {
     for (const entry of entries) {
       const keys = [cache.keyFrom({digest: buildDigest, entry})]
       const foundKey = await cache.checkComplete(keys)
-      if (foundKey) {
-        continue
-      }
       entryIncludes = entryIncludes.concat([
         {
           entry,
@@ -35,11 +33,7 @@ async function run(): Promise<void> {
         }
       ])
     }
-    if (entryIncludes.length === 0) {
-      entryIncludes = [
-        {entry: 'do-nothing', 'cache-hit': false, 'runs-on': 'ubuntu-latest'}
-      ]
-    }
+    ok(entryIncludes.length !== 0, 'entryIncludes.length !== 0')
     const outputMatrix = {
       entry: entryIncludes.map(x => x.entry),
       include: entryIncludes
