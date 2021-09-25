@@ -88,7 +88,9 @@ async function getSingleClientOpTests(): Promise<EntryInclude[]> {
           'is-single-client': true,
           'compute-platform': getComputePlatform(device),
           'cache-hit': cacheHit,
-          'runs-on': getRunsOn(getRunnerLabel(device)),
+          'runs-on': cacheHit
+            ? 'ubuntu-latest'
+            : getRunsOn(getRunnerLabel(device)),
           'is-distributed': isDistributed,
           'test-type': test,
           'is-xla': isXla(device),
@@ -119,7 +121,9 @@ async function getTests(): Promise<EntryInclude[]> {
           'is-single-client': false,
           'compute-platform': getComputePlatform(device),
           'cache-hit': cacheHit,
-          'runs-on': getRunsOn(getRunnerLabel(device)),
+          'runs-on': cacheHit
+            ? 'ubuntu-latest'
+            : getRunsOn(getRunnerLabel(device)),
           'is-distributed': isDistributed,
           'test-type': test,
           'is-xla': false,
