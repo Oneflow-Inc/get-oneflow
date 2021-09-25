@@ -16,7 +16,7 @@ export function getPathInput(name: string, options?: InputOptions): string {
 }
 
 export function isSelfHosted(): boolean {
-  return core.getBooleanInput('self-hosted')
+  return core.getBooleanInput('self-hosted', {required: false})
 }
 
 export function getTempDirectory(): string {
@@ -82,4 +82,16 @@ export async function extractTarX(
   await exec.exec(`tar`, args)
 
   return dest
+}
+
+export function isOnPremise(): boolean {
+  return process.platform === 'linux' && os.hostname().includes('oneflow')
+}
+
+export async function runAndSetFailed(f: () => Promise<void>): Promise<void> {
+  try {
+    await f()
+  } catch (error) {
+    core.setFailed(error as Error)
+  }
 }

@@ -3,33 +3,23 @@ import * as cache from './utils/cache'
 async function run(): Promise<void> {
   try {
     const entry: string = core.getInput('entry', {required: true})
-    const keys: string[] = await cache.getOneFlowBuildCacheKeys(entry)
+    const digestType: string = core.getInput('digest-type', {required: true})
+    const cacheResult = await cache.queryCache({entry, digestType})
+    const buildDigest = cacheResult.buildDigest
+    const testDigest = cacheResult.testDigest
+    const keys: string[] = cacheResult.keys
     core.saveState('keys', keys)
     let runnerLabels: string[] = core.getMultilineInput('runner-labels', {
       required: false
     })
-    const checkNotCompleted: Boolean = core.getBooleanInput(
-      'check-not-completed',
-      {
-        required: false
-      }
-    )
-    // TODO: add condition
-    const found = await cache.checkComplete(keys)
-    if (checkNotCompleted) {
-      if (found) {
-        core.setFailed(`${found} marked as completed`)
-        return
-      }
-    }
-    if (found) {
+    if (cacheResult.cacheHit) {
       runnerLabels = ['ubuntu-latest']
-      core.setOutput('object', found)
     }
     core.setOutput('runs-on', runnerLabels)
     // TODO: only outputs found keys
-    core.setOutput('keys', keys)
-    core.setOutput('cache-hit', !!found)
+    core.setOutput('build-digest', buildDigest)
+    core.setOutput('test-digest', testDigest)
+    core.setOutput('cache-hit', cacheResult.cacheHit)
   } catch (error) {
     core.setFailed(error as Error)
   }

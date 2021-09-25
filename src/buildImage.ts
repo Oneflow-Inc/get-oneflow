@@ -13,7 +13,7 @@ async function run(): Promise<void> {
       core.setFailed(`unsupported manylinuxVersion: ${manylinuxVersion}`)
     }
   } catch (error) {
-    core.setFailed(error.message)
+    core.setFailed(error as Error)
   }
 }
 

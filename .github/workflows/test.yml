@@ -39,7 +39,7 @@ jobs:
 
   mirror-tools: # make sure the action works on a clean machine without building
     name: 'Mirror tools to OSS'
-    runs-on: [ubuntu-latest]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: ./mirror
@@ -71,13 +71,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
-      max-parallel: 3
+      max-parallel: 5
       matrix:
-        oneflow-build-env: ['conda', 'manylinux']
         os: [['self-hosted', 'linux', 'provision'], [ubuntu-latest]]
         docker-run-use-system-http-proxy: [false]
     env:
-      ONEFLOW_SRC: oneflow-src-${{ matrix.oneflow-build-env }}
+      ONEFLOW_SRC: oneflow-src
     steps:
       - name: Fix permissions
         if: ${{ contains(matrix.os, 'self-hosted') }}
@@ -103,16 +102,16 @@ jobs:
           path: conda-env
       - uses: ./
         name: Test conda on gh-hosted
-        if: ${{ contains(matrix.os, 'ubuntu-latest') && matrix.oneflow-build-env == 'conda'}}
+        if: ${{ contains(matrix.os, 'ubuntu-latest') }}
         with:
-          cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/cn/fast/cpu-clang.cmake
+          cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/ci/gh-hosted/cpu-clang.cmake
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           oneflow-build-env: conda
           conda-env-file: conda-env/dev/clang10/environment-v2.yml
           conda-env-name: oneflow-dev-clang10-v2
       - uses: ./
         name: Test conda on self-hosted
-        if: ${{ contains(matrix.os, 'self-hosted') && matrix.oneflow-build-env == 'conda'}}
+        if: ${{ contains(matrix.os, 'self-hosted') }}
         with:
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/cn/fast/cpu-clang.cmake
           oneflow-src: ${{ env.ONEFLOW_SRC }}
@@ -124,8 +123,8 @@ jobs:
           conda-env-name: oneflow-dev-clang10-v2
 
   find-build-cache:
-    name: 'Find cache'
-    runs-on: [ubuntu-latest]
+    name: 'Find build cache'
+    runs-on: ubuntu-latest
     env:
       ONEFLOW_SRC: oneflow-src
     outputs:
@@ -138,7 +137,7 @@ jobs:
           repository: Oneflow-Inc/oneflow
           ref: refine_for_new_ci
           path: oneflow-src
-      - uses: ./cache-complete/matrix
+      - uses: ./cache-complete/matrix/build
         name: find cache
         id: find-cache
         with:
@@ -148,9 +147,9 @@ jobs:
             provision
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           entries: |
-            cu114
-            cpu-only
-            cu102-xla
+            cu102
+            cpu
+            cu101_xla
 
   test-build-manylinux:
     name: 'Build OneFlow manylinux'
@@ -162,6 +161,10 @@ jobs:
       matrix: ${{ fromJson(needs.find-build-cache.outputs.matrix) }}
     env:
       ONEFLOW_SRC: oneflow-src
+      MANYLINUX_CACHE_DIR: ~/manylinux-cache-dir/${{ matrix.entry }}
+      WHEELHOUSE_DIR: manylinux-wheelhouse
+      SSH_TANK_HOST: 192.168.1.23
+      SSH_TANK_PATH: /home/ci-user/tank
     steps:
       - name: Fix permissions
         if: ${{ contains(matrix.runs-on, 'self-hosted') }}
@@ -186,83 +189,99 @@ jobs:
         with:
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           entry: ${{ matrix.entry }}
+          digest-type: build
           mark-as-completed: ${{ contains(matrix.runs-on, 'self-hosted') }}
-          check-not-completed: ${{ contains(matrix.runs-on, 'self-hosted') }}
-      - name: Fail if cache result not identical to matrix
+      - name: Check digest and fail if cache result not identical to matrix
         if: ${{ fromJSON(steps.save-cache.outputs.cache-hit) != matrix.cache-hit }}
         run: |
           echo "::error file=test.yml,line=204,col=10::steps.save-cache.outputs.cache-hit != matrix.cache-hit"
           exit 1
       - uses: ./
         name: Build manylinux cpu only
-        if: ${{ matrix.entry =='cpu-only' && !matrix.cache-hit }}
+        if: ${{ matrix.entry =='cpu' && !matrix.cache-hit }}
         with:
-          cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/ci/cpu-only.cmake
+          cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/ci/cpu.cmake
           build-script: ${{ env.ONEFLOW_SRC }}/ci/manylinux/build.sh
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           oneflow-build-env: manylinux
-          wheelhouse-dir: manylinux-wheelhouse
+          wheelhouse-dir: ${{ env.WHEELHOUSE_DIR }}
+          clear-wheelhouse-dir: true
           self-hosted: ${{ contains(matrix.runs-on, 'self-hosted') }}
           cuda-version: none
-          manylinux-cache-dir: ~/manylinux-cache-dir/cpu-only
+          manylinux-cache-dir: ${{ env.MANYLINUX_CACHE_DIR }}
           docker-run-use-system-http-proxy: false
           docker-run-use-lld: true
           retry-failed-build: true
           python-versions: |
             3.6
             3.7
-            3.8
-            3.9
       - uses: ./
-        name: Build manylinux cu114
-        if: ${{ matrix.entry =='cu114' && !matrix.cache-hit }}
+        name: Build manylinux cu102
+        if: ${{ matrix.entry =='cu102' && !matrix.cache-hit }}
         with:
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/ci/cuda.cmake
-          build-script: ${{ env.ONEFLOW_SRC }}/ci/manylinux/build.sh
+          build-script: ${{ env.ONEFLOW_SRC }}/ci/manylinux/build-gcc7.sh
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           oneflow-build-env: manylinux
-          wheelhouse-dir: manylinux-wheelhouse
+          wheelhouse-dir: ${{ env.WHEELHOUSE_DIR }}
+          clear-wheelhouse-dir: true
           self-hosted: ${{ contains(matrix.runs-on, 'self-hosted') }}
-          cuda-version: 11.4
-          manylinux-cache-dir: ~/manylinux-cache-dir/cpu-only
+          cuda-version: '10.2'
+          manylinux-cache-dir: ${{ env.MANYLINUX_CACHE_DIR }}
           docker-run-use-system-http-proxy: false
-          docker-run-use-lld: true
+          docker-run-use-lld: false
           retry-failed-build: true
           python-versions: |
             3.6
             3.7
-            3.8
-            3.9
       - uses: ./
-        name: Build manylinux cu102-xla
-        if: ${{ matrix.entry =='cu102-xla' && !matrix.cache-hit }}
+        name: Build manylinux cu101_xla
+        if: ${{ matrix.entry =='cu101_xla' && !matrix.cache-hit }}
         with:
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/ci/cuda-xla.cmake
           build-script: ${{ env.ONEFLOW_SRC }}/ci/manylinux/build-gcc7.sh
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           oneflow-build-env: manylinux
-          wheelhouse-dir: manylinux-wheelhouse
+          wheelhouse-dir: ${{ env.WHEELHOUSE_DIR }}
+          clear-wheelhouse-dir: true
           self-hosted: ${{ contains(matrix.runs-on, 'self-hosted') }}
-          cuda-version: 10.2
-          manylinux-cache-dir: ~/manylinux-cache-dir/cpu-only
+          cuda-version: '10.1'
+          manylinux-cache-dir: ${{ env.MANYLINUX_CACHE_DIR }}
           docker-run-use-system-http-proxy: true
           docker-run-use-lld: true
           retry-failed-build: true
           python-versions: |
             3.6
-            3.7
-            3.8
-            3.9
+      - name: Upload bin
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type != 'do-nothing' }}
+        uses: ./degist/upload
+        with:
+          digest: ${{ steps.save-cache.outputs.build-digest }}
+          entry: ${{ matrix.entry }}
+          ssh-tank-host: ${{ env.SSH_TANK_HOST }}
+          ssh-tank-path: ${{ env.SSH_TANK_PATH }}
+          src-dir: ${{ env.MANYLINUX_CACHE_DIR }}/build/bin
+          dst-dir: bin
+      - name: Upload whl
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type != 'do-nothing' }}
+        uses: ./degist/upload
+        with:
+          digest: ${{ steps.save-cache.outputs.build-digest }}
+          entry: ${{ matrix.entry }}
+          ssh-tank-host: ${{ env.SSH_TANK_HOST }}
+          ssh-tank-path: ${{ env.SSH_TANK_PATH }}
+          src-dir: ${{ env.WHEELHOUSE_DIR }}
+          dst-dir: whl
 
   check-build-cache:
     name: 'Check manylinux build cache'
-    runs-on: [ubuntu-latest]
+    runs-on: ubuntu-latest
     needs: [test-build-manylinux]
     strategy:
       fail-fast: false
       max-parallel: 5
       matrix:
-        entry: ['cu102-xla', 'cu114', 'cpu-only']
+        entry: ['cu101_xla', 'cu102', 'cpu']
     env:
       ONEFLOW_SRC: oneflow-src
     steps:
@@ -285,7 +304,149 @@ jobs:
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           entry: ${{ matrix.entry }}
           mark-as-completed: false
+          digest-type: build
       - name: Check built
         if: ${{ !fromJSON(steps.find-cache.outputs.cache-hit) }}
         run: |
           exit 1
+
+  find-test-cache:
+    name: 'Find test cache'
+    runs-on: ubuntu-latest
+    needs: [test-build-manylinux]
+    env:
+      ONEFLOW_SRC: oneflow-src
+    outputs:
+      matrix: ${{ steps.find-cache.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Checkout Oneflow-Inc/oneflow
+        uses: actions/checkout@v2
+        with:
+          repository: Oneflow-Inc/oneflow
+          ref: refine_for_new_ci
+          path: oneflow-src
+      - uses: ./cache-complete/matrix/test
+        name: find cache
+        id: find-cache
+        with:
+          runner-labels: |
+            self-hosted
+            linux
+            provision
+          oneflow-src: ${{ env.ONEFLOW_SRC }}
+
+  test-oneflow-doctor:
+    name: Test suite
+    runs-on: ${{ matrix.runs-on }}
+    needs: [find-test-cache]
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix: ${{ fromJson(needs.find-test-cache.outputs.matrix) }}
+    env:
+      ONEFLOW_SRC: oneflow-src
+      TEST_CONTAINER_NAME: 'pr-${{ github.event.pull_request.number }}-run-id-${{ github.run_id }}-${{ matrix.entry }}-test'
+      TEST_WITH_TF_IMG_TAG: registry.cn-beijing.aliyuncs.com/oneflow/test-with-tf-2.4.0:b8b5eb2bdee6928fefd61ccabf8fb2d680835aeb
+      TEST_WITH_TORCH_IMG_TAG: registry.cn-beijing.aliyuncs.com/oneflow/test-with-pytorch-1.9.0:0.1
+      PIP_INDEX_URL: 'http://192.168.1.22:8000'
+      PIP_INDEX_TRUST_ARGS: '--trusted-host 192.168.1.22'
+      SSH_TANK_HOST: 192.168.1.23
+      SSH_TANK_PATH: /home/ci-user/tank
+    steps:
+      - name: Fix permissions
+        if: ${{ contains(matrix.runs-on, 'self-hosted') }}
+        run: |
+          set -x
+          docker run --rm -v $PWD:/p -w /p busybox chown -R $(id -u):$(id -g) .
+      - uses: actions/checkout@v2
+      - name: Checkout Oneflow-Inc/oneflow
+        uses: actions/checkout@v2
+        with:
+          repository: Oneflow-Inc/oneflow
+          ref: refine_for_new_ci
+          path: oneflow-src
+      - name: Remove container
+        timeout-minutes: 45
+        if: ${{ contains(matrix.runs-on, 'self-hosted') }}
+        run: |
+          docker rm -f ${{ env.TEST_CONTAINER_NAME }} || true
+      - uses: ./cache-complete
+        name: Save cache if successful
+        id: save-cache
+        with:
+          oneflow-src: ${{ env.ONEFLOW_SRC }}
+          entry: ${{ matrix.entry }}
+          digest-type: ${{ matrix.digest-type }}
+          mark-as-completed: ${{ contains(matrix.runs-on, 'self-hosted') }}
+      - name: Check digest and fail if cache result not identical to matrix
+        if: ${{ fromJSON(steps.save-cache.outputs.cache-hit) != matrix.cache-hit }}
+        run: |
+          echo "::error file=test.yml,line=204,col=10::steps.save-cache.outputs.cache-hit != matrix.cache-hit"
+          exit 1
+      - name: Download wheel and binary
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type != 'do-nothing' }}
+        uses: ./degist/download
+        id: download-digest
+        with:
+          digest: ${{ steps.save-cache.outputs.build-digest }}
+          entry: ${{ matrix.compute-platform }}
+          ssh-tank-host: ${{ env.SSH_TANK_HOST }}
+          ssh-tank-path: ${{ env.SSH_TANK_PATH }}
+      - name: Set tf container
+        if: ${{ fromJSON(matrix.is-single-client) }}
+        run: |
+          echo "TEST_IMG_TAG=${TEST_WITH_TF_IMG_TAG}" >> $GITHUB_ENV
+      - name: Set pytorch container
+        if: ${{ !fromJSON(matrix.is-single-client) }}
+        run: |
+          echo "TEST_IMG_TAG=${TEST_WITH_TORCH_IMG_TAG}" >> $GITHUB_ENV
+      - name: Start container
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type != 'do-nothing' }}
+        working-directory: ${{ env.ONEFLOW_SRC }}
+        env:
+          ONEFLOW_WHEEL_PATH: ${{ steps.download-digest.outputs.entry-dir }}/whl
+          ONEFLOW_BIN_PATH: ${{ steps.download-digest.outputs.entry-dir }}/bin
+        run: |
+          docker run -d --privileged --network host --shm-size=8g \
+            --cap-add=SYS_PTRACE --security-opt seccomp=unconfined \
+            --runtime=nvidia \
+            -v /dataset:/dataset:ro -v /model_zoo:/model_zoo:ro \
+            -v ${ONEFLOW_WHEEL_PATH}:${ONEFLOW_WHEEL_PATH}:ro \
+            -v ${ONEFLOW_BIN_PATH}:${ONEFLOW_BIN_PATH}:ro \
+            -v $HOME/test-container-cache/dot-local:/root/.local \
+            -v $HOME/test-container-cache/dot-cache:/root/.cache \
+            -e ONEFLOW_WHEEL_PATH=${ONEFLOW_WHEEL_PATH} \
+            -e ONEFLOW_BIN_PATH=${ONEFLOW_BIN_PATH} \
+            -e ONEFLOW_CI=1 \
+            -v $PWD:$PWD \
+            -w $PWD \
+            --name ${{ env.TEST_CONTAINER_NAME }} \
+            ${TEST_IMG_TAG} \
+            sleep 3600
+      - name: Test container
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type != 'do-nothing' }}
+        run: |
+          docker exec ${{ env.TEST_CONTAINER_NAME }} ls
+      - name: Install OneFlow
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type != 'do-nothing' }}
+        env:
+          ONEFLOW_WHEEL_PATH: ${{ steps.download-digest.outputs.entry-dir }}/whl
+        run: |
+          ls ${{ env.ONEFLOW_WHEEL_PATH }}
+          docker exec ${{ env.TEST_CONTAINER_NAME }} python3 -m pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+          docker exec ${{ env.TEST_CONTAINER_NAME }} python3 -m pip install --find-links=${{ env.ONEFLOW_WHEEL_PATH }} oneflow
+      - name: Run OneFlow doctor
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type != 'do-nothing' }}
+        run: |
+          docker exec ${{ env.TEST_CONTAINER_NAME }} python3 -m oneflow --doctor
+      - name: Run oneflow_testexe
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'misc' }}
+        run: |
+          chmod +x ${{ steps.download-digest.outputs.entry-dir }}/bin/oneflow_testexe
+          docker exec ${{ env.TEST_CONTAINER_NAME }} ${{ steps.download-digest.outputs.entry-dir }}/bin/oneflow_testexe
+      - name: Remove container
+        timeout-minutes: 45
+        if: ${{ always() && contains(matrix.runs-on, 'self-hosted') }}
+        run: |
+          docker rm -f ${{ env.TEST_CONTAINER_NAME }} || true

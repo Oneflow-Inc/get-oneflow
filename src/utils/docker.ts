@@ -46,7 +46,7 @@ export async function ensureDocker(): Promise<void> {
       'https://oneflow-static.oss-cn-beijing.aliyuncs.com/img/quay.iopypamanylinux_2_24_x86_64.tar.gz'
     )
   } catch (error) {
-    core.setFailed(error.message)
+    core.setFailed(error as Error)
   }
 }
 
@@ -249,11 +249,20 @@ async function buildAndMakeWheel(
   shouldCleanBuildDir: Boolean
 ): Promise<void> {
   const shouldSymbolicLinkLld = core.getBooleanInput('docker-run-use-lld')
+  const shouldAuditWheel = core.getBooleanInput('wheel-audit', {
+    required: false
+  })
   const oneflowSrc: string = getPathInput('oneflow-src', {required: true})
   const wheelhouseDir: string = getPathInput('wheelhouse-dir', {required: true})
   const buildScript: string = getPathInput('build-script', {
     required: true
   })
+  const clearWheelhouseDir: Boolean = core.getBooleanInput(
+    'clear-wheelhouse-dir',
+    {
+      required: false
+    }
+  )
   const container = await docker.createContainer(createOptions)
   await container.start()
   if (shouldCleanBuildDir) {
@@ -281,16 +290,22 @@ async function buildAndMakeWheel(
     await buildOnePythonVersion(container, buildScript, pythonExe)
   }
   const whlFiles = await fs.promises.readdir(distDir)
+  if (clearWheelhouseDir) {
+    await runBash(container, `rm -rf ${path.join(wheelhouseDir, '*')}`)
+  }
   ok(whlFiles.length)
-  await Promise.all(
-    whlFiles.map(async (whl: string) =>
-      runExec(
-        container,
-        ['auditwheel', 'repair', whl, '--wheel-dir', wheelhouseDir],
-        {cwd: distDir}
+  // TODO: copy from dist
+  if (shouldAuditWheel) {
+    await Promise.all(
+      whlFiles.map(async (whl: string) =>
+        runExec(
+          container,
+          ['auditwheel', 'repair', whl, '--wheel-dir', wheelhouseDir],
+          {cwd: distDir}
+        )
       )
     )
-  )
+  }
 }
 
 export async function buildOneFlow(tag: string): Promise<void> {
@@ -377,11 +392,12 @@ export async function buildOneFlow(tag: string): Promise<void> {
   } catch (error) {
     const retryFailedBuild = core.getBooleanInput('retry-failed-build')
     if (retryFailedBuild) {
-      core.info('Retry Build and Make Wheel.')
+      core.warning('Retry Build and Make Wheel.')
       await killContainer(docker, containerName)
       await buildAndMakeWheel(createOptions, docker, buildDir, true)
     } else {
-      core.setFailed(error.message)
+      core.setFailed(error as Error)
+      throw error
     }
   }
 }

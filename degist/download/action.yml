@@ -1,0 +1,31 @@
+name: 'Download by digest'
+description: ''
+inputs:
+  entry:
+    description: ''
+    required: true
+  digest:
+    description: ''
+    required: true
+  ssh-tank-host:
+    description: ''
+    required: false
+  ssh-tank-path:
+    description: ''
+    required: false
+    default: '/tank'
+  digest-cache-dir:
+    description: ''
+    required: false
+    default: '~/digest-cache'
+
+outputs:
+  entry-dir:
+    description: ''
+
+runs:
+  using: 'node12'
+  main: '../../dist/downloadByDigest/index.js'
+branding:
+  icon: 'archive'
+  color: 'gray-dark'

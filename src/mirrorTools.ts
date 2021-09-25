@@ -11,7 +11,7 @@ async function run(): Promise<void> {
       await mirrorToDownloads(e[1])
     }
   } catch (error) {
-    core.setFailed(error.message)
+    core.setFailed(error as Error)
   }
 }
 

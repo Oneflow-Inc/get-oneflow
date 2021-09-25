@@ -17,7 +17,7 @@ async function run(): Promise<void> {
       }
     }
   } catch (error) {
-    core.setFailed(error.message)
+    core.setFailed(error as Error)
   }
 }
 

@@ -1,0 +1,29 @@
+name: 'Upload by digest'
+description: ''
+inputs:
+  src-dir:
+    description: 'path to OneFlow source code'
+    required: true
+  dst-dir:
+    description: 'path to OneFlow source code'
+    required: true
+  entry:
+    description: ''
+    required: true
+  digest:
+    description: ''
+    required: true
+  ssh-tank-host:
+    description: ''
+    required: false
+  ssh-tank-path:
+    description: ''
+    required: false
+    default: '/tank'
+
+runs:
+  using: 'node12'
+  main: '../../dist/uploadByDigest/index.js'
+branding:
+  icon: 'archive'
+  color: 'gray-dark'

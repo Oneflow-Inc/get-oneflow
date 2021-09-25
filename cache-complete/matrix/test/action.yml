@@ -7,16 +7,13 @@ inputs:
   runner-labels:
     required: true
     description: 'runner labels to output if cache not found'
-  entries:
-    required: true
-    description: 'matrix keys to generate matrix output'
 outputs:
   matrix:
-    description: 'if cache found, will generate a [ubuntu-latest], in JSON'
+    description: 'if cache found, will generate a ubuntu-latest, in JSON'
 
 runs:
   using: 'node12'
-  main: '../../dist/cacheCompleteMatrix/index.js'
+  main: '../../../dist/genTestMatrix/index.js'
 branding:
   icon: 'archive'
   color: 'gray-dark'
