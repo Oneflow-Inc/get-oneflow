@@ -6,15 +6,25 @@ import * as glob from '@actions/glob'
 import * as gh from '@actions/github'
 import {ok} from 'assert'
 
+interface AltOSSOptions extends OSS.Options {
+  retryMax?: Number | undefined
+}
+export function addRetryMax(opts: AltOSSOptions): OSS.Options {
+  opts['retryMax'] = 20
+  ok(opts['retryMax'], `opts['retryMax']: ${opts['retryMax']}`)
+  return opts
+}
+
 function ciCacheBucketStore(): OSS {
-  const store = new OSS({
-    region: 'oss-cn-beijing',
-    accessKeyId: process.env['OSS_ACCESS_KEY_ID'] as string,
-    accessKeySecret: process.env['OSS_ACCESS_KEY_SECRET'] as string,
-    bucket: 'oneflow-ci-cache',
-    endpoint: 'https://oss-cn-beijing.aliyuncs.com',
-    timeout: 60 * 1000 * 60
-  })
+  const store = new OSS(
+    addRetryMax({
+      region: 'oss-cn-beijing',
+      accessKeyId: process.env['OSS_ACCESS_KEY_ID'] as string,
+      accessKeySecret: process.env['OSS_ACCESS_KEY_SECRET'] as string,
+      bucket: 'oneflow-ci-cache',
+      endpoint: 'https://oss-cn-beijing.aliyuncs.com'
+    })
+  )
   return store
 }
 
@@ -26,7 +36,7 @@ export async function cacheComplete(keys: string[]): Promise<void> {
   for await (const key of keys) {
     const objectKey = getCompleteKey(key)
     const buf = Buffer.from('', 'utf8')
-    await store.put(objectKey, buf, {timeout: 60 * 1000 * 60})
+    await store.put(objectKey, buf)
   }
 }
 
@@ -35,7 +45,7 @@ export async function checkComplete(keys: string[]): Promise<string | null> {
   for await (const key of keys) {
     const objectKey = getCompleteKey(key)
     try {
-      await store.head(objectKey, {timeout: 60 * 1000 * 60})
+      await store.head(objectKey)
       core.info(`[found] ${objectKey}`)
       return objectKey
     } catch (error) {
@@ -54,7 +64,7 @@ export async function removeComplete(keys: string[]): Promise<void> {
   for await (const key of keys) {
     const objectKey = getCompleteKey(key)
     try {
-      await store.delete(objectKey, {timeout: 60 * 1000 * 60})
+      await store.delete(objectKey)
       core.info(`[delete] ${objectKey}`)
     } catch (error) {
       core.info(`[delete fail] ${objectKey}`)
