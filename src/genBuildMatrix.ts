@@ -40,11 +40,12 @@ async function run(): Promise<void> {
         {entry: 'do-nothing', 'cache-hit': false, 'runs-on': 'ubuntu-latest'}
       ]
     }
-    core.setOutput('matrix', {
+    const outputMatrix = {
       entry: entryIncludes.map(x => x.entry),
       include: entryIncludes
-    })
-    core.info(JSON.stringify(matrix, null, 2))
+    }
+    core.setOutput('matrix', outputMatrix)
+    core.info(JSON.stringify(outputMatrix, null, 2))
   } catch (error) {
     core.setFailed(error as Error)
   }
