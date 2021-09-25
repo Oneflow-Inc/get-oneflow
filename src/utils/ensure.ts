@@ -8,6 +8,7 @@ import {ok} from 'assert'
 import * as exec from '@actions/exec'
 import * as fs from 'fs'
 import * as semver from 'semver'
+import * as cache from './cache'
 
 type Tool = {
   name: string
@@ -110,11 +111,13 @@ export const TOOLS: Tool[] = [
 ]
 
 function ossStore(): OSS {
-  const store = new OSS({
-    region: 'oss-cn-beijing',
-    accessKeyId: process.env['OSS_ACCESS_KEY_ID'] as string,
-    accessKeySecret: process.env['OSS_ACCESS_KEY_SECRET'] as string
-  })
+  const store = new OSS(
+    cache.addRetryMax({
+      region: 'oss-cn-beijing',
+      accessKeyId: process.env['OSS_ACCESS_KEY_ID'] as string,
+      accessKeySecret: process.env['OSS_ACCESS_KEY_SECRET'] as string
+    })
+  )
   return store
 }
 
