@@ -10,7 +10,7 @@ import {
   getOneFlowBuildCacheKeys,
   removeComplete
 } from '../src/utils/cache'
-
+import * as matrix from '../src/utils/matrix'
 process.env['RUNNER_TOOL_CACHE'] = '~/runner_tool_cache'.replace(
   '~',
   os.homedir
@@ -72,10 +72,9 @@ test(
       'linux',
       'provision'
     ])
-    await cpExec.cpExec(
-      np,
-      path.join(__dirname, '..', 'lib', 'genBuildMatrix.js')
-    )
+    process.env['OSS_ACCESS_KEY_ID'] = ''
+    process.env['OSS_ACCESS_KEY_SECRET'] = ''
+    await matrix.setBuildMatrix()
   },
   MINUTES15
 )
