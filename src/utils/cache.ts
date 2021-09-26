@@ -75,10 +75,10 @@ export async function checkComplete(keys: string[]): Promise<string | null> {
         (error as UnknowError).name === 'UnknowError' &&
         (error as UnknowError).status === 403
       ) {
-        const url =
-          'https://oneflow-ci-cache.oss-cn-beijing.aliyuncs.com/digest111/Oneflow-Inc/get-oneflow/06577045903ad1016e6a5bc11a59f3ee153ebf66a416cb73adc3a9f7ef47cc96/cpu-module/complete'
+        const url = `https://oneflow-ci-cache.oss-cn-beijing.aliyuncs.com/${objectKey}`
         try {
           await tc.downloadTool(url)
+          return objectKey
         } catch (downloadError) {
           core.info(JSON.stringify(downloadError, null, 2))
           if ((downloadError as DownloadError).httpStatusCode === 404) {
