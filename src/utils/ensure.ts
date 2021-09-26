@@ -114,8 +114,8 @@ function ossStore(): OSS {
   const store = new OSS(
     cache.addRetryMax({
       region: 'oss-cn-beijing',
-      accessKeyId: process.env['OSS_ACCESS_KEY_ID'] as string,
-      accessKeySecret: process.env['OSS_ACCESS_KEY_SECRET'] as string
+      accessKeyId: cache.getOSSCredentials().accessKeyId,
+      accessKeySecret: cache.getOSSCredentials().accessKeySecret
     })
   )
   return store

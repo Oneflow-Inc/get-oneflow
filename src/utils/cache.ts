@@ -5,6 +5,7 @@ import {getPathInput} from './util'
 import * as glob from '@actions/glob'
 import * as gh from '@actions/github'
 import {ok} from 'assert'
+import * as tc from '@actions/tool-cache'
 
 interface AltOSSOptions extends OSS.Options {
   retryMax?: Number | undefined
@@ -15,12 +16,22 @@ export function addRetryMax(opts: AltOSSOptions): OSS.Options {
   return opts
 }
 
+export function getOSSCredentials(): {
+  accessKeyId: string
+  accessKeySecret: string
+} {
+  return {
+    accessKeyId: process.env['OSS_ACCESS_KEY_ID'] || 'anonymous',
+    accessKeySecret: process.env['OSS_ACCESS_KEY_SECRET'] || 'anonymous'
+  }
+}
+
 function ciCacheBucketStore(): OSS {
   const store = new OSS(
     addRetryMax({
       region: 'oss-cn-beijing',
-      accessKeyId: process.env['OSS_ACCESS_KEY_ID'] as string,
-      accessKeySecret: process.env['OSS_ACCESS_KEY_SECRET'] as string,
+      accessKeyId: getOSSCredentials().accessKeyId,
+      accessKeySecret: getOSSCredentials().accessKeySecret,
       bucket: 'oneflow-ci-cache',
       endpoint: 'https://oss-cn-beijing.aliyuncs.com'
     })
@@ -40,6 +51,15 @@ export async function cacheComplete(keys: string[]): Promise<void> {
   }
 }
 
+interface UnknowError {
+  name: 'UnknowError'
+  status: Number
+}
+
+interface DownloadError {
+  httpStatusCode: Number
+}
+
 export async function checkComplete(keys: string[]): Promise<string | null> {
   const store = ciCacheBucketStore()
   for await (const key of keys) {
@@ -49,7 +69,27 @@ export async function checkComplete(keys: string[]): Promise<string | null> {
       core.info(`[found] ${objectKey}`)
       return objectKey
     } catch (error) {
-      core.info(`[absent] ${objectKey}`)
+      if ((error as Error).name === 'NoSuchKeyError') {
+        core.info(`[absent] ${objectKey}`)
+      } else if (
+        (error as UnknowError).name === 'UnknowError' &&
+        (error as UnknowError).status === 403
+      ) {
+        const url = `https://oneflow-ci-cache.oss-cn-beijing.aliyuncs.com/${objectKey}`
+        try {
+          await tc.downloadTool(url)
+          return objectKey
+        } catch (downloadError) {
+          core.info(JSON.stringify(downloadError, null, 2))
+          if ((downloadError as DownloadError).httpStatusCode === 404) {
+            core.info(`[absent] ${objectKey}`)
+          } else {
+            throw downloadError
+          }
+        }
+      } else {
+        throw error
+      }
     }
   }
   return null

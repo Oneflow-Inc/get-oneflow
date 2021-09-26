@@ -141,24 +141,54 @@ function checkUniqueIncludesByEntry(entryIncludes: EntryInclude[]): void {
 }
 
 export async function setTestMatrix(): Promise<void> {
-  try {
-    interface Matrix {
-      entry: string[]
-      include: EntryInclude[]
-    }
-    const entryIncludes = (await getTests()).concat(
-      await getSingleClientOpTests()
-    )
-    ok(entryIncludes.length !== 0, 'entryIncludes.length !== 0')
-    checkUniqueIncludesByEntry(entryIncludes)
-    const matrix: Matrix = {
-      entry: entryIncludes.map(x => x.entry),
-      include: entryIncludes
-    }
-    // TODO: check by uniq
-    core.setOutput('matrix', matrix)
-    core.info(JSON.stringify(matrix, null, 2))
-  } catch (error) {
-    core.setFailed(error as Error)
+  interface Matrix {
+    entry: string[]
+    include: EntryInclude[]
   }
+  const entryIncludes = (await getTests()).concat(
+    await getSingleClientOpTests()
+  )
+  ok(entryIncludes.length !== 0, 'entryIncludes.length !== 0')
+  checkUniqueIncludesByEntry(entryIncludes)
+  const matrix: Matrix = {
+    entry: entryIncludes.map(x => x.entry),
+    include: entryIncludes
+  }
+  // TODO: check by uniq
+  core.setOutput('matrix', matrix)
+  core.info(JSON.stringify(matrix, null, 2))
+}
+
+export async function setBuildMatrix(): Promise<void> {
+  type Include = {
+    entry: ComputePlatform
+    'cache-hit': boolean
+    'runs-on': 'ubuntu-latest' | string[]
+  }
+  const entries: ComputePlatform[] = core.getMultilineInput('entries', {
+    required: true
+  }) as ComputePlatform[]
+  const runnerLabels: string[] = core.getMultilineInput('runner-labels', {
+    required: true
+  })
+  const buildDigest = await cache.getDigestByType('build')
+  let entryIncludes: Include[] = []
+  for (const entry of entries) {
+    const keys = [cache.keyFrom({digest: buildDigest, entry})]
+    const foundKey = await cache.checkComplete(keys)
+    entryIncludes = entryIncludes.concat([
+      {
+        entry,
+        'cache-hit': !!foundKey,
+        'runs-on': foundKey ? 'ubuntu-latest' : runnerLabels
+      }
+    ])
+  }
+  ok(entryIncludes.length !== 0, 'entryIncludes.length !== 0')
+  const outputMatrix = {
+    entry: entryIncludes.map(x => x.entry),
+    include: entryIncludes
+  }
+  core.setOutput('matrix', outputMatrix)
+  core.info(JSON.stringify(outputMatrix, null, 2))
 }
