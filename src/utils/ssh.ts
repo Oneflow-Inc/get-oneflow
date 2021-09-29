@@ -5,7 +5,7 @@ import path from 'path'
 import * as core from '@actions/core'
 import * as fs from 'fs'
 import Client from 'ssh2-sftp-client'
-import * as exec from './exec'
+import * as exec from '@actions/exec'
 
 function getEntryDir(tankDir: string, digest: string, entry: string): string {
   return path.join(tankDir, 'digest', digest, entry)
