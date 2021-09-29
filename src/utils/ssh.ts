@@ -27,6 +27,9 @@ export async function uploadByDigest(): Promise<void> {
     const failed: string[] = []
     const successful: string[] = []
     const tankDst = path.join(getEntryDir(sshTankPath, digest, entry), dstDir)
+    const rmCommand = `rm -rf ${tankDst}`
+    core.info(`[cmd] ${rmCommand}`)
+    await ssh.execCommand(rmCommand)
     const isSuccessful = await ssh.putDirectory(srcDir, tankDst, {
       recursive: true,
       concurrency: 10,
@@ -65,6 +68,7 @@ export async function downloadByDigest(): Promise<void> {
       core.info(`[rm] ${cacheDir}`)
       fs.rmdirSync(cacheDir, {recursive: true})
     }
+    core.info(`[mkir] ${digestDir}`)
     fs.mkdirSync(digestDir, {recursive: true})
   }
   core.setOutput('entry-dir', entryDir) // setOutput before return
@@ -74,6 +78,7 @@ export async function downloadByDigest(): Promise<void> {
   }
   const sftp = new Client()
   try {
+    core.info(`[connect] ${sshTankHost}`)
     await sftp.connect({
       host: sshTankHost,
       username: os.userInfo().username,
