@@ -17,7 +17,7 @@ inputs:
   digest-cache-dir:
     description: ''
     required: false
-    default: '~/digest-cache'
+    default: './digest-cache'
 
 outputs:
   entry-dir:
