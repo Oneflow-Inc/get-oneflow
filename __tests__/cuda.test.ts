@@ -63,6 +63,7 @@ async function testOneCUDA(
   env.setBooleanInput('docker-run-use-lld', false)
   env.setBooleanInput('clear-wheelhouse-dir', true)
   env.setBooleanInput('retry-failed-build', false)
+  env.setBooleanInput('clean-ccache', true)
   const manylinuxVersion = '2014'
   let tag = ''
   const TEST_MANYLINUX = process.env['TEST_MANYLINUX'] || ''

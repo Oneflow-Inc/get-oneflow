@@ -269,10 +269,12 @@ async function buildAndMakeWheel(
   if (shouldCleanBuildDir) {
     await runBash(container, `rm -rf ${path.join(buildDir, '*')}`)
   }
+  await runBash(container, 'ccache -sv')
   if (shouldCleanCcache) {
     core.warning(`cleaning ccache...`)
-    await runBash(container, 'ccache -s')
     await runBash(container, 'ccache -c')
+    await runBash(container, `rm -rf ~/.ccache/*`)
+    await runBash(container, 'ccache -sv')
   }
   const pythonVersions: string[] = core.getMultilineInput('python-versions', {
     required: true
