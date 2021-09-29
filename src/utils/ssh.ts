@@ -5,6 +5,7 @@ import path from 'path'
 import * as core from '@actions/core'
 import * as fs from 'fs'
 import Client from 'ssh2-sftp-client'
+import * as exec from '@actions/exec'
 
 function getEntryDir(tankDir: string, digest: string, entry: string): string {
   return path.join(tankDir, 'digest', digest, entry)
@@ -27,6 +28,9 @@ export async function uploadByDigest(): Promise<void> {
     const failed: string[] = []
     const successful: string[] = []
     const tankDst = path.join(getEntryDir(sshTankPath, digest, entry), dstDir)
+    const rmCommand = `rm -rf ${tankDst}`
+    core.info(`[cmd] ${rmCommand}`)
+    await ssh.execCommand(rmCommand)
     const isSuccessful = await ssh.putDirectory(srcDir, tankDst, {
       recursive: true,
       concurrency: 10,
@@ -59,21 +63,23 @@ export async function downloadByDigest(): Promise<void> {
   const entryDir = path.join(digestDir, entry)
   const sshTankHost = core.getInput('ssh-tank-host', {required: true})
   const sshTankPath = core.getInput('ssh-tank-path', {required: true})
-  if (!fs.existsSync(digestDir)) {
-    // remove all if it is a different digestDir
-    if (fs.existsSync(cacheDir)) {
-      core.info(`[rm] ${cacheDir}`)
-      fs.rmdirSync(cacheDir, {recursive: true})
-    }
-    fs.mkdirSync(digestDir, {recursive: true})
-  }
+  fs.mkdirSync(digestDir, {recursive: true})
   core.setOutput('entry-dir', entryDir) // setOutput before return
   if (fs.existsSync(entryDir)) {
     core.info(`[exist] ${entryDir}`)
     return
   }
+  const remoteDir = getEntryDir(sshTankPath, digest, entry)
+  if (os.hostname() === 'oneflow-13' && sshTankHost === '192.168.1.13') {
+    core.info(`[symlink] ${os.hostname()}`)
+    await exec.exec('mkdir', ['-p', entryDir])
+    await exec.exec('rm', ['-rf', entryDir])
+    await exec.exec('ln', ['-sf', remoteDir, entryDir])
+    return
+  }
   const sftp = new Client()
   try {
+    core.info(`[connect] ${sshTankHost}`)
     await sftp.connect({
       host: sshTankHost,
       username: os.userInfo().username,
@@ -81,7 +87,6 @@ export async function downloadByDigest(): Promise<void> {
         path.join(os.userInfo().homedir, '.ssh/id_rsa')
       )
     })
-    const remoteDir = getEntryDir(sshTankPath, digest, entry)
     core.info(`[from] ${remoteDir}`)
     core.info(`[to] ${entryDir}`)
     await sftp.downloadDir(remoteDir, entryDir)

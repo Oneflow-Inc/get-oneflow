@@ -42,15 +42,15 @@ inputs:
   force-rebuild:
     description: 'rebuild even package with same key found'
     required: false
-    default: 'false'
+    default: false
   dry-run:
     description: ''
     required: false
-    default: 'false'
+    default: false
   self-hosted:
     description: ''
     required: false
-    default: 'false'
+    default: false
   python-versions:
     description: ''
     required: true
@@ -69,6 +69,10 @@ inputs:
     required: true
   retry-failed-build:
     description: 'Retry a failed build oneflow or not'
+    required: false
+    default: false
+  clean-ccache:
+    description: ''
     required: false
     default: false
   docker-run-use-system-http-proxy:

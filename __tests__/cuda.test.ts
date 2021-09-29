@@ -29,42 +29,41 @@ async function testOneCUDA(
   process.env['INPUT_CMAKE-INIT-CACHE'] = '~/oneflow/cmake/caches/ci/cuda.cmake'
   const sourceDir = '~/oneflow'
   process.env['INPUT_WHEELHOUSE-DIR'] = '~/manylinux-wheelhouse'
+  env.setBooleanInput('wheel-audit', true)
   if (withXLA) {
     ok(cudaVersion !== 'none')
-    env.setBooleanInput('wheel-audit', true)
     env.setInput(
       'cmake-init-cache',
       path.join(sourceDir, 'cmake/caches/ci/cuda-xla.cmake')
     )
   }
+  env.setInput(
+    'build-script',
+    path.join(sourceDir, 'ci/manylinux/build-gcc7.sh')
+  )
   if (cudaVersion === '11.4') {
     env.setBooleanInput('docker-run-use-system-http-proxy', false)
     env.setInput('build-script', path.join(sourceDir, 'ci/manylinux/build.sh'))
-    env.setInput('cmake-init-cache', '~/oneflow/cmake/caches/ci/cuda.cmake')
+    env.setInput('cmake-init-cache', '~/oneflow/cmake/caches/cn/cuda.cmake')
   }
   if (cudaVersion === 'none') {
     env.setBooleanInput('docker-run-use-system-http-proxy', false)
-    env.setInput(
-      'build-script',
-      path.join(sourceDir, 'ci/manylinux/build-gcc7.sh')
-    )
+    env.setInput('build-script', path.join(sourceDir, 'ci/manylinux/build.sh'))
     env.setInput('cmake-init-cache', '~/oneflow/cmake/caches/ci/cpu.cmake')
     env.setBooleanInput('docker-run-use-lld', true)
+    env.setInput('build-script', path.join(sourceDir, 'ci/manylinux/build.sh'))
   }
   process.env['INPUT_ONEFLOW-SRC'] = sourceDir
   process.env[
     'INPUT_MANYLINUX-CACHE-DIR'
   ] = '~/manylinux-cache-dirs/unittest-'.concat(cudaVersion)
-  env.setMultilineInput('python-versions', ['3.6'])
+  env.setMultilineInput('python-versions', ['3.7'])
   env.setInput('self-hosted', 'true')
   env.setInput('cuda-version', cudaVersion)
   env.setBooleanInput('docker-run-use-lld', false)
   env.setBooleanInput('clear-wheelhouse-dir', true)
-  env.setInput(
-    'build-script',
-    path.join(sourceDir, 'ci/manylinux/build-gcc7.sh')
-  )
   env.setBooleanInput('retry-failed-build', false)
+  env.setBooleanInput('clean-ccache', true)
   const manylinuxVersion = '2014'
   let tag = ''
   const TEST_MANYLINUX = process.env['TEST_MANYLINUX'] || ''
@@ -81,8 +80,9 @@ test(
   'build manylinux pip',
   async () => {
     // await testOneCUDA('none', false)
-    // await testOneCUDA('10.2')
-    await testOneCUDA('10.1', true)
+    await testOneCUDA('10.2', false)
+    // await testOneCUDA('10.1', true)
+    // await testOneCUDA('11.4', false)
   },
   MINUTES30
 )

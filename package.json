@@ -23,7 +23,7 @@
         "all": "npm run build && npm run format && npm run lint && npm run package && npm test",
         "fast": "npm run build && npm run package && npm test",
         "test-ssh": "npm run build && TEST_SSH=1 npm run test -- __tests__/ssh.test.ts",
-        "test-cuda": "npm run build && TEST_MANYLINUX='img;build' npm run test -- __tests__/cuda.test.ts",
+        "test-cuda": "TEST_MANYLINUX='img;build' npm run test -- __tests__/cuda.test.ts",
         "test-hash": "npm run build && npm run test -- __tests__/hash.test.ts",
         "pub": "rm -rf dist && rm -rf lib && npm run all && git add . && git commit -m publishing && git push"
     },

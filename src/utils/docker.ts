@@ -246,7 +246,8 @@ async function buildAndMakeWheel(
   createOptions: Object,
   docker: Docker,
   buildDir: string,
-  shouldCleanBuildDir: Boolean
+  shouldCleanBuildDir: Boolean,
+  shouldCleanCcache: Boolean
 ): Promise<void> {
   const shouldSymbolicLinkLld = core.getBooleanInput('docker-run-use-lld')
   const shouldAuditWheel = core.getBooleanInput('wheel-audit', {
@@ -267,6 +268,13 @@ async function buildAndMakeWheel(
   await container.start()
   if (shouldCleanBuildDir) {
     await runBash(container, `rm -rf ${path.join(buildDir, '*')}`)
+  }
+  await runBash(container, 'ccache -sv')
+  if (shouldCleanCcache) {
+    core.warning(`cleaning ccache...`)
+    await runBash(container, 'ccache -C')
+    await runBash(container, `rm -rf ~/.ccache/*`)
+    await runBash(container, 'ccache -sv')
   }
   const pythonVersions: string[] = core.getMultilineInput('python-versions', {
     required: true
@@ -386,15 +394,23 @@ export async function buildOneFlow(tag: string): Promise<void> {
       `ONEFLOW_CI_LLVM_DIR=${llvmDir}`
     ].concat(httpProxyEnvs)
   }
+
   try {
+    const shouldCleanCcache = core.getBooleanInput('clean-ccache')
     await killContainer(docker, containerName)
-    await buildAndMakeWheel(createOptions, docker, buildDir, false)
+    await buildAndMakeWheel(
+      createOptions,
+      docker,
+      buildDir,
+      false,
+      shouldCleanCcache
+    )
   } catch (error) {
     const retryFailedBuild = core.getBooleanInput('retry-failed-build')
     if (retryFailedBuild) {
       core.warning('Retry Build and Make Wheel.')
       await killContainer(docker, containerName)
-      await buildAndMakeWheel(createOptions, docker, buildDir, true)
+      await buildAndMakeWheel(createOptions, docker, buildDir, true, false)
     } else {
       core.setFailed(error as Error)
       throw error

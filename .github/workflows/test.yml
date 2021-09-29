@@ -212,6 +212,7 @@ jobs:
           docker-run-use-system-http-proxy: false
           docker-run-use-lld: true
           retry-failed-build: true
+          clean-ccache: true
           python-versions: |
             3.6
             3.7
