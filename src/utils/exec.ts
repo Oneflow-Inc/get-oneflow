@@ -17,12 +17,7 @@ export async function exec(
   args?: string[],
   options?: ExecOptions
 ): Promise<number> {
-  const isDryRun: boolean = core.getBooleanInput('dry-run')
-  if (isDryRun) {
-    return 0
-  } else {
-    return await exec_.exec(commandLine, args, options)
-  }
+  return await exec_.exec(commandLine, args, options)
 }
 
 /**
