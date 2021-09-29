@@ -272,7 +272,7 @@ async function buildAndMakeWheel(
   await runBash(container, 'ccache -sv')
   if (shouldCleanCcache) {
     core.warning(`cleaning ccache...`)
-    await runBash(container, 'ccache -c')
+    await runBash(container, 'ccache -C')
     await runBash(container, `rm -rf ~/.ccache/*`)
     await runBash(container, 'ccache -sv')
   }
