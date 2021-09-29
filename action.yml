@@ -71,6 +71,10 @@ inputs:
     description: 'Retry a failed build oneflow or not'
     required: false
     default: 'false'
+  clean-ccache:
+    description: ''
+    required: false
+    default: 'false'
   docker-run-use-system-http-proxy:
     description: ''
     required: false
