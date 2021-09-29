@@ -5,6 +5,7 @@ import path from 'path'
 import * as core from '@actions/core'
 import * as fs from 'fs'
 import Client from 'ssh2-sftp-client'
+import * as exec from './exec'
 
 function getEntryDir(tankDir: string, digest: string, entry: string): string {
   return path.join(tankDir, 'digest', digest, entry)
@@ -76,6 +77,14 @@ export async function downloadByDigest(): Promise<void> {
     core.info(`[exist] ${entryDir}`)
     return
   }
+  const remoteDir = getEntryDir(sshTankPath, digest, entry)
+  if (os.hostname() === 'oneflow-13' && sshTankHost === '192.168.1.13') {
+    core.info(`[symlink] ${os.hostname()}`)
+    await exec.exec('mkdir', ['-p', entryDir])
+    await exec.exec('rm', ['-rf', entryDir])
+    await exec.exec('ln', ['-sf', remoteDir, entryDir])
+    return
+  }
   const sftp = new Client()
   try {
     core.info(`[connect] ${sshTankHost}`)
@@ -86,7 +95,6 @@ export async function downloadByDigest(): Promise<void> {
         path.join(os.userInfo().homedir, '.ssh/id_rsa')
       )
     })
-    const remoteDir = getEntryDir(sshTankPath, digest, entry)
     core.info(`[from] ${remoteDir}`)
     core.info(`[to] ${entryDir}`)
     await sftp.downloadDir(remoteDir, entryDir)
