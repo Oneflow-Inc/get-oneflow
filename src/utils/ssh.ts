@@ -63,15 +63,7 @@ export async function downloadByDigest(): Promise<void> {
   const entryDir = path.join(digestDir, entry)
   const sshTankHost = core.getInput('ssh-tank-host', {required: true})
   const sshTankPath = core.getInput('ssh-tank-path', {required: true})
-  if (!fs.existsSync(digestDir)) {
-    // remove all if it is a different digestDir
-    if (fs.existsSync(cacheDir)) {
-      core.info(`[rm] ${cacheDir}`)
-      fs.rmdirSync(cacheDir, {recursive: true})
-    }
-    core.info(`[mkir] ${digestDir}`)
-    fs.mkdirSync(digestDir, {recursive: true})
-  }
+  fs.mkdirSync(digestDir, {recursive: true})
   core.setOutput('entry-dir', entryDir) // setOutput before return
   if (fs.existsSync(entryDir)) {
     core.info(`[exist] ${entryDir}`)
