@@ -1,5 +1,10 @@
 name: 'Mirror Tools'
 description: ''
+inputs:
+  action-type:
+    description: ''
+    required: false
+    default: 'mirror'
 runs:
   using: 'node12'
   main: '../dist/index.js'
