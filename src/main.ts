@@ -1,7 +1,33 @@
 import * as gh from '@actions/github'
 import * as core from '@actions/core'
 import {runAndSetFailed} from './utils/util'
-
+import {buildWithCondaOrManyLinux} from './buildOneFlow'
+import {cacheRun} from './utils/cache'
+import * as matrix from './utils/matrix'
+import {downloadByDigest, uploadByDigest} from './utils/ssh'
+import {runMirror} from './utils/mirrorTools'
+import {runBuildManylinux} from './utils/docker'
+type ActionType =
+  | 'build-oneflow'
+  | 'cache-complete'
+  | 'cache-complete/matrix/build'
+  | 'cache-complete/matrix/test'
+  | 'digest/download'
+  | 'digest/upload'
+  | 'manylinux'
+  | 'mirror'
 runAndSetFailed(async () => {
   core.debug(JSON.stringify(gh, null, 2))
+  const actionType = core.getInput('action-type', {
+    required: true
+  }) as ActionType
+  if (actionType === 'build-oneflow') await buildWithCondaOrManyLinux()
+  if (actionType === 'cache-complete') await cacheRun()
+  if (actionType === 'cache-complete/matrix/build')
+    await matrix.setBuildMatrix()
+  if (actionType === 'cache-complete/matrix/test') await matrix.setTestMatrix()
+  if (actionType === 'digest/download') await downloadByDigest()
+  if (actionType === 'digest/upload') await uploadByDigest()
+  if (actionType === 'mirror') await runMirror()
+  if (actionType === 'manylinux') await runBuildManylinux()
 })
