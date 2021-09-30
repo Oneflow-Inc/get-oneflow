@@ -15,7 +15,7 @@ type Meta = {
 }
 export async function checkAction(): Promise<void> {
   process.env.GITHUB_WORKSPACE = process.cwd()
-  const pattern = ['**/action.yml', '**/action.yaml'].join('\n')
+  const pattern = ['**/action.yml', '**/action.yaml', '!.github/'].join('\n')
   const globber = await glob.create(pattern)
   const files = await globber.glob()
   ok(files.length > 0, `no files found: ${pattern}`)
