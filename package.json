@@ -9,7 +9,7 @@
         "format": "prettier --write **/*.ts",
         "format-check": "prettier --check **/*.ts",
         "lint": "eslint src/**/*.ts",
-        "package-index": "ncc build --minify -o dist/index.js src/main.ts",
+        "package-main": "ncc build --minify -o dist src/main.ts",
         "package": "concurrently 'npm:package-*'",
         "test": "jest",
         "all": "npm run build && npm run format && npm run lint && npm run package && npm test",
