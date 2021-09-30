@@ -1,11 +1,11 @@
 name: 'Build/Get OneFlow'
 description: ''
 inputs:
-  # OneFlow args
   action-type:
     description: ''
     required: false
     default: 'build-oneflow'
+  # OneFlow args
   oneflow-build-env:
     description: 'environment to build OneFlow: conda, manylinux'
     required: true
