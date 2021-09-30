@@ -3,5 +3,5 @@ import * as core from '@actions/core'
 import {runAndSetFailed} from './utils/util'
 
 runAndSetFailed(async () => {
-  core.info(JSON.stringify(gh.context, null, 2))
+  core.debug(JSON.stringify(gh, null, 2))
 })
