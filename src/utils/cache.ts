@@ -310,3 +310,18 @@ export async function cacheRun(): Promise<void> {
   core.setOutput('test-digest', testDigest)
   core.setOutput('cache-hit', cacheResult.cacheHit)
 }
+
+export async function postCacheRun(): Promise<void> {
+  const markAsCompleted: Boolean = core.getBooleanInput('mark-as-completed', {
+    required: true
+  })
+  const keys: string[] = JSON.parse(core.getState('keys'))
+  // TODO: clear cache if failed
+  if (markAsCompleted) {
+    ok(keys)
+    await cacheComplete(keys)
+    for (const key of keys) {
+      core.info(`[complete] ${key}`)
+    }
+  }
+}

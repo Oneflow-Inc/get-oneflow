@@ -2,7 +2,7 @@ import * as gh from '@actions/github'
 import * as core from '@actions/core'
 import {runAndSetFailed} from './utils/util'
 import {buildWithCondaOrManyLinux} from './buildOneFlow'
-import {cacheRun} from './utils/cache'
+import {cacheRun, postCacheRun} from './utils/cache'
 import * as matrix from './utils/matrix'
 import {downloadByDigest, uploadByDigest} from './utils/ssh'
 import {runMirror} from './utils/mirrorTools'
@@ -22,7 +22,15 @@ runAndSetFailed(async () => {
     required: true
   }) as ActionType
   if (actionType === 'build-oneflow') await buildWithCondaOrManyLinux()
-  if (actionType === 'cache-complete') await cacheRun()
+  if (actionType === 'cache-complete') {
+    const isPostState = core.getState('isPost')
+    if (isPostState && JSON.parse(isPostState)) {
+      await postCacheRun()
+    } else {
+      await cacheRun()
+      core.saveState('isPost', true)
+    }
+  }
   if (actionType === 'cache-complete/matrix/build')
     await matrix.setBuildMatrix()
   if (actionType === 'cache-complete/matrix/test') await matrix.setTestMatrix()
