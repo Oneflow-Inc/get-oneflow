@@ -23,7 +23,7 @@ inputs:
 
 runs:
   using: 'node12'
-  main: '../../dist/uploadByDigest/index.js'
+  main: '../../dist/index.js'
 branding:
   icon: 'archive'
   color: 'gray-dark'

@@ -13,7 +13,7 @@ outputs:
 
 runs:
   using: 'node12'
-  main: '../../../dist/genTestMatrix/index.js'
+  main: '../../../dist/index.js'
 branding:
   icon: 'archive'
   color: 'gray-dark'
