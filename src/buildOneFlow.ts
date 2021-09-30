@@ -85,7 +85,7 @@ async function buildWithConda(): Promise<void> {
   }
 }
 
-async function run(): Promise<void> {
+export async function buildWithCondaOrManyLinux(): Promise<void> {
   try {
     const buildEnv: string = core.getInput('oneflow-build-env')
     if (['conda', 'manylinux'].includes(buildEnv) === false) {
@@ -106,5 +106,3 @@ async function run(): Promise<void> {
     core.setFailed(error as Error)
   }
 }
-
-run()

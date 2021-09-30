@@ -1,6 +1,10 @@
 name: 'Build/Get OneFlow'
 description: ''
 inputs:
+  action-type:
+    description: ''
+    required: false
+    default: 'build-oneflow'
   # OneFlow args
   oneflow-build-env:
     description: 'environment to build OneFlow: conda, manylinux'
@@ -100,4 +104,4 @@ outputs:
     description: 'pip index url could be use to install oneflow'
 runs:
   using: 'node12'
-  main: 'dist/buildOneFlow/index.js'
+  main: 'dist/index.js'

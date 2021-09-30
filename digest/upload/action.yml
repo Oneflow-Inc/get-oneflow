@@ -1,6 +1,10 @@
 name: 'Upload by digest'
 description: ''
 inputs:
+  action-type:
+    description: ''
+    required: false
+    default: 'digest/upload'
   src-dir:
     description: 'path to OneFlow source code'
     required: true
@@ -23,7 +27,7 @@ inputs:
 
 runs:
   using: 'node12'
-  main: '../../dist/uploadByDigest/index.js'
+  main: '../../dist/index.js'
 branding:
   icon: 'archive'
   color: 'gray-dark'

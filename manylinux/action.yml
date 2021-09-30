@@ -1,6 +1,10 @@
 name: 'Build/Get OneFlow'
 description: ''
 inputs:
+  action-type:
+    description: ''
+    required: false
+    default: 'manylinux'
   manylinux-version:
     description: ''
     required: true
@@ -14,4 +18,4 @@ outputs:
     description: 'pip index url could be use to install oneflow'
 runs:
   using: 'node12'
-  main: '../dist/buildImage/index.js'
+  main: '../dist/index.js'

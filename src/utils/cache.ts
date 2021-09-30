@@ -289,3 +289,39 @@ export async function queryCache(opts: QueryOpts): Promise<CacheResult> {
     testDigest
   }
 }
+
+export async function cacheRun(): Promise<void> {
+  const entry: string = core.getInput('entry', {required: true})
+  const digestType: string = core.getInput('digest-type', {required: true})
+  const cacheResult = await queryCache({entry, digestType})
+  const buildDigest = cacheResult.buildDigest
+  const testDigest = cacheResult.testDigest
+  const keys: string[] = cacheResult.keys
+  core.saveState('keys', keys)
+  let runnerLabels: string[] = core.getMultilineInput('runner-labels', {
+    required: false
+  })
+  if (cacheResult.cacheHit) {
+    runnerLabels = ['ubuntu-latest']
+  }
+  core.setOutput('runs-on', runnerLabels)
+  // TODO: only outputs found keys
+  core.setOutput('build-digest', buildDigest)
+  core.setOutput('test-digest', testDigest)
+  core.setOutput('cache-hit', cacheResult.cacheHit)
+}
+
+export async function postCacheRun(): Promise<void> {
+  const markAsCompleted: Boolean = core.getBooleanInput('mark-as-completed', {
+    required: true
+  })
+  const keys: string[] = JSON.parse(core.getState('keys'))
+  // TODO: clear cache if failed
+  if (markAsCompleted) {
+    ok(keys)
+    await cacheComplete(keys)
+    for (const key of keys) {
+      core.info(`[complete] ${key}`)
+    }
+  }
+}

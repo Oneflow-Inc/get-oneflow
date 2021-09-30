@@ -5,11 +5,7 @@ import os from 'os'
 import * as env from '../src/utils/env'
 import {ok} from 'assert'
 import * as cpExec from '../src/utils/cpExec'
-import {
-  checkComplete,
-  getOneFlowBuildCacheKeys,
-  removeComplete
-} from '../src/utils/cache'
+import * as cache from '../src/utils/cache'
 import * as matrix from '../src/utils/matrix'
 process.env['RUNNER_TOOL_CACHE'] = '~/runner_tool_cache'.replace(
   '~',
@@ -31,7 +27,7 @@ test(
     env.setInput('entry', ENTRY)
     // TODO: test multiple types of digest
     env.setInput('digest-type', 'single-client-test')
-    const keys = await getOneFlowBuildCacheKeys(ENTRY)
+    const keys = await cache.getOneFlowBuildCacheKeys(ENTRY)
     env.setBooleanInput('mark-as-completed', true)
     env.setBooleanInput('check-not-completed', true)
     env.setMultilineInput('runner-labels', [
@@ -39,26 +35,17 @@ test(
       'linux',
       'provision'
     ])
-    await removeComplete(keys)
-    ok(!(await checkComplete(keys)))
-    await cpExec.cpExec(
-      np,
-      path.join(__dirname, '..', 'lib', 'cacheComplete.js')
-    )
+    await cache.removeComplete(keys)
+    ok(!(await cache.checkComplete(keys)))
+    await cache.cacheRun()
     env.setTestState('keys', keys)
-    await cpExec.cpExec(
-      np,
-      path.join(__dirname, '..', 'lib', 'postCacheComplete.js')
-    )
+    await cache.postCacheRun()
     process.env['OSS_ACCESS_KEY_ID'] = ''
     process.env['OSS_ACCESS_KEY_SECRET'] = ''
     // await new Promise(resolve => setTimeout(resolve, 2000))
-    ok(await checkComplete(keys))
+    ok(await cache.checkComplete(keys))
     env.setBooleanInput('check-not-completed', false)
-    await cpExec.cpExec(
-      np,
-      path.join(__dirname, '..', 'lib', 'cacheComplete.js')
-    )
+    await cache.cacheRun()
   },
   MINUTES15
 )

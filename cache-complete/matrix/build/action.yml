@@ -1,6 +1,10 @@
 name: 'Build/Get OneFlow'
 description: ''
 inputs:
+  action-type:
+    description: ''
+    required: false
+    default: 'cache-complete/matrix/build'
   oneflow-src:
     description: 'path to OneFlow source code'
     required: true
@@ -16,7 +20,7 @@ outputs:
 
 runs:
   using: 'node12'
-  main: '../../../dist/genBuildMatrix/index.js'
+  main: '../../../dist/index.js'
 branding:
   icon: 'archive'
   color: 'gray-dark'

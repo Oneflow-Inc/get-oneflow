@@ -1,11 +1,15 @@
 name: 'Build/Get OneFlow'
 description: ''
 inputs:
+  action-type:
+    description: ''
+    required: false
+    default: 'cache-complete'
   oneflow-src:
     description: 'path to OneFlow source code'
     required: true
   entry:
-    description: 'entry to cache completetion status'
+    description: 'entry to cache completion status'
     required: true
   runner-labels:
     required: false
@@ -31,8 +35,8 @@ outputs:
 
 runs:
   using: 'node12'
-  main: '../dist/cacheComplete/index.js'
-  post: '../dist/postCacheComplete/index.js'
+  main: '../dist/index.js'
+  post: '../dist/index.js'
   post-if: success()
 branding:
   icon: 'archive'

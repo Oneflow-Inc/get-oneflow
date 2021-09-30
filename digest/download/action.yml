@@ -1,6 +1,10 @@
 name: 'Download by digest'
 description: ''
 inputs:
+  action-type:
+    description: ''
+    required: false
+    default: 'digest/download'
   entry:
     description: ''
     required: true
@@ -25,7 +29,7 @@ outputs:
 
 runs:
   using: 'node12'
-  main: '../../dist/downloadByDigest/index.js'
+  main: '../../dist/index.js'
 branding:
   icon: 'archive'
   color: 'gray-dark'
