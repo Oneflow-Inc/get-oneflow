@@ -5,7 +5,7 @@ inputs:
     description: 'path to OneFlow source code'
     required: true
   entry:
-    description: 'entry to cache completetion status'
+    description: 'entry to cache completion status'
     required: true
   runner-labels:
     required: false
