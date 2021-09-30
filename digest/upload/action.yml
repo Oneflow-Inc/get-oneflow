@@ -1,6 +1,10 @@
 name: 'Upload by digest'
 description: ''
 inputs:
+  action-type:
+    description: ''
+    required: false
+    default: 'digest/upload'
   src-dir:
     description: 'path to OneFlow source code'
     required: true

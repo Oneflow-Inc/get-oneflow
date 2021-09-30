@@ -1,6 +1,10 @@
 name: 'Build/Get OneFlow'
 description: ''
 inputs:
+  action-type:
+    description: ''
+    required: false
+    default: 'cache-complete/matrix/test'
   oneflow-src:
     description: 'path to OneFlow source code'
     required: true
