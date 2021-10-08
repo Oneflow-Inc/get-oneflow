@@ -2,7 +2,7 @@ import * as process from 'process'
 import {test} from '@jest/globals'
 import os from 'os'
 import * as env from '../src/utils/env'
-import {setTestMatrix} from '../src/utils/matrix'
+import {setBuildMatrix, setTestMatrix} from '../src/utils/matrix'
 
 process.env['RUNNER_TOOL_CACHE'] = '~/runner_tool_cache'.replace(
   '~',
@@ -25,6 +25,24 @@ test(
       'provision'
     ])
     await setTestMatrix()
+  },
+  MINUTES15
+)
+
+test(
+  'cache build matrix',
+  async () => {
+    const np = process.execPath
+    const sourceDir = process.env.ONEFLOW_SRC || '~/oneflow'
+    env.setInput('oneflow-src', sourceDir)
+    env.setMultilineInput('entries', ['cpu', 'cuda', 'cuda-xla'])
+    env.setBooleanInput('delete-cache', true)
+    env.setMultilineInput('runner-labels', [
+      'self-hosted',
+      'linux',
+      'provision'
+    ])
+    await setBuildMatrix()
   },
   MINUTES15
 )

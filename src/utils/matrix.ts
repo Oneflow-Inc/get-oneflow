@@ -171,10 +171,16 @@ export async function setBuildMatrix(): Promise<void> {
   const runnerLabels: string[] = core.getMultilineInput('runner-labels', {
     required: true
   })
+  const deleteCache = core.getBooleanInput('delete-cache', {
+    required: true
+  })
   const buildDigest = await cache.getDigestByType('build')
   let entryIncludes: Include[] = []
   for (const entry of entries) {
     const keys = [cache.keyFrom({digest: buildDigest, entry})]
+    if (deleteCache) {
+      await cache.removeComplete(keys)
+    }
     const foundKey = await cache.checkComplete(keys)
     entryIncludes = entryIncludes.concat([
       {
