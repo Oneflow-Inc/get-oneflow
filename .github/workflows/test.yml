@@ -141,6 +141,7 @@ jobs:
         name: find cache
         id: find-cache
         with:
+          delete-cache: ${{ contains(github.event.pull_request.labels.*.name, 'need-clean-ccache') }}
           runner-labels: |
             self-hosted
             linux

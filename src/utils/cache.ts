@@ -146,6 +146,8 @@ export function getPatterns(
   opts: OneFlowSrcDigestOpts
 ): {patterns: string[]; excludePatterns: string[]} {
   let patterns = [
+    'oneflow/api/**/*.h',
+    'oneflow/api/**/*.cpp',
     'oneflow/core/**/*.h',
     'oneflow/core/**/*.hpp',
     'oneflow/core/**/*.cpp',

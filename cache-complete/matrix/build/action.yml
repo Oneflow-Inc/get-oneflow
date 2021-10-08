@@ -14,6 +14,10 @@ inputs:
   entries:
     required: true
     description: 'matrix keys to generate matrix output'
+  delete-cache:
+    required: false
+    description: ''
+    default: 'false'
 outputs:
   matrix:
     description: 'if cache found, will generate a [ubuntu-latest], in JSON'

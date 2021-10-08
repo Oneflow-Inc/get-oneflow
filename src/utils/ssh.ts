@@ -71,10 +71,10 @@ export async function downloadByDigest(): Promise<void> {
   }
   const remoteDir = getEntryDir(sshTankPath, digest, entry)
   if (os.hostname() === 'oneflow-13' && sshTankHost === '192.168.1.13') {
-    core.info(`[symlink] ${os.hostname()}`)
+    core.info(`[copy] ${os.hostname()}`)
     await exec.exec('mkdir', ['-p', entryDir])
     await exec.exec('rm', ['-rf', entryDir])
-    await exec.exec('ln', ['-sf', remoteDir, entryDir])
+    await exec.exec('cp', ['-r', remoteDir, entryDir])
     return
   }
   const sftp = new Client()

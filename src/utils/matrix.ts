@@ -145,9 +145,15 @@ export async function setTestMatrix(): Promise<void> {
     entry: string[]
     include: EntryInclude[]
   }
-  const entryIncludes = (await getTests()).concat(
-    await getSingleClientOpTests()
-  )
+  const entryIncludes = (await getTests())
+    .concat(await getSingleClientOpTests())
+    .sort((a, b) => {
+      if (a['test-type'] === 'legacy-op' && b['test-type'] !== 'legacy-op') {
+        return -1
+      } else {
+        return 0
+      }
+    })
   ok(entryIncludes.length !== 0, 'entryIncludes.length !== 0')
   checkUniqueIncludesByEntry(entryIncludes)
   const matrix: Matrix = {
@@ -171,10 +177,16 @@ export async function setBuildMatrix(): Promise<void> {
   const runnerLabels: string[] = core.getMultilineInput('runner-labels', {
     required: true
   })
+  const deleteCache = core.getBooleanInput('delete-cache', {
+    required: true
+  })
   const buildDigest = await cache.getDigestByType('build')
   let entryIncludes: Include[] = []
   for (const entry of entries) {
     const keys = [cache.keyFrom({digest: buildDigest, entry})]
+    if (deleteCache) {
+      await cache.removeComplete(keys)
+    }
     const foundKey = await cache.checkComplete(keys)
     entryIncludes = entryIncludes.concat([
       {
