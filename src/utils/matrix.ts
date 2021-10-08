@@ -145,9 +145,15 @@ export async function setTestMatrix(): Promise<void> {
     entry: string[]
     include: EntryInclude[]
   }
-  const entryIncludes = (await getTests()).concat(
-    await getSingleClientOpTests()
-  )
+  const entryIncludes = (await getTests())
+    .concat(await getSingleClientOpTests())
+    .sort((a, b) => {
+      if (a['test-type'] === 'legacy-op' && b['test-type'] !== 'legacy-op') {
+        return -1
+      } else {
+        return 0
+      }
+    })
   ok(entryIncludes.length !== 0, 'entryIncludes.length !== 0')
   checkUniqueIncludesByEntry(entryIncludes)
   const matrix: Matrix = {
