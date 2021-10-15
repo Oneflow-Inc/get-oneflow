@@ -20,6 +20,7 @@ interface EntryInclude {
   'is-distributed': Boolean
   'is-single-client': Boolean
   'is-xla': Boolean
+  'is-experimental': Boolean
   'digest-type': cache.DigestType
 }
 function isXla(device: Device): Boolean {
@@ -71,31 +72,39 @@ async function getSingleClientOpTests(): Promise<EntryInclude[]> {
   const devices: Device[] = ['cuda', 'cpu', 'cuda-xla']
   const tests: Test[] = ['legacy-op', 'legacy-model', 'legacy-benchmark']
   const digestType = 'single-client-test'
-  for (const device of devices) {
-    for (const isDistributed of [true, false]) {
-      for (const test of tests) {
-        const digest = await cache.getDigestByType('single-client-test')
-        const entry = `${device}-${test}${isDistributed ? '-distributed' : ''}`
-        if (device === 'cuda-xla' && isDistributed) continue
-        if (test === 'legacy-model' && device !== 'cuda') continue
-        if (test === 'legacy-benchmark' && device !== 'cuda') continue
-        if (isDistributed && test !== 'legacy-op') continue
-        if (isDistributed && device !== 'cuda') continue
-        const cacheHit = await cache.isComplete(cache.keyFrom({entry, digest}))
-        includes.push({
-          entry,
-          device,
-          'is-single-client': true,
-          'compute-platform': getComputePlatform(device),
-          'cache-hit': cacheHit,
-          'runs-on': cacheHit
-            ? 'ubuntu-latest'
-            : getRunsOn(getRunnerLabel(device)),
-          'is-distributed': isDistributed,
-          'test-type': test,
-          'is-xla': isXla(device),
-          'digest-type': digestType
-        })
+  for (const isExperimental of [true, false]) {
+    for (const device of devices) {
+      for (const isDistributed of [true, false]) {
+        for (const test of tests) {
+          if (isExperimental && test !== 'legacy-benchmark') continue
+          if (device === 'cuda-xla' && isDistributed) continue
+          if (test === 'legacy-model' && device !== 'cuda') continue
+          if (test === 'legacy-benchmark' && device !== 'cuda') continue
+          if (isDistributed && test !== 'legacy-op') continue
+          if (isDistributed && device !== 'cuda') continue
+          const digest = await cache.getDigestByType('single-client-test')
+          const entry = `${device}-${test}${
+            isDistributed ? '-distributed' : ''
+          }${isExperimental ? '-experimental' : ''}`
+          const cacheHit = await cache.isComplete(
+            cache.keyFrom({entry, digest})
+          )
+          includes.push({
+            entry,
+            device,
+            'is-single-client': true,
+            'compute-platform': getComputePlatform(device),
+            'cache-hit': cacheHit,
+            'runs-on': cacheHit
+              ? 'ubuntu-latest'
+              : getRunsOn(getRunnerLabel(device)),
+            'is-distributed': isDistributed,
+            'test-type': test,
+            'is-xla': isXla(device),
+            'is-experimental': isExperimental,
+            'digest-type': digestType
+          })
+        }
       }
     }
   }
@@ -127,6 +136,7 @@ async function getTests(): Promise<EntryInclude[]> {
           'is-distributed': isDistributed,
           'test-type': test,
           'is-xla': false,
+          'is-experimental': false,
           'digest-type': digestType
         })
       }
