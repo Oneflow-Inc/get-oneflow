@@ -1,0 +1,19 @@
+name: 'Find oneflow wheel in oss'
+description: ''
+inputs:
+  ref:
+    required: true
+    description: 'oneflow commit id'  
+  platform:
+    required: true
+    description: 'compute platform, e.g. cu112'
+outputs:
+  find-wheel-hit:
+    description: ''
+
+runs:
+  using: 'node12'
+  main: '../dist/index.js'
+branding:
+  icon: 'archive'
+  color: 'gray-dark'
