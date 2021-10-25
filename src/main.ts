@@ -15,9 +15,9 @@ type ActionType =
   | 'cache-complete/matrix/test'
   | 'digest/download'
   | 'digest/upload'
+  | 'find-wheel'
   | 'manylinux'
   | 'mirror'
-  | 'find-wheel'
 runAndSetFailed(async () => {
   core.debug(JSON.stringify(gh, null, 2))
   const actionType = core.getInput('action-type', {

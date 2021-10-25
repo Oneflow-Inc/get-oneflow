@@ -1,12 +1,16 @@
 name: 'Find oneflow wheel in oss'
 description: ''
 inputs:
+  action-type:
+    description: ''
+    required: false
+    default: 'find-wheel'
   ref:
     required: true
     description: 'oneflow commit id'  
-  platform:
+  entry:
     required: true
-    description: 'compute platform, e.g. cu112'
+    description: 'compute platform entry, e.g. cu112'
 outputs:
   find-wheel-hit:
     description: ''
