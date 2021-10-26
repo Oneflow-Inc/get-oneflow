@@ -25,11 +25,9 @@ function staticBucketStore(): OSS {
 export async function findWheel(): Promise<void> {
   const commitId = core.getInput('ref', {required: true})
   const computePlatform = core.getInput('entry', {required: true})
-  core.info(`[commit id] ${commitId}`)
-  core.info(`[compute platform entry] ${computePlatform}`)
-
+  
   const pipIndexPath = `commit/${commitId}/${computePlatform}/index.html`
-
+  
   const store = staticBucketStore()
   try {
     const result = await store.get(pipIndexPath)
@@ -37,11 +35,16 @@ export async function findWheel(): Promise<void> {
     const pythonVersion = core.getInput('python-version', {required: true})
     const pythonName = PythonNameMap.get(pythonVersion)
     if (stream.includes(pythonName)) {
+      core.info(`OneFlow python wheel index is found in oss ${pipIndexPath}.`)
       core.setOutput('find-wheel-hit', true)
     } else {
+      core.info(
+        `OneFlow python wheel index is found in oss ${pipIndexPath}, but python version not match`
+      )
       core.setOutput('find-wheel-hit', false)
     }
   } catch (error) {
+    core.info('Can not find OneFlow python wheel in oss.')
     core.setOutput('find-wheel-hit', false)
   }
 }
