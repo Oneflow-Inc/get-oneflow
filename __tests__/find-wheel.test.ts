@@ -17,6 +17,7 @@ test(
     // TODO: generate credential to run the test on gh hosted
     env.setInput('ref', '38a3746d52b698178ac89830ecb0eb53e19f60f4')
     env.setInput('entry', 'cu102')
+    env.setInput('python-version', '3.7')
     await findWheel.findWheel()
   },
   MINUTES15

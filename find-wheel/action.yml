@@ -11,6 +11,9 @@ inputs:
   entry:
     required: true
     description: 'compute platform entry, e.g. cu112'
+  python-version:
+    required: true
+    description: 'python version'
 outputs:
   find-wheel-hit:
     description: ''
