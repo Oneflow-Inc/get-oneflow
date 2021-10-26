@@ -44,7 +44,7 @@
         "uuid": "^8.3.2"
     },
     "devDependencies": {
-        "@types/ali-oss": "^6.0.10",
+        "@types/ali-oss": "^6.16.1",
         "@types/dockerode": "^3.2.7",
         "@types/js-yaml": "^4.0.3",
         "@types/node": "^16.3.3",
