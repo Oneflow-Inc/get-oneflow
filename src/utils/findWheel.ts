@@ -1,12 +1,47 @@
+import OSS from 'ali-oss'
 import * as core from '@actions/core'
+import * as cache from './cache'
+
+const PythonNameMap = new Map([
+  ['3.6', 'cp36-cp36m'],
+  ['3.7', 'cp37-cp37m'],
+  ['3.8', 'cp38-cp38'],
+  ['3.9', 'cp39-cp39'],
+  ['3.10', 'cp310-cp310']
+])
+
+function staticBucketStore(): OSS {
+  const store = new OSS(
+    cache.addRetryMax({
+      region: 'oss-cn-beijing',
+      bucket: 'oneflow-staging',
+      accessKeyId: cache.getOSSCredentials().accessKeyId,
+      accessKeySecret: cache.getOSSCredentials().accessKeySecret
+    })
+  )
+  return store
+}
 
 export async function findWheel(): Promise<void> {
-  const commit_id = core.getInput('ref', {required: true})
-  const compute_platform = core.getInput('entry', {required: true})
-  const python_version = core.getInput('python-version', {required: true})
-  core.info(`[commit id] ${commit_id}`)
-  core.info(`[compute platform entry] ${compute_platform}`)
-  core.info(`[python version] ${python_version}`)
+  const commitId = core.getInput('ref', {required: true})
+  const computePlatform = core.getInput('entry', {required: true})
+  core.info(`[commit id] ${commitId}`)
+  core.info(`[compute platform entry] ${computePlatform}`)
 
-  core.setOutput('find-wheel-hit', 1)
+  const pipIndexPath = `commit/${commitId}/${computePlatform}/index.html`
+
+  const store = staticBucketStore()
+  try {
+    const result = await store.get(pipIndexPath)
+    const stream = result.content
+    const pythonVersion = core.getInput('python-version', {required: true})
+    const pythonName = PythonNameMap.get(pythonVersion)
+    if (stream.includes(pythonName)) {
+      core.setOutput('find-wheel-hit', true)
+    } else {
+      core.setOutput('find-wheel-hit', false)
+    }
+  } catch (error) {
+    core.setOutput('find-wheel-hit', false)
+  }
 }
