@@ -25,14 +25,18 @@ function staticBucketStore(): OSS {
 export async function findWheel(): Promise<void> {
   const commitId = core.getInput('ref', {required: true})
   const computePlatform = core.getInput('entry', {required: true})
+  core.info(`commitId: ${commitId}`)
+  core.info(`computePlatform: ${computePlatform}`)
 
   const pipIndexPath = `commit/${commitId}/${computePlatform}/index.html`
+  core.info(`pipIndexPath: ${pipIndexPath}`)
 
   const store = staticBucketStore()
   try {
     const result = await store.get(pipIndexPath)
     const stream = result.content
     const pythonVersion = core.getInput('python-version', {required: true})
+    core.info(`pythonVersion: ${pythonVersion}`)
     const pythonName = PythonNameMap.get(pythonVersion)
     if (stream.includes(pythonName)) {
       core.info(`OneFlow python wheel index is found in oss ${pipIndexPath}.`)
