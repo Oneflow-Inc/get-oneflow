@@ -49,6 +49,7 @@ export async function findWheel(): Promise<void> {
     }
   } catch (error) {
     core.info('Can not find OneFlow python wheel in oss.')
+    core.info(error)
     core.setOutput('find-wheel-hit', false)
   }
 }
