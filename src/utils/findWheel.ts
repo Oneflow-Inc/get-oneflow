@@ -40,16 +40,16 @@ export async function findWheel(): Promise<void> {
     const pythonName = PythonNameMap.get(pythonVersion)
     if (stream.includes(pythonName)) {
       core.info(`OneFlow python wheel index is found in oss ${pipIndexPath}.`)
-      core.setOutput('find-wheel-hit', true)
+      core.setOutput('find-wheel-hit', !!true)
     } else {
       core.info(
         `OneFlow python wheel index is found in oss ${pipIndexPath}, but python version not match`
       )
-      core.setOutput('find-wheel-hit', false)
+      core.setOutput('find-wheel-hit', !!false)
     }
   } catch (error) {
     core.info('Can not find OneFlow python wheel in oss.')
     core.info(error)
-    core.setOutput('find-wheel-hit', false)
+    core.setOutput('find-wheel-hit', !!false)
   }
 }
