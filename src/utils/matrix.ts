@@ -145,9 +145,33 @@ async function getTests(): Promise<EntryInclude[]> {
   return includes
 }
 
-function checkUniqueIncludesByEntry(entryIncludes: EntryInclude[]): void {
+export interface EntryIncludeToCheck {
+  entry: string
+}
+export interface MatrixToOutput {
+  entry: string[]
+  include: EntryIncludeToCheck[]
+}
+export function checkUniqueIncludesByEntry(
+  entryIncludes: EntryIncludeToCheck[]
+): void {
   const uniqueItems = [...new Set(entryIncludes.map(x => x.entry))]
-  ok(uniqueItems.length === entryIncludes.length)
+  ok(
+    uniqueItems.length === entryIncludes.length,
+    `${uniqueItems.length} != ${entryIncludes.length}`
+  )
+}
+export function OutputIncludesAsMatrix(
+  entryIncludes: EntryIncludeToCheck[]
+): void {
+  ok(entryIncludes.length !== 0, 'entryIncludes.length !== 0')
+  checkUniqueIncludesByEntry(entryIncludes)
+  const matrix: MatrixToOutput = {
+    entry: entryIncludes.map(x => x.entry),
+    include: entryIncludes
+  }
+  core.setOutput('matrix', matrix)
+  core.info(JSON.stringify(matrix, null, 2))
 }
 
 export async function setTestMatrix(): Promise<void> {

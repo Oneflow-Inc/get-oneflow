@@ -1,0 +1,76 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      oneflow-ref:
+        description: ''
+        required: false
+        default: 'master'
+      oneflow-models-ref:
+        description: ''
+        required: false
+        default: 'master'
+
+jobs:
+  test-speed:
+  name: Test speed
+  runs-on: ${{ matrix.runs-on }}
+  needs: [find-speed-test-cache]
+  strategy:
+    fail-fast: false
+    max-parallel: 5
+    matrix: ${{ fromJson(needs.find-speed-test-cache.outputs.matrix) }}
+  env:
+    ONEFLOW_SRC: oneflow-src
+    TEST_CONTAINER_NAME: 'pr-${{ github.event.pull_request.number }}-run-id-${{ github.run_id }}-${{ matrix.entry }}-test'
+    TEST_WITH_TF_IMG_TAG: registry.cn-beijing.aliyuncs.com/oneflow/test-with-tf-2.4.0:b8b5eb2bdee6928fefd61ccabf8fb2d680835aeb
+    TEST_WITH_TORCH_IMG_TAG: registry.cn-beijing.aliyuncs.com/oneflow/test-with-pytorch-1.9.0:0.1
+    PIP_INDEX_URL: 'http://192.168.1.22:8000'
+    PIP_INDEX_TRUST_ARGS: '--trusted-host 192.168.1.22'
+    SSH_TANK_HOST: 192.168.1.23
+    SSH_TANK_PATH: /home/ci-user/tank
+  steps:
+    - name: Fix permissions
+      if: ${{ contains(matrix.runs-on, 'self-hosted') }}
+      run: |
+        set -x
+        docker run --rm -v $PWD:/p -w /p busybox chown -R $(id -u):$(id -g) .
+    - uses: actions/checkout@v2
+    - name: Checkout Oneflow-Inc/oneflow
+      uses: actions/checkout@v2
+      with:
+        repository: Oneflow-Inc/oneflow
+        ref: master
+        path: oneflow-src
+    - name: Checkout Oneflow-Inc/oneflow
+      uses: actions/checkout@v2
+      with:
+        repository: Oneflow-Inc/models
+        ref: master
+        path: oneflow-src
+    - name: Remove container
+      timeout-minutes: 45
+      if: ${{ contains(matrix.runs-on, 'self-hosted') }}
+      run: |
+        docker rm -f ${{ env.TEST_CONTAINER_NAME }} || true
+    - name: Set cmd
+      timeout-minutes: 45
+      if: ${{ matrix.execution == 'graph') }}
+      run: |
+        ONEFLOW_RES50_CMD=
+    - name: Set cmd
+      timeout-minutes: 45
+      if: ${{ fromJson(matrix.world-size) > 1 }}
+      run: |
+        ONEFLOW_RES50_CMD=
+    - uses: ./performance/speed
+      name: ResNet50 Single GPU
+      with:
+        oneflow-run: ${{ env.ONEFLOW_RES50_CMD }}
+        pytorch-run: python3 resnet50/models/resnet50.py --use_pytorch
+        run-pytorch: ${{ }}
+        checks: |
+          compare-with-pytorch
+          medium-history
+        throughput-calculation-method: 'medium'

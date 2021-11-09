@@ -418,7 +418,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
   }
 }
 
-async function killContainer(
+export async function killContainer(
   docker: Docker,
   containerName: string
 ): Promise<void> {
