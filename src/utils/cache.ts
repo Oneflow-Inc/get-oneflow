@@ -148,6 +148,12 @@ export function getPatterns(
   let patterns = [
     'oneflow/api/**/*.h',
     'oneflow/api/**/*.cpp',
+    'oneflow/user/**/*.h',
+    'oneflow/user/**/*.cpp',
+    'oneflow/user/**/*.cuh',
+    'oneflow/user/**/*.cu',
+    'oneflow/ir/**/*.h',
+    'oneflow/ir/**/*.cpp',
     'oneflow/core/**/*.h',
     'oneflow/core/**/*.hpp',
     'oneflow/core/**/*.cpp',
