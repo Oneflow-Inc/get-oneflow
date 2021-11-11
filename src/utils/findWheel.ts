@@ -16,7 +16,16 @@ export async function findWheel(): Promise<boolean> {
   const store = ossStore()
   store.useBucket('oneflow-staging')
   const pipIndexPath = `commit/${commitId}/${computePlatform}/index.html`
-  const result = await store.get(pipIndexPath)
+
+  let result = null
+  try {
+    result = await store.get(pipIndexPath)
+  } catch (error) {
+    core.info('Could not find a version that satisfies the requirement')
+    core.info(error)
+    core.setOutput('find-wheel-hit', false)
+    return false
+  }
   const stream = result.content
   const pythonVersion = core.getInput('python-version', {required: true})
   const pythonName = PythonNameMap.get(pythonVersion)
