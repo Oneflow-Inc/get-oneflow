@@ -1,5 +1,5 @@
 import * as core from '@actions/core'
-import {staticBucketStore} from './ensure'
+import {ossStore} from './ensure'
 
 const PythonNameMap = new Map([
   ['3.6', 'cp36-cp36m'],
@@ -9,11 +9,12 @@ const PythonNameMap = new Map([
   ['3.10', 'cp310-cp310']
 ])
 
-export async function findWheel(): Promise<void> {
+export async function findWheel(): Promise<boolean> {
   const commitId = core.getInput('ref', {required: true})
   const computePlatform = core.getInput('entry', {required: true})
 
-  const store = staticBucketStore()
+  const store = ossStore()
+  store.useBucket('oneflow-staging')
   const pipIndexPath = `commit/${commitId}/${computePlatform}/index.html`
   const result = await store.get(pipIndexPath)
   const stream = result.content
@@ -24,10 +25,12 @@ export async function findWheel(): Promise<void> {
       `OneFlow python wheel index file is found in oss ${pipIndexPath}.`
     )
     core.setOutput('find-wheel-hit', true)
+    return true
   } else {
     core.info(
       `OneFlow python wheel index file is found in oss ${pipIndexPath}, but could not find a version that satisfies the requirement.`
     )
     core.setOutput('find-wheel-hit', false)
+    return false
   }
 }
