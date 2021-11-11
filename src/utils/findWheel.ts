@@ -11,7 +11,7 @@ const PythonNameMap = new Map([
 
 export async function findWheel(): Promise<boolean> {
   const commitId = core.getInput('ref', {required: true})
-  const computePlatform = core.getInput('entry', {required: true})
+  const computePlatform = core.getInput('compute-platform', {required: true})
 
   const store = ossStore()
   store.useBucket('oneflow-staging')
