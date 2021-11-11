@@ -121,7 +121,7 @@ function ossStore(): OSS {
   return store
 }
 
-function staticBucketStore(): OSS {
+export function staticBucketStore(): OSS {
   const store = ossStore()
   store.useBucket('oneflow-static')
   return store

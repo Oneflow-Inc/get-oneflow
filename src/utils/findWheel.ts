@@ -1,6 +1,5 @@
-import OSS from 'ali-oss'
 import * as core from '@actions/core'
-import * as cache from './cache'
+import {staticBucketStore} from './ensure'
 
 const PythonNameMap = new Map([
   ['3.6', 'cp36-cp36m'],
@@ -9,18 +8,6 @@ const PythonNameMap = new Map([
   ['3.9', 'cp39-cp39'],
   ['3.10', 'cp310-cp310']
 ])
-
-function staticBucketStore(): OSS {
-  const store = new OSS(
-    cache.addRetryMax({
-      region: 'oss-cn-beijing',
-      bucket: 'oneflow-staging',
-      accessKeyId: cache.getOSSCredentials().accessKeyId,
-      accessKeySecret: cache.getOSSCredentials().accessKeySecret
-    })
-  )
-  return store
-}
 
 export async function findWheel(): Promise<void> {
   const commitId = core.getInput('ref', {required: true})
