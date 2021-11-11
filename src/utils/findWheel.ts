@@ -9,10 +9,11 @@ const PythonNameMap = new Map([
   ['3.10', 'cp310-cp310']
 ])
 
-export async function findWheel(): Promise<boolean> {
-  const commitId = core.getInput('ref', {required: true})
-  const computePlatform = core.getInput('compute-platform', {required: true})
-
+export async function checkIfWheelExists(
+  commitId: string,
+  computePlatform: string,
+  pythonVersion: string
+): Promise<boolean> {
   const store = ossStore()
   store.useBucket('oneflow-staging')
   const pipIndexPath = `commit/${commitId}/${computePlatform}/index.html`
@@ -27,7 +28,6 @@ export async function findWheel(): Promise<boolean> {
     return false
   }
   const stream = result.content
-  const pythonVersion = core.getInput('python-version', {required: true})
   const pythonName = PythonNameMap.get(pythonVersion)
   if (stream.includes(pythonName)) {
     core.info(
@@ -42,4 +42,11 @@ export async function findWheel(): Promise<boolean> {
     core.setOutput('find-wheel-hit', false)
     return false
   }
+}
+
+export async function findWheel(): Promise<boolean> {
+  const commitId = core.getInput('ref', {required: true})
+  const computePlatform = core.getInput('compute-platform', {required: true})
+  const pythonVersion = core.getInput('python-version', {required: true})
+  return checkIfWheelExists(commitId, computePlatform, pythonVersion)
 }
