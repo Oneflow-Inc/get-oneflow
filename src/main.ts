@@ -7,6 +7,7 @@ import * as matrix from './utils/matrix'
 import {downloadByDigest, uploadByDigest} from './utils/ssh'
 import {runMirror} from './utils/mirrorTools'
 import {runBuildManylinux} from './utils/docker'
+import {findWheel} from './utils/findWheel'
 type ActionType =
   | 'build-oneflow'
   | 'cache-complete'
@@ -14,6 +15,7 @@ type ActionType =
   | 'cache-complete/matrix/test'
   | 'digest/download'
   | 'digest/upload'
+  | 'find-wheel'
   | 'manylinux'
   | 'mirror'
 runAndSetFailed(async () => {
@@ -38,4 +40,5 @@ runAndSetFailed(async () => {
   if (actionType === 'digest/upload') await uploadByDigest()
   if (actionType === 'mirror') await runMirror()
   if (actionType === 'manylinux') await runBuildManylinux()
+  if (actionType === 'find-wheel') await findWheel()
 })

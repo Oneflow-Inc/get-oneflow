@@ -110,7 +110,7 @@ export const TOOLS: Tool[] = [
   CUDA11_0_UPDATE_1
 ]
 
-function ossStore(): OSS {
+export function ossStore(): OSS {
   const store = new OSS(
     cache.addRetryMax({
       region: 'oss-cn-beijing',
