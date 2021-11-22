@@ -223,7 +223,7 @@ export async function runBash(
 ): Promise<void> {
   return await runExec(
     container,
-    ['bash', '-lc', `source /root/.bashrc && ${cmd}`],
+    ['bash', '-c', `source /root/.bashrc && ${cmd}`],
     {cwd}
   )
 }

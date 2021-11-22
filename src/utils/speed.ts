@@ -47,7 +47,7 @@ function updateName(entryInclude: EntryInclude): EntryInclude {
   return entryInclude
 }
 
-async function getTests(): Promise<EntryInclude[]> {
+export async function getTests(): Promise<EntryInclude[]> {
   const includes: EntryInclude[] = []
   const cacheHit = false
   const runsOn: string[] = []
@@ -94,7 +94,7 @@ function checkWithMediumHistory(result: GenericResult): boolean {
   return false
 }
 
-async function runTestInDocker(
+export async function runTestInDocker(
   cmd: string,
   dockerImgTag: string
 ): Promise<void> {
@@ -102,7 +102,7 @@ async function runTestInDocker(
   const testCacheDir = getPathInput('test-cache-dir', {
     required: true
   })
-  const containerName = 'oneflow-manylinux-'.concat(os.userInfo().username)
+  const containerName = 'oneflow-speed-test-'.concat(os.userInfo().username)
   const oneflowSrc: string = getPathInput('oneflow-src', {required: true})
   const oneflowModels: string = getPathInput('oneflow-models', {required: true})
   const mounts: MountSettings[] = []
@@ -130,7 +130,7 @@ async function runTestInDocker(
   await killContainer(docker, containerName)
   const container = await docker.createContainer(createOptions)
   await container.start()
-  const cmdToInstallOneFlow = ''
+  const cmdToInstallOneFlow = 'pwd'
   await runBash(container, cmdToInstallOneFlow)
   await runBash(container, cmd)
 }
