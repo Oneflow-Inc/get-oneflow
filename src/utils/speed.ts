@@ -5,6 +5,9 @@ import {getPathInput} from './util'
 import path from 'path'
 import {killContainer, runBash} from './docker.ts'
 
+// 1. check nobody is using the machine
+// 2. check the metrics' standard deviation
+
 type ThroughputCalculationMethod = 'average' | 'minimum' | 'max' | 'medium'
 type Execution = 'eager' | 'lazy' | 'jit'
 type Consistent = 'local' | 'consistent'
