@@ -106,6 +106,7 @@ export async function runTestInDocker(
   const oneflowSrc: string = getPathInput('oneflow-src', {required: true})
   const oneflowModels: string = getPathInput('oneflow-models', {required: true})
   const mounts: MountSettings[] = []
+  // TODO: support gpu in the container creation
   const createOptions = {
     Cmd: ['sleep', '3000'],
     Image: dockerImgTag,
