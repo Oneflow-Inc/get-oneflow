@@ -132,7 +132,7 @@ export async function runTestInDocker(
   await container.start()
   const cmdToInstallOneFlow = 'pwd'
   await runBash(container, cmdToInstallOneFlow)
-  await runBash(container, cmd)
+  await runBash(container, cmd, oneflowModels)
 }
 
 export async function runSpeedTest(entry: EntryInclude): Promise<void> {

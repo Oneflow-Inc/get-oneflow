@@ -18,7 +18,8 @@ test(
   async () => {
     const sourceDir = process.env.ONEFLOW_SRC || '~/oneflow'
     env.setInput('oneflow-src', sourceDir)
-    env.setInput('oneflow-models', '~/models')
+    const modelsDir = process.env.ONEFLOW_MODELS || '~/models'
+    env.setInput('oneflow-models', modelsDir)
     env.setMultilineInput('runner-labels', [
       'self-hosted',
       'linux',
@@ -29,7 +30,10 @@ test(
     const TEST_WITH_TORCH_IMG_TAG =
       'registry.cn-beijing.aliyuncs.com/oneflow/test-with-pytorch-1.9.0:e7a497b41d8b7f1bce055b1f23d027f93b1557ae'
     for (const entry of entryIncludes) {
-      await runTestInDocker('ls', TEST_WITH_TORCH_IMG_TAG)
+      await runTestInDocker(
+        'python3 scripts/compare_speed_with_pytorch.py Vision/classification/image/resnet50/models/resnet50.py resnet50 16x3x224x224 --only-oneflow --ci-mode',
+        TEST_WITH_TORCH_IMG_TAG
+      )
     }
   },
   MINUTES15
