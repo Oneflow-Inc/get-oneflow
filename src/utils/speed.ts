@@ -1,16 +1,17 @@
 import {ComputePlatform, OutputIncludesAsMatrix} from './matrix'
-import Docker, {Container, MountSettings} from 'dockerode'
+import Docker, {MountSettings} from 'dockerode'
 import os from 'os'
 import {getPathInput} from './util'
 import path from 'path'
-import {killContainer, runBash} from './docker.ts'
+import {killContainer, runBash} from './docker'
+import {assert} from 'console'
 
 // 1. check nobody is using the machine
 // 2. check the metrics' standard deviation
 
-type ThroughputCalculationMethod = 'average' | 'minimum' | 'max' | 'medium'
-type Execution = 'eager' | 'lazy' | 'jit'
-type Consistent = 'local' | 'consistent'
+// type ThroughputCalculationMethod = 'average' | 'minimum' | 'max' | 'medium'
+type ExecutionMode = 'eager' | 'lazy' | 'jit' | 'graph'
+// type Consistent = 'local' | 'consistent'
 type Feature = 'amp'
 
 interface EntryInclude {
@@ -18,8 +19,8 @@ interface EntryInclude {
   'compute-platform': ComputePlatform
   'cache-hit': Boolean
   'runs-on': string[] | string
-  execution: Execution
-  consistent: Consistent
+  'execution-mode': ExecutionMode
+  // consistent: Consistent
   features: Feature[]
   'input-shape': number[]
   'world-size': number | null
@@ -33,7 +34,65 @@ interface GenericResult {
   systemInfo: unknown
 }
 
-function checkWithMediumHistory(result: GenericResult): boolean {}
+function updateName(entryInclude: EntryInclude): EntryInclude {
+  entryInclude.entry = ([
+    entryInclude['compute-platform'],
+    entryInclude['execution-mode'],
+    inputShapeToString(entryInclude['input-shape']),
+    'world-size',
+    entryInclude['world-size']
+  ] as string[])
+    .concat(entryInclude.features)
+    .join('-')
+  return entryInclude
+}
+
+async function getTests(): Promise<EntryInclude[]> {
+  const includes: EntryInclude[] = []
+  const cacheHit = false
+  const runsOn: string[] = []
+  const modesToRun: ExecutionMode[] = ['eager', 'graph']
+  const worldSizes: number[] = [1, 2]
+  const allFeatures: Feature[][] = [['amp'], []]
+  const inputSizes: number[][] = [
+    [16, 3, 224, 224],
+    [8, 3, 224, 224],
+    [4, 3, 224, 224],
+    [2, 3, 224, 224],
+    [1, 3, 224, 224]
+  ]
+  for (const mode of modesToRun) {
+    for (const features of allFeatures) {
+      for (const worldSize of worldSizes) {
+        for (const inputShape of inputSizes) {
+          includes.push(
+            updateName({
+              entry: 'PLACEHOLDER',
+              'compute-platform': 'cu102',
+              'cache-hit': cacheHit,
+              'runs-on': runsOn,
+              features,
+              'execution-mode': mode,
+              'world-size': worldSize,
+              'input-shape': inputShape
+            })
+          )
+        }
+      }
+    }
+  }
+  return includes
+}
+
+export async function setSpeedMatrix(): Promise<void> {
+  const entryIncludes = await getTests()
+  OutputIncludesAsMatrix(entryIncludes)
+}
+
+function checkWithMediumHistory(result: GenericResult): boolean {
+  assert(result)
+  return false
+}
 
 async function runTestInDocker(
   cmd: string,
@@ -76,40 +135,19 @@ async function runTestInDocker(
   await runBash(container, cmd)
 }
 
-function updateName(entryInclude: EntryInclude): EntryInclude {
-  entryInclude.entry = ([
-    entryInclude['compute-platform'],
-    entryInclude.mode
-  ] as string[])
-    .concat(entryInclude.features)
-    .join('-')
-  return entryInclude
-}
-
-async function getTests(): Promise<EntryInclude[]> {
-  const includes: EntryInclude[] = []
-  const cacheHit = false
-  const runsOn: string[] = []
-  const modesToRun: Mode[] = ['eager', 'graph', 'ddp']
-  const allFeatures: Feature[][] = [['amp'], []]
-  for (const mode of modesToRun) {
-    for (const features of allFeatures) {
-      includes.push(
-        updateName({
-          entry: 'PLACEHOLDER',
-          'compute-platform': 'cu102',
-          'cache-hit': cacheHit,
-          'runs-on': runsOn,
-          features,
-          mode
-        })
-      )
-    }
+export async function runSpeedTest(entry: EntryInclude): Promise<void> {
+  await runTestInDocker('', '')
+  const genericResult: GenericResult = {
+    peakGpuMemoryUsage: 100,
+    throughput: 20,
+    throughStd: 1,
+    entry,
+    systemInfo: 'todo'
   }
-  return includes
+  if (checkWithMediumHistory(genericResult)) {
+    throw new Error('check fail when comparing with historic performance data')
+  }
 }
-
-export async function setSpeedMatrix(): Promise<void> {
-  const entryIncludes = await getTests()
-  OutputIncludesAsMatrix(entryIncludes)
+function inputShapeToString(arg0: number[]): string {
+  return arg0.join('x')
 }
