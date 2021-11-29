@@ -19,6 +19,18 @@ test(
     const np = process.execPath
     const sourceDir = process.env.ONEFLOW_SRC || '~/oneflow'
     env.setInput('oneflow-src', sourceDir)
+    env.setMultilineInput('runner-labels', ['self-hosted', 'linux'])
+    await setTestMatrix()
+  },
+  MINUTES15
+)
+
+test(
+  'cache test matrix',
+  async () => {
+    const np = process.execPath
+    const sourceDir = process.env.ONEFLOW_SRC || '~/oneflow'
+    env.setInput('oneflow-src', sourceDir)
     env.setMultilineInput('runner-labels', [
       'self-hosted',
       'linux',
