@@ -9,6 +9,7 @@ type Test =
   | 'legacy-model'
   | 'module'
   | 'misc'
+  | 'speed-test'
 
 interface EntryInclude {
   entry: string
@@ -26,14 +27,26 @@ interface EntryInclude {
 function isXla(device: Device): Boolean {
   return device === 'cuda-xla' || device === 'cpu-xla'
 }
-type RunnerLabel = 'cpu' | 'gpu' | 'provision'
-function getRunsOn(deviceLabel: RunnerLabel): string[] {
+
+type RunnerLabel = 'cpu' | 'gpu' | 'provision' | 'speed-test' | 'cluster-1'
+
+function getRunsOn(
+  test: Test,
+  deviceLabel: RunnerLabel,
+  isDistributed: Boolean
+): string[] {
   // TODO: throttle on runnerLabels
-  const runnerLabels: string[] = core.getMultilineInput('runner-labels', {
+  let runnerLabels: RunnerLabel[] = core.getMultilineInput('runner-labels', {
     required: true
-  })
+  }) as RunnerLabel[]
   if (runnerLabels.includes('provision')) {
     return runnerLabels
+  }
+  if (test === 'speed-test') {
+    runnerLabels = runnerLabels.concat(['speed-test'])
+  }
+  if (isDistributed) {
+    runnerLabels = runnerLabels.concat(['cluster-1'])
   }
   return runnerLabels.concat([deviceLabel])
 }
@@ -97,7 +110,7 @@ async function getSingleClientOpTests(): Promise<EntryInclude[]> {
             'cache-hit': cacheHit,
             'runs-on': cacheHit
               ? 'ubuntu-latest'
-              : getRunsOn(getRunnerLabel(device)),
+              : getRunsOn(test, getRunnerLabel(device), isDistributed),
             'is-distributed': isDistributed,
             'test-type': test,
             'is-xla': isXla(device),
@@ -114,13 +127,14 @@ async function getSingleClientOpTests(): Promise<EntryInclude[]> {
 async function getTests(): Promise<EntryInclude[]> {
   const includes: EntryInclude[] = []
   const devices: Device[] = ['cuda', 'cpu']
-  const tests: Test[] = ['module', 'misc']
+  const tests: Test[] = ['module', 'misc', 'speed-test']
   const digestType = 'test'
   for (const device of devices) {
     for (const isDistributed of [true, false]) {
       for (const test of tests) {
         const digest = await cache.getDigestByType(digestType)
         const entry = `${device}-${test}${isDistributed ? '-distributed' : ''}`
+        if (test === 'speed-test' && device !== 'cuda') continue
         if (isDistributed && test !== 'module') continue
         if (isDistributed && device !== 'cuda') continue
         const cacheHit = await cache.isComplete(cache.keyFrom({entry, digest}))
@@ -132,7 +146,7 @@ async function getTests(): Promise<EntryInclude[]> {
           'cache-hit': cacheHit,
           'runs-on': cacheHit
             ? 'ubuntu-latest'
-            : getRunsOn(getRunnerLabel(device)),
+            : getRunsOn(test, getRunnerLabel(device), isDistributed),
           'is-distributed': isDistributed,
           'test-type': test,
           'is-xla': false,
