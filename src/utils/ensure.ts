@@ -280,7 +280,7 @@ export async function ensureCUDA102(): Promise<void> {
   await ensureTool(CUDNN102)
 }
 
-type CudaVersion = '10.1' | '10.2' | '11.0' | '11.2' | '11.4'
+type CudaVersion = '10.1' | '10.2' | '11.0' | '11.2' | '11.4' | 'none'
 interface CUDATools {
   cudaToolkit: string
   cudaVersion: string
@@ -332,6 +332,8 @@ export async function ensureCUDA(): Promise<CUDATools | null> {
         cudaVersion,
         cudaSemver: CUDA11_1_1.version
       }
+    case 'none':
+      return null
     default:
       throw new Error(`cuda-version not supported: ${cudaVersion}`)
   }

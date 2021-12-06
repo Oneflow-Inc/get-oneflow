@@ -396,7 +396,9 @@ export async function buildOneFlow(tag: string): Promise<void> {
   }
 
   try {
-    const shouldCleanCcache = core.getBooleanInput('clean-ccache')
+    const shouldCleanCcache = core.getBooleanInput('clean-ccache', {
+      required: false
+    })
     await killContainer(docker, containerName)
     await buildAndMakeWheel(
       createOptions,
