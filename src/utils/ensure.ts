@@ -4,7 +4,7 @@ import path from 'path'
 import * as tc from '@actions/tool-cache'
 import * as core from '@actions/core'
 import * as io from '@actions/io'
-import {ok} from 'assert'
+import {match, ok} from 'assert'
 import * as exec from '@actions/exec'
 import * as fs from 'fs'
 import * as semver from 'semver'
@@ -271,6 +271,7 @@ export async function ensureCUDA102(): Promise<void> {
   await ensureTool(CUDNN102)
 }
 
+type CudaVersion = '10.1' | '10.2' | '11.0' | '11.4'
 interface CUDATools {
   cudaToolkit: string
   cudaVersion: string
@@ -279,40 +280,41 @@ interface CUDATools {
 }
 
 export async function ensureCUDA(): Promise<CUDATools | null> {
-  const cudaVersion: string = core.getInput('cuda-version', {required: false})
-  if (cudaVersion === '10.1') {
-    return {
-      cudaToolkit: await ensureTool(CUDA101),
-      cudnn: await ensureTool(CUDNN102),
-      cudaVersion,
-      cudaSemver: CUDA101.version
+  const cudaVersion: CudaVersion = core.getInput('cuda-version', {
+    required: false
+  }) as CudaVersion
+  switch (cudaVersion) {
+    case '10.1':
+      return {
+        cudaToolkit: await ensureTool(CUDA101),
+        cudnn: await ensureTool(CUDNN102),
+        cudaVersion,
+        cudaSemver: CUDA101.version
+      }
+    case '10.2':
+      return {
+        cudaToolkit: await ensureTool(CUDA102),
+        cudnn: await ensureTool(CUDNN102),
+        cudaVersion,
+        cudaSemver: CUDA102.version
+      }
+    case '11.0': {
+      const cuda = CUDA11_0_UPDATE_1
+      return {
+        cudaToolkit: await ensureTool(CUDA11_0_UPDATE_1),
+        cudnn: await ensureTool(CUDNN114),
+        cudaVersion,
+        cudaSemver: cuda.version
+      }
     }
-  } else if (cudaVersion === '10.2') {
-    return {
-      cudaToolkit: await ensureTool(CUDA102),
-      cudnn: await ensureTool(CUDNN102),
-      cudaVersion,
-      cudaSemver: CUDA102.version
-    }
-  } else if (cudaVersion === '11.4') {
-    return {
-      cudaToolkit: await ensureTool(CUDA11_4_1),
-      cudnn: await ensureTool(CUDNN114),
-      cudaVersion,
-      cudaSemver: CUDA11_1_1.version
-    }
-  } else if (cudaVersion === '11.0') {
-    const cuda = CUDA11_0_UPDATE_1
-    return {
-      cudaToolkit: await ensureTool(cuda),
-      cudnn: await ensureTool(CUDNN114),
-      cudaVersion,
-      cudaSemver: cuda.version
-    }
-  } else {
-    if (parseInt(cudaVersion)) {
-      throw new Error(`unsupported cuda version: ${cudaVersion}`)
-    }
-    return null
+    case '11.4':
+      return {
+        cudaToolkit: await ensureTool(CUDA11_4_1),
+        cudnn: await ensureTool(CUDNN114),
+        cudaVersion,
+        cudaSemver: CUDA11_1_1.version
+      }
+    default:
+      throw new Error(`cuda-version not supported: ${cudaVersion}`)
   }
 }
