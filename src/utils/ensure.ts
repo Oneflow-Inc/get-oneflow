@@ -115,7 +115,8 @@ export const TOOLS: Tool[] = [
   CUDA101,
   CUDA102,
   CUDNN102,
-  CUDA11_0_UPDATE_1
+  CUDA11_0_UPDATE_1,
+  CUDA11_2_2
 ]
 
 export function ossStore(): OSS {
