@@ -7,7 +7,7 @@ import os from 'os'
 import {ExecOptions} from '@actions/exec'
 import path from 'path'
 import {ensureConda} from './utils/conda'
-import {buildOneFlow} from './utils/docker'
+import {BuildEnv, buildOneFlow, LLVM12DevContainerTag} from './utils/docker'
 import {isSelfHosted} from './utils/util'
 
 async function condaRun(
@@ -87,20 +87,32 @@ async function buildWithConda(): Promise<void> {
 
 export async function buildWithCondaOrManyLinux(): Promise<void> {
   try {
-    const buildEnv: string = core.getInput('oneflow-build-env')
-    if (['conda', 'manylinux'].includes(buildEnv) === false) {
-      core.setFailed('oneflow-build-env must be conda or manylinux')
-    }
-    if (buildEnv === 'conda') {
-      await buildWithConda()
-    }
-    if (buildEnv === 'manylinux') {
-      if (isSelfHosted()) {
-        const tag =
-          'registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64:0.1'
-        await exec.exec('docker', ['pull', tag])
-        await buildOneFlow(tag)
-      }
+    const buildEnv: BuildEnv = core.getInput('oneflow-build-env') as BuildEnv
+    switch (buildEnv) {
+      case 'conda':
+        await buildWithConda()
+        break
+      case 'manylinux':
+        if (isSelfHosted()) {
+          const tag =
+            'registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64:0.1'
+          await exec.exec('docker', ['pull', tag])
+          await buildOneFlow(tag)
+        } else {
+          throw new Error('must build with manylinux on self-hosted')
+        }
+        break
+      case 'llvm':
+        if (isSelfHosted()) {
+          const tag = LLVM12DevContainerTag
+          await exec.exec('docker', ['pull', tag])
+          await buildOneFlow(tag)
+        } else {
+          throw new Error('must build with llvm on self-hosted')
+        }
+        break
+      default:
+        throw new Error('oneflow-build-env: "${buildEnv}" not supported')
     }
   } catch (error) {
     core.setFailed(error as Error)

@@ -9,7 +9,9 @@ import fs from 'fs'
 import {ok} from 'assert'
 import {getOSSDownloadURL, ensureTool, LLVM12, ensureCUDA} from './ensure'
 import os from 'os'
-
+export type BuildEnv = 'conda' | 'manylinux' | 'llvm'
+export const LLVM12DevContainerTag =
+  'registry.cn-beijing.aliyuncs.com/oneflow/devcontainer:llvm12'
 async function load_img(tag: string, url: string): Promise<void> {
   if (isSelfHosted()) {
     await exec.exec('docker', ['ps'], {silent: true})
@@ -237,6 +239,10 @@ const PythonExeMap = new Map([
 ])
 
 function getPythonExe(pythonVersion: string): string {
+  const buildEnv: BuildEnv = core.getInput('oneflow-build-env') as BuildEnv
+  if (buildEnv === 'llvm') {
+    return 'python3'
+  }
   const exe = PythonExeMap.get(pythonVersion)
   ok(exe, pythonVersion)
   return exe
@@ -264,21 +270,25 @@ async function buildAndMakeWheel(
       required: false
     }
   )
+  const buildEnv: BuildEnv = core.getInput('oneflow-build-env') as BuildEnv
   const container = await docker.createContainer(createOptions)
   await container.start()
   if (shouldCleanBuildDir) {
     await runBash(container, `rm -rf ${path.join(buildDir, '*')}`)
   }
-  await runBash(container, 'ccache -sv')
+  await runBash(container, 'ccache -s')
   if (shouldCleanCcache) {
     core.warning(`cleaning ccache...`)
     await runBash(container, 'ccache -C')
     await runBash(container, `rm -rf ~/.ccache/*`)
-    await runBash(container, 'ccache -sv')
+    await runBash(container, 'ccache -s')
   }
-  const pythonVersions: string[] = core.getMultilineInput('python-versions', {
+  let pythonVersions: string[] = core.getMultilineInput('python-versions', {
     required: true
   })
+  if (buildEnv === 'llvm') {
+    pythonVersions = ['any']
+  }
   if (shouldSymbolicLinkLld) {
     for (const gccVersion of ['7', '10']) {
       await runBash(
