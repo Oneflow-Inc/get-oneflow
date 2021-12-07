@@ -396,7 +396,9 @@ export async function buildOneFlow(tag: string): Promise<void> {
   }
 
   try {
-    const shouldCleanCcache = core.getBooleanInput('clean-ccache')
+    const shouldCleanCcache = core.getBooleanInput('clean-ccache', {
+      required: false
+    })
     await killContainer(docker, containerName)
     await buildAndMakeWheel(
       createOptions,
@@ -409,6 +411,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
     const retryFailedBuild = core.getBooleanInput('retry-failed-build')
     if (retryFailedBuild) {
       core.warning('Retry Build and Make Wheel.')
+      core.warning(JSON.stringify(error, null, 2))
       await killContainer(docker, containerName)
       await buildAndMakeWheel(createOptions, docker, buildDir, true, false)
     } else {
