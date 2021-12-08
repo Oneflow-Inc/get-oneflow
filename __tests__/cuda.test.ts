@@ -97,7 +97,7 @@ test(
   async () => {
     // await testOneCUDA('none', false)
     // await testOneCUDA('10.2', false)
-    await testOneCUDA('11.2', false, true)
+    await testOneCUDA('10.1', false, true)
     // await testOneCUDA('10.1', true)
     // await testOneCUDA('11.4', false)
   },
