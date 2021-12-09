@@ -63,6 +63,7 @@ async function testOneCUDA(
     env.setBooleanInput('docker-run-use-lld', true)
     env.setInput('oneflow-build-env', 'llvm')
     env.setInput('build-script', path.join(sourceDir, 'ci/clang/build-llvm.sh'))
+    env.setBooleanInput('wheel-audit', false)
   }
   env.setInput('oneflow-src', sourceDir)
   process.env[
