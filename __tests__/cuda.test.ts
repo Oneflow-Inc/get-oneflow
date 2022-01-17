@@ -6,7 +6,8 @@ import os from 'os'
 import {
   buildManylinuxAndTag,
   ensureDocker,
-  buildOneFlow
+  buildOneFlow,
+  LLVM12DevContainerTag
 } from '../src/utils/docker'
 import * as core from '@actions/core'
 import {TOOLS, mirrorToDownloads, ensureCUDA102} from '../src/utils/ensure'
@@ -20,10 +21,11 @@ process.env['RUNNER_TOOL_CACHE'] = '~/runner_tool_cache'.replace(
 )
 process.env['RUNNER_TEMP'] = '~/runner_temp'.replace('~', os.homedir)
 const MINUTES30 = 1000 * 60 * 30
-type TestCudaVersion = '11.4' | '11.0' | '10.2' | '10.1' | 'none'
+type TestCudaVersion = '11.4' | '11.0' | '10.2' | '10.1' | 'none' | '11.2'
 async function testOneCUDA(
   cudaVersion: TestCudaVersion,
-  withXLA: Boolean
+  withXLA: Boolean,
+  useLLVM: Boolean
 ): Promise<void> {
   env.setBooleanInput('docker-run-use-system-http-proxy', true) // xla needs it to download nested pkgs
   process.env['INPUT_CMAKE-INIT-CACHE'] = '~/oneflow/cmake/caches/ci/cuda.cmake'
@@ -45,15 +47,25 @@ async function testOneCUDA(
     env.setBooleanInput('docker-run-use-system-http-proxy', false)
     env.setInput('build-script', path.join(sourceDir, 'ci/manylinux/build.sh'))
     env.setInput('cmake-init-cache', '~/oneflow/cmake/caches/cn/cuda.cmake')
-  }
-  if (cudaVersion === 'none') {
+  } else if (cudaVersion === 'none') {
     env.setBooleanInput('docker-run-use-system-http-proxy', false)
     env.setInput('build-script', path.join(sourceDir, 'ci/manylinux/build.sh'))
     env.setInput('cmake-init-cache', '~/oneflow/cmake/caches/ci/cpu.cmake')
     env.setBooleanInput('docker-run-use-lld', true)
     env.setInput('build-script', path.join(sourceDir, 'ci/manylinux/build.sh'))
   }
-  process.env['INPUT_ONEFLOW-SRC'] = sourceDir
+  if (useLLVM) {
+    env.setBooleanInput('docker-run-use-system-http-proxy', false)
+    env.setInput(
+      'cmake-init-cache',
+      path.join(sourceDir, 'cmake/caches/ci/llvm/cuda-75-clang.cmake')
+    )
+    env.setBooleanInput('docker-run-use-lld', true)
+    env.setInput('oneflow-build-env', 'llvm')
+    env.setInput('build-script', path.join(sourceDir, 'ci/clang/build-llvm.sh'))
+    env.setBooleanInput('wheel-audit', false)
+  }
+  env.setInput('oneflow-src', sourceDir)
   process.env[
     'INPUT_MANYLINUX-CACHE-DIR'
   ] = '~/manylinux-cache-dirs/unittest-'.concat(cudaVersion)
@@ -67,10 +79,12 @@ async function testOneCUDA(
   const manylinuxVersion = '2014'
   let tag = ''
   const TEST_MANYLINUX = process.env['TEST_MANYLINUX'] || ''
-  if (TEST_MANYLINUX.includes('img')) {
-    tag = await buildManylinuxAndTag(manylinuxVersion)
-  }
   if (TEST_MANYLINUX.includes('build')) {
+    if (TEST_MANYLINUX.includes('img')) {
+      tag = await buildManylinuxAndTag(manylinuxVersion)
+    } else {
+      tag = LLVM12DevContainerTag
+    }
     ok(tag)
     await buildOneFlow(tag)
   }
@@ -80,7 +94,8 @@ test(
   'build manylinux pip',
   async () => {
     // await testOneCUDA('none', false)
-    await testOneCUDA('10.2', false)
+    // await testOneCUDA('10.2', false)
+    await testOneCUDA('10.1', false, true)
     // await testOneCUDA('10.1', true)
     // await testOneCUDA('11.4', false)
   },

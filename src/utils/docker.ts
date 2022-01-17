@@ -9,7 +9,9 @@ import fs from 'fs'
 import {ok} from 'assert'
 import {getOSSDownloadURL, ensureTool, LLVM12, ensureCUDA} from './ensure'
 import os from 'os'
-
+export type BuildEnv = 'conda' | 'manylinux' | 'llvm'
+export const LLVM12DevContainerTag =
+  'registry.cn-beijing.aliyuncs.com/oneflow/devcontainer:llvm13'
 async function load_img(tag: string, url: string): Promise<void> {
   if (isSelfHosted()) {
     await exec.exec('docker', ['ps'], {silent: true})
@@ -237,17 +239,24 @@ const PythonExeMap = new Map([
 ])
 
 function getPythonExe(pythonVersion: string): string {
+  const buildEnv: BuildEnv = core.getInput('oneflow-build-env') as BuildEnv
+  if (buildEnv === 'llvm') {
+    return 'python3'
+  }
   const exe = PythonExeMap.get(pythonVersion)
   ok(exe, pythonVersion)
   return exe
 }
 
+type BuildAndMakeWheelOptions = {
+  shouldCleanBuildDir: Boolean
+  shouldCleanCcache: Boolean
+}
 async function buildAndMakeWheel(
   createOptions: Object,
   docker: Docker,
   buildDir: string,
-  shouldCleanBuildDir: Boolean,
-  shouldCleanCcache: Boolean
+  opts: BuildAndMakeWheelOptions
 ): Promise<void> {
   const shouldSymbolicLinkLld = core.getBooleanInput('docker-run-use-lld')
   const shouldAuditWheel = core.getBooleanInput('wheel-audit', {
@@ -264,21 +273,25 @@ async function buildAndMakeWheel(
       required: false
     }
   )
+  const buildEnv: BuildEnv = core.getInput('oneflow-build-env') as BuildEnv
   const container = await docker.createContainer(createOptions)
   await container.start()
-  if (shouldCleanBuildDir) {
+  if (opts.shouldCleanBuildDir) {
     await runBash(container, `rm -rf ${path.join(buildDir, '*')}`)
   }
-  await runBash(container, 'ccache -sv')
-  if (shouldCleanCcache) {
+  await runBash(container, 'ccache -s')
+  if (opts.shouldCleanCcache) {
     core.warning(`cleaning ccache...`)
     await runBash(container, 'ccache -C')
     await runBash(container, `rm -rf ~/.ccache/*`)
-    await runBash(container, 'ccache -sv')
+    await runBash(container, 'ccache -s')
   }
-  const pythonVersions: string[] = core.getMultilineInput('python-versions', {
+  let pythonVersions: string[] = core.getMultilineInput('python-versions', {
     required: true
   })
+  if (buildEnv === 'llvm') {
+    pythonVersions = ['any']
+  }
   if (shouldSymbolicLinkLld) {
     for (const gccVersion of ['7', '10']) {
       await runBash(
@@ -400,20 +413,20 @@ export async function buildOneFlow(tag: string): Promise<void> {
       required: false
     })
     await killContainer(docker, containerName)
-    await buildAndMakeWheel(
-      createOptions,
-      docker,
-      buildDir,
-      false,
+    await buildAndMakeWheel(createOptions, docker, buildDir, {
+      shouldCleanBuildDir: false,
       shouldCleanCcache
-    )
+    })
   } catch (error) {
     const retryFailedBuild = core.getBooleanInput('retry-failed-build')
     if (retryFailedBuild) {
       core.warning('Retry Build and Make Wheel.')
       core.warning(JSON.stringify(error, null, 2))
       await killContainer(docker, containerName)
-      await buildAndMakeWheel(createOptions, docker, buildDir, true, false)
+      await buildAndMakeWheel(createOptions, docker, buildDir, {
+        shouldCleanBuildDir: true,
+        shouldCleanCcache: false
+      })
     } else {
       core.setFailed(error as Error)
       throw error
