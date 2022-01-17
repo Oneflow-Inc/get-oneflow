@@ -24,7 +24,7 @@ interface EntryInclude {
   'is-experimental': Boolean
   'digest-type': cache.DigestType
 }
-function isXla(device: Device): Boolean {
+export function isXla(device: Device): Boolean {
   return device === 'cuda-xla' || device === 'cpu-xla'
 }
 
