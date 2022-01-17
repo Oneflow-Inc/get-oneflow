@@ -237,3 +237,39 @@ export async function setBuildMatrix(): Promise<void> {
   core.setOutput('matrix', outputMatrix)
   core.info(JSON.stringify(outputMatrix, null, 2))
 }
+
+interface DistributedEntryInclude {
+  entry: string
+  'compute-platform': string
+  'cache-hit': Boolean
+  'runs-on': string[] | string
+  device: Device
+  rank: number
+  'is-distributed': true
+  'digest-type': cache.DigestType
+}
+
+export async function setDistributedTestMatrix(): Promise<void> {
+  interface Matrix {
+    entry: string[]
+    include: DistributedEntryInclude[]
+  }
+  const entryIncludes = (await getTests())
+    .concat(await getSingleClientOpTests())
+    .sort((a, b) => {
+      if (a['test-type'] === 'legacy-op' && b['test-type'] !== 'legacy-op') {
+        return -1
+      } else {
+        return 0
+      }
+    })
+  ok(entryIncludes.length !== 0, 'entryIncludes.length !== 0')
+  checkUniqueIncludesByEntry(entryIncludes)
+  const matrix: Matrix = {
+    entry: entryIncludes.map(x => x.entry),
+    include: entryIncludes
+  }
+  // TODO: check by uniq
+  core.setOutput('matrix', matrix)
+  core.info(JSON.stringify(matrix, null, 2))
+}
