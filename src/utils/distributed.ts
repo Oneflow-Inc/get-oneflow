@@ -16,7 +16,10 @@ async function sleepSeconds(seconds: number): Promise<void> {
 async function sleepMinutes(minutes: number): Promise<void> {
   await sleepSeconds(minutes * 60)
 }
-export async function waitMatrixStartRunning(): Promise<void> {
+// TODO: add race-compete handling
+// TODO: if `race-compete: true`, on non-primary node, waitMatrix will keep waiting for a job 'completed` status in the matrix
+
+export async function waitMatrix(): Promise<void> {
   const run_id = gh.context.runId
   // TODO: max retry as input
   // TODO: boolean input: fail-at-max-retry
@@ -34,7 +37,11 @@ export async function waitMatrixStartRunning(): Promise<void> {
         }
       )
     ).data.jobs
-    jobs.reduce((acc, job) => job.status === 'in_progress' && acc, true)
+    const allInProgress = jobs.reduce(
+      (acc, job) => job.status === 'in_progress' && acc,
+      true
+    )
+    if (allInProgress) break
     core.info(`[${currentTry}/${maxTry}]`)
     await sleepMinutes(1)
     currentTry += 1
