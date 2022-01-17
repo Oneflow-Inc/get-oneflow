@@ -28,7 +28,12 @@ function isXla(device: Device): Boolean {
   return device === 'cuda-xla' || device === 'cpu-xla'
 }
 
-type RunnerLabel = 'cpu' | 'gpu' | 'provision' | 'speed-test' | 'cluster-1'
+export type RunnerLabel =
+  | 'cpu'
+  | 'gpu'
+  | 'provision'
+  | 'speed-test'
+  | 'cluster-1'
 
 function getRunsOn(
   test: Test,
@@ -36,9 +41,7 @@ function getRunsOn(
   isDistributed: Boolean
 ): string[] {
   // TODO: throttle on runnerLabels
-  let runnerLabels: RunnerLabel[] = core.getMultilineInput('runner-labels', {
-    required: true
-  }) as RunnerLabel[]
+  let runnerLabels: RunnerLabel[] = getLabels()
   if (runnerLabels.includes('provision')) {
     return runnerLabels
   }
@@ -52,6 +55,12 @@ function getRunsOn(
 }
 
 export type ComputePlatform = 'cpu' | 'cu102' | 'cu110_xla' | 'cu101_xla'
+export function getLabels(): RunnerLabel[] {
+  return core.getMultilineInput('runner-labels', {
+    required: true
+  }) as RunnerLabel[]
+}
+
 function getComputePlatform(device: Device): ComputePlatform {
   switch (device) {
     case 'cpu':
