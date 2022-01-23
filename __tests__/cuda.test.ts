@@ -45,6 +45,7 @@ async function testOneCUDA(
     env.setBooleanInput('docker-run-use-lld', true)
     env.setInput('build-script', path.join(sourceDir, 'ci/manylinux/build.sh'))
   }
+  env.setInput('oneflow-build-env', 'manylinux')
   if (useLLVM) {
     env.setBooleanInput('docker-run-use-system-http-proxy', false)
     env.setInput(
@@ -75,7 +76,7 @@ test(
   async () => {
     // await testOneCUDA('none', false)
     // await testOneCUDA('10.2', false)
-    await testOneCUDA('10.1', false, true)
+    await testOneCUDA('10.1', false, false)
     // await testOneCUDA('10.1', true)
     // await testOneCUDA('11.4', false)
   },

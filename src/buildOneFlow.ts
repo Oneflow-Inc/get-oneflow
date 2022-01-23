@@ -14,7 +14,7 @@ const LLVM12DevContainerTag =
   'registry.cn-beijing.aliyuncs.com/oneflow/devcontainer:llvm13'
 
 const CUDA_112_IMG_TAG =
-  'registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.2'
+  'registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.2:latest'
 
 async function condaRun(
   condaEnvName: string,
@@ -117,7 +117,7 @@ export async function buildWithCondaOrManyLinux(): Promise<void> {
         }
         break
       default:
-        throw new Error('oneflow-build-env: "${buildEnv}" not supported')
+        throw new Error(`oneflow-build-env: "${buildEnv}" not supported`)
     }
   } catch (error) {
     core.setFailed(error as Error)
