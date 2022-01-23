@@ -158,8 +158,15 @@ async function buildAndMakeWheel(
   }
   ok(whlFiles.length)
   // TODO: copy from dist
+  let postProcessCmds = [
+    runExec(container, ['cpack'], {cwd: buildDir}).then(() =>
+      runExec(container, ['rm', '-rf', './cpack/_CPack_Packages'], {
+        cwd: buildDir
+      })
+    )
+  ]
   if (shouldAuditWheel) {
-    await Promise.all(
+    postProcessCmds.concat(
       whlFiles.map(async (whl: string) =>
         runExec(
           container,
@@ -169,6 +176,7 @@ async function buildAndMakeWheel(
       )
     )
   }
+  await Promise.all(postProcessCmds)
 }
 
 export async function buildOneFlow(tag: string): Promise<void> {
