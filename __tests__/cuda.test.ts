@@ -2,11 +2,7 @@ import * as process from 'process'
 import * as path from 'path'
 import {test} from '@jest/globals'
 import os from 'os'
-import {
-  buildManylinuxAndTag,
-  buildOneFlow,
-  LLVM12DevContainerTag
-} from '../src/utils/docker'
+import {buildWithCondaOrManyLinux} from '../src/buildOneFlow'
 import * as env from '../src/utils/env'
 import {ok} from 'assert'
 
@@ -71,18 +67,7 @@ async function testOneCUDA(
   env.setBooleanInput('clear-wheelhouse-dir', true)
   env.setBooleanInput('retry-failed-build', false)
   env.setBooleanInput('clean-ccache', true)
-  const manylinuxVersion = '2014'
-  let tag = ''
-  const TEST_MANYLINUX = process.env['TEST_MANYLINUX'] || ''
-  if (TEST_MANYLINUX.includes('build')) {
-    if (TEST_MANYLINUX.includes('img')) {
-      tag = await buildManylinuxAndTag(manylinuxVersion)
-    } else {
-      tag = LLVM12DevContainerTag
-    }
-    ok(tag)
-    await buildOneFlow(tag)
-  }
+  await buildWithCondaOrManyLinux()
 }
 
 test(

@@ -10,6 +10,12 @@ import {ensureConda} from './utils/conda'
 import {BuildEnv, buildOneFlow, LLVM12DevContainerTag} from './utils/docker'
 import {isSelfHosted} from './utils/util'
 
+const LLVM12DevContainerTag =
+  'registry.cn-beijing.aliyuncs.com/oneflow/devcontainer:llvm13'
+
+const CUDA_112_IMG_TAG =
+  'registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.2'
+
 async function condaRun(
   condaEnvName: string,
   commandLine: string,
@@ -94,8 +100,7 @@ export async function buildWithCondaOrManyLinux(): Promise<void> {
         break
       case 'manylinux':
         if (isSelfHosted()) {
-          const tag =
-            'registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64:0.1'
+          const tag = CUDA_112_IMG_TAG
           await exec.exec('docker', ['pull', tag])
           await buildOneFlow(tag)
         } else {
