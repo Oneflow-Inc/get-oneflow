@@ -1,8 +1,6 @@
 import * as core from '@actions/core'
-import * as exec from '@actions/exec'
-import * as tc from '@actions/tool-cache'
 import Docker, {Container, MountSettings} from 'dockerode'
-import {getPathInput, isSelfHosted} from './util'
+import {getPathInput} from './util'
 import * as io from '@actions/io'
 import path from 'path'
 import fs from 'fs'
@@ -282,16 +280,4 @@ async function buildOnePythonVersion(
       `ONEFLOW_CI_CMAKE_INIT_CACHE=${cmakeInitCache}`
     ]
   })
-}
-
-export async function runBuildManylinux(): Promise<void> {
-  const manylinuxVersion: string = core.getInput('manylinux-version', {
-    required: true
-  })
-  if (manylinuxVersion === '2014') {
-    const tag = await buildManylinuxAndTag(manylinuxVersion)
-    core.setOutput('tag', tag)
-  } else {
-    core.setFailed(`unsupported manylinuxVersion: ${manylinuxVersion}`)
-  }
 }

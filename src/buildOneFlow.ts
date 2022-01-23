@@ -7,7 +7,7 @@ import os from 'os'
 import {ExecOptions} from '@actions/exec'
 import path from 'path'
 import {ensureConda} from './utils/conda'
-import {BuildEnv, buildOneFlow, LLVM12DevContainerTag} from './utils/docker'
+import {BuildEnv, buildOneFlow} from './utils/docker'
 import {isSelfHosted} from './utils/util'
 
 const LLVM12DevContainerTag =
