@@ -4,7 +4,6 @@ import * as path from 'path'
 import {test} from '@jest/globals'
 import os from 'os'
 import {ensureDocker} from '../src/utils/docker'
-import {TOOLS, mirrorToDownloads, ensureCUDA102} from '../src/utils/ensure'
 import * as env from '../src/utils/env'
 import {isOnPremise} from '../src/utils/util'
 
@@ -83,26 +82,6 @@ test(
       return
     }
     await ensureDocker()
-  },
-  MINUTES15
-)
-
-test(
-  'mirror tools',
-  async () => {
-    if (!process.env['TEST_MANYLINUX']) return
-    await Promise.all(TOOLS.map(t => mirrorToDownloads(t.url)))
-  },
-  MINUTES15
-)
-
-test(
-  'ensure cuda',
-  async () => {
-    if (isOnPremise() == false) {
-      return
-    }
-    await ensureCUDA102()
   },
   MINUTES15
 )

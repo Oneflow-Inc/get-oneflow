@@ -1,19 +1,14 @@
 import * as process from 'process'
-import * as cp from 'child_process'
 import * as path from 'path'
 import {test} from '@jest/globals'
 import os from 'os'
 import {
   buildManylinuxAndTag,
-  ensureDocker,
   buildOneFlow,
   LLVM12DevContainerTag
 } from '../src/utils/docker'
-import * as core from '@actions/core'
-import {TOOLS, mirrorToDownloads, ensureCUDA102} from '../src/utils/ensure'
 import * as env from '../src/utils/env'
 import {ok} from 'assert'
-import {isOnPremise} from '../src/utils/util'
 
 process.env['RUNNER_TOOL_CACHE'] = '~/runner_tool_cache'.replace(
   '~',

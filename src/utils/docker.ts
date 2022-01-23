@@ -7,7 +7,7 @@ import * as io from '@actions/io'
 import path from 'path'
 import fs from 'fs'
 import {ok} from 'assert'
-import {getOSSDownloadURL, ensureTool, LLVM12, ensureCUDA} from './ensure'
+import {getOSSDownloadURL} from './ensure'
 import os from 'os'
 export type BuildEnv = 'conda' | 'manylinux' | 'llvm'
 export const LLVM12DevContainerTag =
@@ -333,7 +333,6 @@ export async function buildOneFlow(tag: string): Promise<void> {
   const oneflowSrc: string = getPathInput('oneflow-src', {required: true})
   const wheelhouseDir: string = getPathInput('wheelhouse-dir', {required: true})
   const docker = new Docker({socketPath: '/var/run/docker.sock'})
-  const cudaTools = await ensureCUDA()
   const containerName = 'oneflow-manylinux-'.concat(os.userInfo().username)
   let httpProxyEnvs: string[] = []
   const manylinuxCacheDir = getPathInput('manylinux-cache-dir', {
@@ -353,36 +352,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
       `https_proxy=${process.env.https_proxy}`
     ]
   }
-  let llvmDir = ''
-  const shouldMountLLVM = false
-  let mounts: MountSettings[] = []
-  if (cudaTools) {
-    const CUDA_TOOLKIT_ROOT_DIR = cudaTools.cudaToolkit
-    const CUDNN_ROOT_DIR = path.join(cudaTools.cudnn, 'cuda')
-    mounts = mounts.concat([
-      {
-        Source: CUDA_TOOLKIT_ROOT_DIR,
-        Target: '/usr/local/cuda',
-        ReadOnly: true,
-        Type: 'bind'
-      },
-      {
-        Source: CUDNN_ROOT_DIR,
-        Target: '/usr/local/cudnn',
-        ReadOnly: true,
-        Type: 'bind'
-      }
-    ])
-  }
-  if (shouldMountLLVM) {
-    llvmDir = await ensureTool(LLVM12)
-    mounts.push({
-      Source: llvmDir,
-      Target: '/usr/local/llvm',
-      ReadOnly: true,
-      Type: 'bind'
-    })
-  }
+  const mounts: MountSettings[] = []
   const buildDir = path.join(manylinuxCacheDir, `build`)
   const createOptions = {
     Cmd: ['sleep', '3000'],
@@ -403,8 +373,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
     },
     Env: [
       `ONEFLOW_CI_BUILD_DIR=${buildDir}`,
-      `ONEFLOW_CI_SRC_DIR=${oneflowSrc}`,
-      `ONEFLOW_CI_LLVM_DIR=${llvmDir}`
+      `ONEFLOW_CI_SRC_DIR=${oneflowSrc}`
     ].concat(httpProxyEnvs)
   }
 
