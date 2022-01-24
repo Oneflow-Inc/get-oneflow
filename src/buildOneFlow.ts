@@ -13,13 +13,6 @@ import {isSelfHosted} from './utils/util'
 const LLVM12DevContainerTag =
   'registry.cn-beijing.aliyuncs.com/oneflow/devcontainer:llvm13'
 
-export const CUDA_112_IMG_TAG =
-  'registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.2:latest'
-const CUDA_102_IMG_TAG =
-  'registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda10.2:latest'
-const CUDA_CPU_IMG_TAG =
-  'registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cpu:latest'
-
 async function condaRun(
   condaEnvName: string,
   commandLine: string,
@@ -39,7 +32,7 @@ async function condaRun(
   )
 }
 
-type CudaVersion = '10.2' | '11.2' | 'none' | '' | 'none'
+type CudaVersion = '10.1' | '10.2' | '11.2' | 'none' | '' | 'none'
 async function buildWithConda(): Promise<void> {
   let envFile: string = core
     .getInput('conda-env-file', {required: true})
@@ -96,8 +89,19 @@ async function buildWithConda(): Promise<void> {
   }
 }
 
+const CUDA_112_IMG_TAG =
+  'registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.2:latest'
+const CUDA_102_IMG_TAG =
+  'registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda10.2:latest'
+const CUDA_101_IMG_TAG =
+  'registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda10.1:latest'
+const CUDA_CPU_IMG_TAG =
+  'registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cpu:latest'
+
 function getCUDAImageByVersion(cudaVersion: CudaVersion): string {
   switch (cudaVersion) {
+    case '10.1':
+      return CUDA_101_IMG_TAG
     case '10.2':
       return CUDA_102_IMG_TAG
     case '11.2':
