@@ -17,6 +17,8 @@ export const CUDA_112_IMG_TAG =
   'registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.2:latest'
 const CUDA_102_IMG_TAG =
   'registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda10.2:latest'
+const CUDA_CPU_IMG_TAG =
+  'registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cpu:latest'
 
 async function condaRun(
   condaEnvName: string,
@@ -101,9 +103,9 @@ function getCUDAImageByVersion(cudaVersion: CudaVersion): string {
     case '11.2':
       return CUDA_112_IMG_TAG
     case '':
-      return CUDA_102_IMG_TAG
+      return CUDA_CPU_IMG_TAG
     case 'none':
-      return CUDA_102_IMG_TAG
+      return CUDA_CPU_IMG_TAG
     case '11.2':
       return CUDA_112_IMG_TAG
     default:

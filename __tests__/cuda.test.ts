@@ -37,10 +37,11 @@ test(
     env.setInput('build-script', path.join(sourceDir, GCC7BuildSh))
     env.setBooleanInput('docker-run-use-system-http-proxy', false)
     env.setInput('cmake-init-cache', path.join(sourceDir, CUDAInitCache))
+    env.setInput('cmake-init-cache', path.join(sourceDir, CPUInitCache))
     env.setInput('oneflow-build-env', 'manylinux')
     // env.setInput('oneflow-build-env', 'llvm')
     env.setInput('oneflow-src', sourceDir)
-    const cudaVersion = '10.2'
+    const cudaVersion = 'none'
     process.env[
       'INPUT_MANYLINUX-CACHE-DIR'
     ] = '~/manylinux-cache-dirs/unittest-'.concat(cudaVersion)
