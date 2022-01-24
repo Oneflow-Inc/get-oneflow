@@ -148,7 +148,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: Oneflow-Inc/oneflow
-          ref: master
+          ref: refactor-release-workflow
           path: ${{ env.ONEFLOW_SRC }}
       - uses: ./cache-complete
         name: Save cache if successful
