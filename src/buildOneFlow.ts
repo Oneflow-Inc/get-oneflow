@@ -89,19 +89,13 @@ async function buildWithConda(): Promise<void> {
   }
 }
 
-const CUDA_112_IMG_TAG =
-  'registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.2:latest'
-const CUDA_102_IMG_TAG =
-  'registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda10.2:latest'
-const CUDA_101_IMG_TAG =
-  'registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda10.1:latest'
-const CUDA_CPU_IMG_TAG =
-  'registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cpu:latest'
+const ProductionCommit = '2211ee6d62f17120cc0145e60c63fca39e388b68'
+const CUDA_112_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.2:${ProductionCommit}`
+const CUDA_102_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda10.2:${ProductionCommit}`
+const CUDA_CPU_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cpu:${ProductionCommit}`
 
 function getCUDAImageByVersion(cudaVersion: CudaVersion): string {
   switch (cudaVersion) {
-    case '10.1':
-      return CUDA_101_IMG_TAG
     case '10.2':
       return CUDA_102_IMG_TAG
     case '11.2':
