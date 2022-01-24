@@ -13,8 +13,10 @@ import {isSelfHosted} from './utils/util'
 const LLVM12DevContainerTag =
   'registry.cn-beijing.aliyuncs.com/oneflow/devcontainer:llvm13'
 
-const CUDA_112_IMG_TAG =
+export const CUDA_112_IMG_TAG =
   'registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.2:latest'
+const CUDA_102_IMG_TAG =
+  'registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda10.2:latest'
 
 async function condaRun(
   condaEnvName: string,
@@ -35,6 +37,7 @@ async function condaRun(
   )
 }
 
+type CudaVersion = '10.2' | 'none' | '11.2'
 async function buildWithConda(): Promise<void> {
   let envFile: string = core
     .getInput('conda-env-file', {required: true})
@@ -91,35 +94,51 @@ async function buildWithConda(): Promise<void> {
   }
 }
 
+function getCUDAImageByVersion(cudaVersion: CudaVersion): string {
+  switch (cudaVersion) {
+    case '10.2':
+      return CUDA_102_IMG_TAG
+    case '11.2':
+      return CUDA_112_IMG_TAG
+    default:
+      return CUDA_102_IMG_TAG
+  }
+}
 export async function buildWithCondaOrManyLinux(): Promise<void> {
-  try {
-    const buildEnv: BuildEnv = core.getInput('oneflow-build-env') as BuildEnv
-    switch (buildEnv) {
-      case 'conda':
-        await buildWithConda()
-        break
-      case 'manylinux':
-        if (isSelfHosted()) {
-          const tag = CUDA_112_IMG_TAG
-          await exec.exec('docker', ['pull', tag])
-          await buildOneFlow(tag)
-        } else {
-          throw new Error('must build with manylinux on self-hosted')
+  const buildEnv: BuildEnv = core.getInput('oneflow-build-env') as BuildEnv
+  let cudaVersion: CudaVersion = core.getInput('cuda-version', {
+    required: false
+  }) as CudaVersion
+  switch (buildEnv) {
+    case 'conda':
+      await buildWithConda()
+      break
+    case 'manylinux':
+      if (isSelfHosted()) {
+        switch (cudaVersion) {
+          case '10.2':
+            break
+
+          default:
+            break
         }
-        break
-      case 'llvm':
-        if (isSelfHosted()) {
-          const tag = LLVM12DevContainerTag
-          await exec.exec('docker', ['pull', tag])
-          await buildOneFlow(tag)
-        } else {
-          throw new Error('must build with llvm on self-hosted')
-        }
-        break
-      default:
-        throw new Error(`oneflow-build-env: "${buildEnv}" not supported`)
-    }
-  } catch (error) {
-    core.setFailed(error as Error)
+        const tag = getCUDAImageByVersion(cudaVersion)
+        await exec.exec('docker', ['pull', tag])
+        await buildOneFlow(tag)
+      } else {
+        throw new Error('must build with manylinux on self-hosted')
+      }
+      break
+    case 'llvm':
+      if (isSelfHosted()) {
+        const tag = LLVM12DevContainerTag
+        await exec.exec('docker', ['pull', tag])
+        await buildOneFlow(tag)
+      } else {
+        throw new Error('must build with llvm on self-hosted')
+      }
+      break
+    default:
+      throw new Error(`oneflow-build-env: "${buildEnv}" not supported`)
   }
 }

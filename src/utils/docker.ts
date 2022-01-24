@@ -244,7 +244,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
       await killContainer(docker, containerName)
       await buildAndMakeWheel(createOptions, docker, buildDir, {
         shouldCleanBuildDir: true,
-        shouldCleanCcache: false
+        shouldCleanCcache: true
       })
     } else {
       core.setFailed(error as Error)
