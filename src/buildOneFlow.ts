@@ -37,7 +37,7 @@ async function condaRun(
   )
 }
 
-type CudaVersion = '10.2' | 'none' | '11.2'
+type CudaVersion = '10.2' | '11.2' | 'none' | '' | 'none'
 async function buildWithConda(): Promise<void> {
   let envFile: string = core
     .getInput('conda-env-file', {required: true})
@@ -100,8 +100,14 @@ function getCUDAImageByVersion(cudaVersion: CudaVersion): string {
       return CUDA_102_IMG_TAG
     case '11.2':
       return CUDA_112_IMG_TAG
-    default:
+    case '':
       return CUDA_102_IMG_TAG
+    case 'none':
+      return CUDA_102_IMG_TAG
+    case '11.2':
+      return CUDA_112_IMG_TAG
+    default:
+      throw new Error(`cudaVersion not supported: ${cudaVersion}`)
   }
 }
 export async function buildWithCondaOrManyLinux(): Promise<void> {

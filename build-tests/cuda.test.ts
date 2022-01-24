@@ -31,13 +31,13 @@ test(
     env.setBooleanInput('wheel-audit', true)
     // env.setInput('cmake-init-cache', path.join(sourceDir, XLAInitCache))
     // env.setInput('build-script', path.join(sourceDir, GCC7BuildSh))
-    env.setInput('build-script', path.join(sourceDir, GCC10BuildSh))
+    env.setInput('build-script', path.join(sourceDir, GCC7BuildSh))
     env.setBooleanInput('docker-run-use-system-http-proxy', false)
     env.setInput('cmake-init-cache', path.join(sourceDir, CUDAInitCache))
     env.setInput('oneflow-build-env', 'manylinux')
     // env.setInput('oneflow-build-env', 'llvm')
     env.setInput('oneflow-src', sourceDir)
-    const cudaVersion = '11.2'
+    const cudaVersion = '10.2'
     process.env[
       'INPUT_MANYLINUX-CACHE-DIR'
     ] = '~/manylinux-cache-dirs/unittest-'.concat(cudaVersion)
