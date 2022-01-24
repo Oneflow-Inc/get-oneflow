@@ -116,7 +116,7 @@ jobs:
           entries: |
             cu102
             cpu
-            cu101_xla
+            cu102_xla
 
   test-build-manylinux:
     name: 'Build OneFlow manylinux'
@@ -203,8 +203,8 @@ jobs:
             3.6
             3.7
       - uses: ./
-        name: Build manylinux cu101_xla
-        if: ${{ matrix.entry =='cu101_xla' && !matrix.cache-hit }}
+        name: Build manylinux cu102_xla
+        if: ${{ matrix.entry =='cu102_xla' && !matrix.cache-hit }}
         with:
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/ci/cuda-xla.cmake
           build-script: ${{ env.ONEFLOW_SRC }}/ci/manylinux/build-gcc7.sh
@@ -239,7 +239,7 @@ jobs:
       fail-fast: false
       max-parallel: 5
       matrix:
-        entry: ['cu101_xla', 'cu102', 'cpu']
+        entry: ['cu102_xla', 'cu102', 'cpu']
     env:
       ONEFLOW_SRC: oneflow-src
     steps:
