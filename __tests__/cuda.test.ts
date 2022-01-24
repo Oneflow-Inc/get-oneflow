@@ -23,6 +23,9 @@ export const LLCMBuildSh = 'ci/clang/build-llvm.sh'
 test(
   'build manylinux pip',
   async () => {
+    if (!process.env['TEST_MANYLINUX']) {
+      return
+    }
     // await testOneCUDA('none', false)
     // await testOneCUDA('10.2', false)
     env.setBooleanInput('docker-run-use-system-http-proxy', true) // xla needs it to download nested pkgs
