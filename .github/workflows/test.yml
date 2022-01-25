@@ -428,7 +428,7 @@ jobs:
           ONEFLOW_CPACK_PATH: ${{ steps.download-digest.outputs.entry-dir }}/cpack
         if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'misc' }}
         run: |
-          unzip ${{ env.ONEFLOW_CPACK_PATH }}/liboneflow-ci-linux.zip
+          docker exec ${{ env.TEST_CONTAINER_NAME }} unzip ${{ env.ONEFLOW_CPACK_PATH }}/liboneflow-ci-linux.zip
       - name: Run oneflow_testexe
         if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'misc' }}
         run: |
