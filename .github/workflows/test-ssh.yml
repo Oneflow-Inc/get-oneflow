@@ -12,6 +12,7 @@ jobs:
     - run: touch test.txt
     - name: cp
       run: |
+        env
         set -x
         cp /home/ci-user/.ssh/id_rsa ${RUNNER_TEMP}
     - name: Upload whl
