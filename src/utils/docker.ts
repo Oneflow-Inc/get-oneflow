@@ -6,7 +6,6 @@ import path from 'path'
 import fs from 'fs'
 import {ok} from 'assert'
 import os from 'os'
-import * as exec from './exec'
 export type BuildEnv = 'conda' | 'manylinux' | 'llvm'
 
 type ManylinuxVersion = '1' | '2010' | '2014' | '2_24'
@@ -210,9 +209,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
   }
   const mounts: MountSettings[] = []
   const buildDir = path.join(manylinuxCacheDir, `build`)
-  let ONEFLOW_CI_BUILD_PARALLEL = (
-    await exec.getExecOutput('nproc')
-  ).stdout.trim()
+  let ONEFLOW_CI_BUILD_PARALLEL = os.cpus().length.toString()
   if (parallel) {
     ONEFLOW_CI_BUILD_PARALLEL = parallel
   }

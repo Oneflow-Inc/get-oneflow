@@ -81,7 +81,7 @@ async function buildWithConda(): Promise<void> {
       '--build',
       buildDir,
       '--parallel',
-      (await exec.getExecOutput('nproc')).stdout.trim()
+      os.cpus().length.toString()
     ])
     await condaRun(condaEnvName, 'python3', ['setup.py', 'bdist_wheel'], {
       cwd: path.join(oneflowSrc, 'python')
