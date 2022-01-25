@@ -8,7 +8,7 @@ import {ExecOptions} from '@actions/exec'
 import path from 'path'
 import {ensureConda} from './utils/conda'
 import {BuildEnv, buildOneFlow} from './utils/docker'
-import {isSelfHosted} from './utils/util'
+import {getParallel, isSelfHosted} from './utils/util'
 
 const LLVM12DevContainerTag =
   'registry.cn-beijing.aliyuncs.com/oneflow/devcontainer:llvm13'
@@ -81,7 +81,7 @@ async function buildWithConda(): Promise<void> {
       '--build',
       buildDir,
       '--parallel',
-      os.cpus().length.toString()
+      getParallel()
     ])
     await condaRun(condaEnvName, 'python3', ['setup.py', 'bdist_wheel'], {
       cwd: path.join(oneflowSrc, 'python')
