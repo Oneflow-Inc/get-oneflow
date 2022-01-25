@@ -32,7 +32,7 @@ async function condaRun(
   )
 }
 
-type CudaVersion = '10.1' | '10.2' | '11.2' | 'none' | '' | 'none'
+type CudaVersion = '10.2' | '11.2' | '11.3' | '11.4' | 'none' | ''
 async function buildWithConda(): Promise<void> {
   let envFile: string = core
     .getInput('conda-env-file', {required: true})
@@ -90,22 +90,26 @@ async function buildWithConda(): Promise<void> {
 }
 
 const ProductionCommit = '2211ee6d62f17120cc0145e60c63fca39e388b68'
+const CUDA_114_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.4:617d3245410d4d35d9a0637269d0aab14c996029`
+const CUDA_113_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.3:617d3245410d4d35d9a0637269d0aab14c996029`
 const CUDA_112_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.2:${ProductionCommit}`
 const CUDA_102_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda10.2:${ProductionCommit}`
 const CUDA_CPU_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cpu:${ProductionCommit}`
 
 function getCUDAImageByVersion(cudaVersion: CudaVersion): string {
   switch (cudaVersion) {
-    case '10.2':
-      return CUDA_102_IMG_TAG
-    case '11.2':
-      return CUDA_112_IMG_TAG
     case '':
       return CUDA_CPU_IMG_TAG
     case 'none':
       return CUDA_CPU_IMG_TAG
+    case '10.2':
+      return CUDA_102_IMG_TAG
     case '11.2':
       return CUDA_112_IMG_TAG
+    case '11.3':
+      return CUDA_113_IMG_TAG
+    case '11.4':
+      return CUDA_114_IMG_TAG
     default:
       throw new Error(`cudaVersion not supported: ${cudaVersion}`)
   }
