@@ -390,7 +390,6 @@ jobs:
         env:
           ONEFLOW_WHEEL_PATH: ${{ steps.download-digest.outputs.entry-dir }}/whl
           ONEFLOW_BIN_PATH: ${{ steps.download-digest.outputs.entry-dir }}/bin
-          ONEFLOW_CPACK_PATH: ${{ steps.download-digest.outputs.entry-dir }}/cpack
         run: |
           docker run -d --privileged --network host --shm-size=8g \
             --cap-add=SYS_PTRACE --security-opt seccomp=unconfined \
@@ -425,6 +424,8 @@ jobs:
         run: |
           docker exec ${{ env.TEST_CONTAINER_NAME }} python3 -m oneflow --doctor
       - name: Unzip packed liboneflow
+        env:
+          ONEFLOW_CPACK_PATH: ${{ steps.download-digest.outputs.entry-dir }}/cpack
         if: ${{ !fromJson(matrix.cache-hit) && contains(matrix.runs-on, 'self-hosted') && !fromJson(matrix.is-xla) }}
         run: |
           unzip ${{ env.ONEFLOW_CPACK_PATH }}/liboneflow-ci-linux.zip
