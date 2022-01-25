@@ -241,6 +241,7 @@ jobs:
           rm: true
           strip_components: 1
       - name: Link CPack dir
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type != 'do-nothing' && matrix.entry !='cu102_xla' }}
         run: cp -r ${{ env.MANYLINUX_CACHE_DIR }}/build/cpack cpack
       - name: Upload packed liboneflow
         if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type != 'do-nothing' && matrix.entry !='cu102_xla' }}
