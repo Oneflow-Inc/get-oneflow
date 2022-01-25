@@ -10,7 +10,10 @@ jobs:
     runs-on: ['self-hosted', 'linux', 'provision']
     steps:
     - run: touch test.txt
-    - run: cp /home/ci-user/.ssh/id_rsa ${RUNNER_TEMP}
+    - name: cp
+      run: |
+        set -x
+        cp /home/ci-user/.ssh/id_rsa ${RUNNER_TEMP}
     - name: Upload whl
       uses: appleboy/scp-action@master
       with:
