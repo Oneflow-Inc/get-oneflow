@@ -239,6 +239,8 @@ jobs:
           key_path: /github/workflow/id_rsa
           target: '${{ env.SSH_TANK_PATH }}/digest/${{ steps.save-cache.outputs.build-digest }}/${{ matrix.entry }}/whl'
           rm: true
+      - name: Link CPack dir
+        run: ln -s ${{ env.MANYLINUX_CACHE_DIR }}/build/cpack cpack
       - name: Upload packed liboneflow
         if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type != 'do-nothing' }}
         uses: appleboy/scp-action@master
@@ -246,7 +248,7 @@ jobs:
           host: ${{ env.SSH_TANK_HOST }}
           username: ${{ env.SSH_USERNAME }}
           key_path: /github/workflow/id_rsa
-          source: '${{ env.MANYLINUX_CACHE_DIR }}/build/cpack/*.zip'
+          source: 'cpack/*.zip'
           target: '${{ env.SSH_TANK_PATH }}/digest/${{ steps.save-cache.outputs.build-digest }}/${{ matrix.entry }}/cpack'
           rm: true
 
