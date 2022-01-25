@@ -167,10 +167,10 @@ async function buildAndMakeWheel(
       )
     )
   }
+  await Promise.all(postProcessCmds)
   if (clearWheelhouseDir) {
     await runBash(container, `rm -rf ${path.join(wheelhouseDir, '*')}`)
   }
-  await Promise.all(postProcessCmds)
 }
 
 async function runCPack(
