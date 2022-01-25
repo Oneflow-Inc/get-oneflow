@@ -227,14 +227,14 @@ jobs:
         with:
           host: ${{ env.SSH_TANK_HOST }}
           source: '${{ env.WHEELHOUSE_DIR }}/*.whl'
-          key_path: ${{ env.HOME }}/.ssh/id_rsa
+          key_path: ~/.ssh/id_rsa
           target: '${{ env.SSH_TANK_PATH }}/digest/${{ steps.save-cache.outputs.build-digest }}/${{ matrix.entry }}/whl'
       - name: Upload packed liboneflow
         if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type != 'do-nothing' }}
         uses: appleboy/scp-action@master
         with:
           host: ${{ env.SSH_TANK_HOST }}
-          key_path: ${{ env.HOME }}/.ssh/id_rsa
+          key_path: ~/.ssh/id_rsa
           source: '${{ env.MANYLINUX_CACHE_DIR }}/build/cpack/*.zip'
           target: '${{ env.SSH_TANK_PATH }}/digest/${{ steps.save-cache.outputs.build-digest }}/${{ matrix.entry }}/cpack'
 
