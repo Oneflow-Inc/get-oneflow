@@ -223,14 +223,18 @@ jobs:
             3.6
       - name: Upload whl
         if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type != 'do-nothing' }}
-        uses: ./digest/upload
+        uses: appleboy/scp-action@master
         with:
-          digest: ${{ steps.save-cache.outputs.build-digest }}
-          entry: ${{ matrix.entry }}
-          ssh-tank-host: ${{ env.SSH_TANK_HOST }}
-          ssh-tank-path: ${{ env.SSH_TANK_PATH }}
-          src-dir: ${{ env.WHEELHOUSE_DIR }}
-          dst-dir: whl
+          host: ${{ env.SSH_TANK_HOST }}
+          source: '${{ env.WHEELHOUSE_DIR }}/*.whl'
+          target: '${{ env.SSH_TANK_PATH }}/digest/${{ steps.save-cache.outputs.build-digest }}/${{ matrix.entry }}/whl'
+      - name: - name: Upload packed liboneflow
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type != 'do-nothing' }}
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ env.SSH_TANK_HOST }}
+          source: '${{ env.MANYLINUX_CACHE_DIR }}/build/cpack/*.zip'
+          target: '${{ env.SSH_TANK_PATH }}/digest/${{ steps.save-cache.outputs.build-digest }}/${{ matrix.entry }}/cpack'
 
   check-build-cache:
     name: 'Check manylinux build cache'
@@ -399,11 +403,14 @@ jobs:
         if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type != 'do-nothing' }}
         run: |
           docker exec ${{ env.TEST_CONTAINER_NAME }} python3 -m oneflow --doctor
+      - name: Unzip packed liboneflow
+        if: ${{ !fromJson(matrix.cache-hit) && contains(matrix.runs-on, 'self-hosted') && !fromJson(matrix.is-xla) }}
+        run: |
+          unzip -j ${{ steps.download-digest.outputs.entry-dir }}/cpack/liboneflow-ci-linux.zip -d cpack_out
       - name: Run oneflow_testexe
         if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'misc' }}
         run: |
-          chmod +x ${{ steps.download-digest.outputs.entry-dir }}/bin/oneflow_testexe
-          docker exec ${{ env.TEST_CONTAINER_NAME }} ${{ steps.download-digest.outputs.entry-dir }}/bin/oneflow_testexe
+          docker exec ${{ env.TEST_CONTAINER_NAME }} cpack_out/bin/oneflow_testexe
       - name: Remove container
         timeout-minutes: 45
         if: ${{ always() && contains(matrix.runs-on, 'self-hosted') }}
