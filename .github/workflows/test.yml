@@ -432,7 +432,7 @@ jobs:
       - name: Run oneflow_testexe
         if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'misc' }}
         run: |
-          docker exec ${{ env.TEST_CONTAINER_NAME }} liboneflow-ci-linux/bin/oneflow_testexe
+          docker exec ${{ env.TEST_CONTAINER_NAME }} ./liboneflow-ci-linux/bin/oneflow_testexe
       - name: Remove container
         timeout-minutes: 45
         if: ${{ always() && contains(matrix.runs-on, 'self-hosted') }}
