@@ -1,10 +1,10 @@
 name: 'build-test'
 on: # rebuild any PRs and main branch changes
-  # pull_request:
-  # push:
-  #   branches:
-  #     - main
-  #     - 'releases/*'
+  pull_request:
+  push:
+    branches:
+      - main
+      - 'releases/*'
 
 concurrency:
   group: test-${{ github.ref }}
@@ -226,22 +226,26 @@ jobs:
           parallel: ${{ env.ONEFLOW_CI_BUILD_PARALLEL }}
           python-versions: |
             3.6
+      - name: Copy key
+        run: cp ~/.ssh/id_rsa $RUNNER_TEMP/_github_workflow
       - name: Upload whl
         if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type != 'do-nothing' }}
         uses: appleboy/scp-action@master
         with:
           host: ${{ env.SSH_TANK_HOST }}
           source: '${{ env.WHEELHOUSE_DIR }}/*.whl'
-          key_path: ~/.ssh/id_rsa
+          key_path: /github/workflow/id_rsa
           target: '${{ env.SSH_TANK_PATH }}/digest/${{ steps.save-cache.outputs.build-digest }}/${{ matrix.entry }}/whl'
+          rm: true
       - name: Upload packed liboneflow
         if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type != 'do-nothing' }}
         uses: appleboy/scp-action@master
         with:
           host: ${{ env.SSH_TANK_HOST }}
-          key_path: ~/.ssh/id_rsa
+          key_path: /github/workflow/id_rsa
           source: '${{ env.MANYLINUX_CACHE_DIR }}/build/cpack/*.zip'
           target: '${{ env.SSH_TANK_PATH }}/digest/${{ steps.save-cache.outputs.build-digest }}/${{ matrix.entry }}/cpack'
+          rm: true
 
   check-build-cache:
     name: 'Check manylinux build cache'
