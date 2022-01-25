@@ -239,6 +239,7 @@ jobs:
           key_path: /github/workflow/id_rsa
           target: '${{ env.SSH_TANK_PATH }}/digest/${{ steps.save-cache.outputs.build-digest }}/${{ matrix.entry }}/whl'
           rm: true
+          strip_components: 1
       - name: Link CPack dir
         run: cp -r ${{ env.MANYLINUX_CACHE_DIR }}/build/cpack cpack
       - name: Upload packed liboneflow
@@ -251,6 +252,7 @@ jobs:
           source: 'cpack/*.zip'
           target: '${{ env.SSH_TANK_PATH }}/digest/${{ steps.save-cache.outputs.build-digest }}/${{ matrix.entry }}/cpack'
           rm: true
+          strip_components: 1
 
   check-build-cache:
     name: 'Check manylinux build cache'
