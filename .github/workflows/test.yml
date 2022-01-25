@@ -228,7 +228,7 @@ jobs:
           host: ${{ env.SSH_TANK_HOST }}
           source: '${{ env.WHEELHOUSE_DIR }}/*.whl'
           target: '${{ env.SSH_TANK_PATH }}/digest/${{ steps.save-cache.outputs.build-digest }}/${{ matrix.entry }}/whl'
-      - name: - name: Upload packed liboneflow
+      - name: Upload packed liboneflow
         if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type != 'do-nothing' }}
         uses: appleboy/scp-action@master
         with:
