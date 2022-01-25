@@ -384,6 +384,12 @@ jobs:
         if: ${{ !fromJSON(matrix.is-single-client) }}
         run: |
           echo "TEST_IMG_TAG=${TEST_WITH_TORCH_IMG_TAG}" >> $GITHUB_ENV
+      - name: Unzip packed liboneflow
+        env:
+          ONEFLOW_CPACK_PATH: ${{ steps.download-digest.outputs.entry-dir }}/cpack
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'misc' }}
+        run: |
+          unzip ${{ env.ONEFLOW_CPACK_PATH }}/liboneflow-ci-linux.zip
       - name: Start container
         if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type != 'do-nothing' }}
         working-directory: ${{ env.ONEFLOW_SRC }}
@@ -411,6 +417,10 @@ jobs:
         if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type != 'do-nothing' }}
         run: |
           docker exec ${{ env.TEST_CONTAINER_NAME }} ls
+      - name: Run oneflow_testexe
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'misc' }}
+        run: |
+          docker exec ${{ env.TEST_CONTAINER_NAME }} ./liboneflow-ci-linux/bin/oneflow_testexe
       - name: Install OneFlow
         if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type != 'do-nothing' }}
         env:
@@ -423,17 +433,6 @@ jobs:
         if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type != 'do-nothing' }}
         run: |
           docker exec ${{ env.TEST_CONTAINER_NAME }} python3 -m oneflow --doctor
-      - name: Unzip packed liboneflow
-        env:
-          ONEFLOW_CPACK_PATH: ${{ steps.download-digest.outputs.entry-dir }}/cpack
-        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'misc' }}
-        run: |
-          docker exec ${{ env.TEST_CONTAINER_NAME }} unzip ${{ env.ONEFLOW_CPACK_PATH }}/liboneflow-ci-linux.zip
-      - name: Run oneflow_testexe
-        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'misc' }}
-        run: |
-          docker exec ${{ env.TEST_CONTAINER_NAME }} ls
-          docker exec ${{ env.TEST_CONTAINER_NAME }} ./liboneflow-ci-linux/bin/oneflow_testexe
       - name: Remove container
         timeout-minutes: 45
         if: ${{ always() && contains(matrix.runs-on, 'self-hosted') }}
