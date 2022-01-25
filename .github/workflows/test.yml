@@ -89,6 +89,7 @@ jobs:
           conda-prefix: ~/miniconda3-prefixes/py39_4.10.3
           self-hosted: ${{ contains(matrix.os, 'self-hosted') }}
           conda-env-name: oneflow-dev-clang10-v2
+          parallel: ${{ env.ONEFLOW_CI_BUILD_PARALLEL }}
 
   find-build-cache:
     name: 'Find build cache'
