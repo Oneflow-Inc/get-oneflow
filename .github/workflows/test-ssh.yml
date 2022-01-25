@@ -12,13 +12,13 @@ jobs:
     - run: touch test.txt
     - name: cp
       run: |
-        echo "SSH_KEY=$(cat ~/.ssh/id_rsa)" >> $GITHUB_ENV
+        cp ~/.ssh/id_rsa $GITHUB_WORKSPACE
     - name: Upload whl
       uses: appleboy/scp-action@master
       with:
         host: ${{ env.SSH_TANK_HOST }}
         user: ci-user
         source: 'test.txt'
-        key: ${{ env.SSH_KEY }}
+        key_path: id_rsa
         target: '${{ env.SSH_TANK_PATH }}/test-dir'
         rm: true
