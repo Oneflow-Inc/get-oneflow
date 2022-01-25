@@ -230,7 +230,7 @@ jobs:
       - name: Copy key
         run: cp ~/.ssh/id_rsa $RUNNER_TEMP/_github_workflow
       - name: Upload whl
-        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type != 'do-nothing' }}
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type != 'do-nothing' && matrix.entry !='cu102_xla' }}
         uses: appleboy/scp-action@master
         with:
           host: ${{ env.SSH_TANK_HOST }}
@@ -242,7 +242,7 @@ jobs:
       - name: Link CPack dir
         run: cp -r ${{ env.MANYLINUX_CACHE_DIR }}/build/cpack cpack
       - name: Upload packed liboneflow
-        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type != 'do-nothing' }}
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type != 'do-nothing' && matrix.entry !='cu102_xla' }}
         uses: appleboy/scp-action@master
         with:
           host: ${{ env.SSH_TANK_HOST }}
