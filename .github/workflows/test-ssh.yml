@@ -10,10 +10,11 @@ jobs:
     runs-on: ['self-hosted', 'linux', 'provision']
     steps:
     - run: touch test.txt
+    - run: cp /home/ci-user/.ssh/id_rsa ${{ env.GITHUB_WORKSPACE }}
     - name: Upload whl
       uses: appleboy/scp-action@master
       with:
         host: ${{ env.SSH_TANK_HOST }}
         source: 'test.txt'
-        key_path: /home/ci-user/.ssh/id_rsa
+        key_path: id_rsa
         target: '${{ env.SSH_TANK_PATH }}/test-dir'
