@@ -14,6 +14,7 @@ env:
   OSS_ACCESS_KEY_ID: ${{ secrets.OSS_ACCESS_KEY_ID }}
   OSS_ACCESS_KEY_SECRET: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
   ONEFLOW_REF: refactor-release-workflow
+  ONEFLOW_CI_BUILD_PARALLEL: 30
 
 jobs:
   build: # make sure build/ci work properly
@@ -181,6 +182,7 @@ jobs:
           docker-run-use-lld: true
           retry-failed-build: true
           clean-ccache: true
+          parallel: ${{ env.ONEFLOW_CI_BUILD_PARALLEL }}
           python-versions: |
             3.6
             3.7
@@ -200,6 +202,7 @@ jobs:
           docker-run-use-system-http-proxy: false
           docker-run-use-lld: false
           retry-failed-build: true
+          parallel: ${{ env.ONEFLOW_CI_BUILD_PARALLEL }}
           python-versions: |
             3.6
             3.7
@@ -219,6 +222,7 @@ jobs:
           docker-run-use-system-http-proxy: true
           docker-run-use-lld: true
           retry-failed-build: true
+          parallel: ${{ env.ONEFLOW_CI_BUILD_PARALLEL }}
           python-versions: |
             3.6
       - name: Upload whl

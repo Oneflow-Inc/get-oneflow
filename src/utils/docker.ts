@@ -6,6 +6,7 @@ import path from 'path'
 import fs from 'fs'
 import {ok} from 'assert'
 import os from 'os'
+import * as exec from './exec'
 export type BuildEnv = 'conda' | 'manylinux' | 'llvm'
 
 type ManylinuxVersion = '1' | '2010' | '2014' | '2_24'
@@ -186,6 +187,7 @@ async function runCPack(
 export async function buildOneFlow(tag: string): Promise<void> {
   const oneflowSrc: string = getPathInput('oneflow-src', {required: true})
   const wheelhouseDir: string = getPathInput('wheelhouse-dir', {required: true})
+  const parallel: string = getPathInput('parallel', {required: false})
   const docker = new Docker({socketPath: '/var/run/docker.sock'})
   const containerName = 'oneflow-manylinux-'.concat(os.userInfo().username)
   let httpProxyEnvs: string[] = []
@@ -208,6 +210,12 @@ export async function buildOneFlow(tag: string): Promise<void> {
   }
   const mounts: MountSettings[] = []
   const buildDir = path.join(manylinuxCacheDir, `build`)
+  let ONEFLOW_CI_BUILD_PARALLEL = (
+    await exec.getExecOutput('nproc')
+  ).stdout.trim()
+  if (parallel) {
+    ONEFLOW_CI_BUILD_PARALLEL = parallel
+  }
   const createOptions = {
     Cmd: ['sleep', '3000'],
     Image: tag,
@@ -227,7 +235,8 @@ export async function buildOneFlow(tag: string): Promise<void> {
     },
     Env: [
       `ONEFLOW_CI_BUILD_DIR=${buildDir}`,
-      `ONEFLOW_CI_SRC_DIR=${oneflowSrc}`
+      `ONEFLOW_CI_SRC_DIR=${oneflowSrc}`,
+      `ONEFLOW_CI_BUILD_PARALLEL=${ONEFLOW_CI_BUILD_PARALLEL}`
     ].concat(httpProxyEnvs)
   }
 

@@ -98,6 +98,9 @@ inputs:
   ssh-tank-base-url:
     description: ''
     required: true
+  parallel:
+    description: 'make/ninja -j {parallel}, default will be $(nproc)'
+    required: false
 
 outputs:
   pip-index-url:
