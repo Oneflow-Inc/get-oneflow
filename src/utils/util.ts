@@ -16,7 +16,7 @@ export function getPathInput(name: string, options?: InputOptions): string {
 }
 
 export function getParallel(): string {
-  const parallel: string = getPathInput('parallel', {required: false})
+  const parallel: string = core.getInput('parallel', {required: false})
   let ONEFLOW_CI_BUILD_PARALLEL = os.cpus().length.toString()
   if (parallel) {
     ONEFLOW_CI_BUILD_PARALLEL = parallel
