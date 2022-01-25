@@ -9,7 +9,6 @@ jobs:
     name: Build
     runs-on: ['self-hosted', 'linux', 'provision']
     steps:
-    - uses: actions/checkout@master
     - run: touch test.txt
     - name: Upload whl
       uses: appleboy/scp-action@master
