@@ -390,6 +390,7 @@ jobs:
         env:
           ONEFLOW_WHEEL_PATH: ${{ steps.download-digest.outputs.entry-dir }}/whl
           ONEFLOW_BIN_PATH: ${{ steps.download-digest.outputs.entry-dir }}/bin
+          ONEFLOW_CPACK_PATH: ${{ steps.download-digest.outputs.entry-dir }}/cpack
         run: |
           docker run -d --privileged --network host --shm-size=8g \
             --cap-add=SYS_PTRACE --security-opt seccomp=unconfined \
@@ -426,11 +427,11 @@ jobs:
       - name: Unzip packed liboneflow
         if: ${{ !fromJson(matrix.cache-hit) && contains(matrix.runs-on, 'self-hosted') && !fromJson(matrix.is-xla) }}
         run: |
-          unzip -j ${{ steps.download-digest.outputs.entry-dir }}/cpack/liboneflow-ci-linux.zip -d cpack_out
+          unzip ${{ env.ONEFLOW_CPACK_PATH }}/liboneflow-ci-linux.zip
       - name: Run oneflow_testexe
         if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'misc' }}
         run: |
-          docker exec ${{ env.TEST_CONTAINER_NAME }} cpack_out/bin/oneflow_testexe
+          docker exec ${{ env.TEST_CONTAINER_NAME }} liboneflow-ci-linux/bin/oneflow_testexe
       - name: Remove container
         timeout-minutes: 45
         if: ${{ always() && contains(matrix.runs-on, 'self-hosted') }}
