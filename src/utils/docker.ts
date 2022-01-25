@@ -153,10 +153,7 @@ async function buildAndMakeWheel(
     await buildOnePythonVersion(container, buildScript, pythonExe)
   }
   const whlFiles = await fs.promises.readdir(distDir)
-  if (clearWheelhouseDir) {
-    await runBash(container, `rm -rf ${path.join(wheelhouseDir, '*')}`)
-  }
-  ok(whlFiles.length)
+  ok(whlFiles.length, `no .whl found in ${wheelhouseDir}`)
   // TODO: copy from dist
   let postProcessCmds = [runCPack(container, buildDir)]
   if (shouldAuditWheel) {
@@ -169,6 +166,9 @@ async function buildAndMakeWheel(
         )
       )
     )
+  }
+  if (clearWheelhouseDir) {
+    await runBash(container, `rm -rf ${path.join(wheelhouseDir, '*')}`)
   }
   await Promise.all(postProcessCmds)
 }
