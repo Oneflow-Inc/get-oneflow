@@ -389,7 +389,9 @@ jobs:
           ONEFLOW_CPACK_PATH: ${{ steps.download-digest.outputs.entry-dir }}/cpack
         if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'misc' }}
         run: |
+          pwd
           unzip ${{ env.ONEFLOW_CPACK_PATH }}/liboneflow-ci-linux.zip
+          ls
       - name: Start container
         if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type != 'do-nothing' }}
         working-directory: ${{ env.ONEFLOW_SRC }}
