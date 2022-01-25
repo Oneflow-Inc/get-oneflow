@@ -14,7 +14,7 @@ env:
   OSS_ACCESS_KEY_ID: ${{ secrets.OSS_ACCESS_KEY_ID }}
   OSS_ACCESS_KEY_SECRET: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
   ONEFLOW_REF: refactor-release-workflow
-  ONEFLOW_CI_BUILD_PARALLEL: 30
+  ONEFLOW_CI_BUILD_PARALLEL: 32
 
 jobs:
   build: # make sure build/ci work properly
