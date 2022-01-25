@@ -95,7 +95,7 @@ function getPythonExe(pythonVersion: string): string {
     return 'python3'
   }
   const exe = PythonExeMap.get(pythonVersion)
-  ok(exe, pythonVersion)
+  ok(exe, `python3 version not supported: ${pythonVersion}`)
   return exe
 }
 
