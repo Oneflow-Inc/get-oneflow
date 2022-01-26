@@ -115,7 +115,14 @@ function getCUDAImageByVersion(cudaVersion: CudaVersion): string {
       throw new Error(`cudaVersion not supported: ${cudaVersion}`)
   }
 }
-type ComputePlatform = 'cpu' | 'cu101' | 'cu102' | 'cu112' | 'cu113' | 'cu114'
+type ComputePlatform =
+  | 'cpu'
+  | 'cu101'
+  | 'cu102'
+  | 'cu112'
+  | 'cu113'
+  | 'cu114'
+  | ''
 
 function getCUDAVersionByComputePlatform(
   computePlatform: ComputePlatform
@@ -147,7 +154,7 @@ export async function buildWithCondaOrManyLinux(): Promise<void> {
   if (cudaVersion === '' && computePlatform) {
     cudaVersion = getCUDAVersionByComputePlatform(computePlatform)
   }
-  if (cudaVersion && computePlatform) {
+  if (cudaVersion !== '' && computePlatform !== '') {
     throw new Error("computePlatform and cudaVersion can't be both set")
   }
   switch (buildEnv) {
