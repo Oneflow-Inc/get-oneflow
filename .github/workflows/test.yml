@@ -244,10 +244,10 @@ jobs:
             3.6
           wheel-audit: false
       - name: Copy key
-        if: ${{ !fromJson(matrix.cache-hit) }}
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.entry !='cu102_xla' }}
         run: cp ~/.ssh/id_rsa $RUNNER_TEMP/_github_workflow
       - name: Upload whl
-        if: ${{ !fromJson(matrix.cache-hit) }}
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.entry !='cu102_xla' }}
         uses: appleboy/scp-action@master
         with:
           host: ${{ env.SSH_TANK_HOST }}
