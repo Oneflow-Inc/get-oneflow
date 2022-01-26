@@ -23,7 +23,10 @@ inputs:
     required: true
   # Cuda args
   cuda-version:
-    description: 'default is none, format: 10.1, 10.2'
+    description: 'default is none, format: 10.2, 11.2'
+    required: false
+  compute-platform:
+    description: 'default is none, format: cpu, cu112, cu102'
     required: false
   # Conda args
   conda-env-file:
@@ -100,6 +103,9 @@ inputs:
     required: true
   parallel:
     description: 'make/ninja -j {parallel}, default will be $(nproc)'
+    required: false
+  nightly:
+    description: 'is nightly build'
     required: false
 
 outputs:

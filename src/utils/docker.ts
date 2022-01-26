@@ -185,6 +185,7 @@ async function runCPack(
 
 export async function buildOneFlow(tag: string): Promise<void> {
   const oneflowSrc: string = getPathInput('oneflow-src', {required: true})
+  const isNightly: string = getPathInput('nightly', {required: true})
   const wheelhouseDir: string = getPathInput('wheelhouse-dir', {required: true})
   const docker = new Docker({socketPath: '/var/run/docker.sock'})
   const containerName = 'oneflow-manylinux-'.concat(os.userInfo().username)
@@ -208,6 +209,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
   }
   const mounts: MountSettings[] = []
   const buildDir = path.join(manylinuxCacheDir, `build`)
+  const nightlyEnv = isNightly ? ['ONEFLOW_RELEASE_NIGHTLY=1'] : []
   const createOptions = {
     Cmd: ['sleep', '3000'],
     Image: tag,
@@ -229,7 +231,9 @@ export async function buildOneFlow(tag: string): Promise<void> {
       `ONEFLOW_CI_BUILD_DIR=${buildDir}`,
       `ONEFLOW_CI_SRC_DIR=${oneflowSrc}`,
       `ONEFLOW_CI_BUILD_PARALLEL=${getParallel()}`
-    ].concat(httpProxyEnvs)
+    ]
+      .concat(httpProxyEnvs)
+      .concat(nightlyEnv)
   }
 
   try {

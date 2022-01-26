@@ -32,7 +32,6 @@ async function condaRun(
   )
 }
 
-type CudaVersion = '10.2' | '11.2' | '11.3' | '11.4' | 'none' | ''
 async function buildWithConda(): Promise<void> {
   let envFile: string = core
     .getInput('conda-env-file', {required: true})
@@ -96,6 +95,8 @@ const CUDA_112_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014
 const CUDA_102_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda10.2:${ProductionCommit}`
 const CUDA_CPU_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cpu:${ProductionCommit}`
 
+type CudaVersion = '10.2' | '11.2' | '11.3' | '11.4' | 'none' | ''
+
 function getCUDAImageByVersion(cudaVersion: CudaVersion): string {
   switch (cudaVersion) {
     case '':
@@ -114,24 +115,47 @@ function getCUDAImageByVersion(cudaVersion: CudaVersion): string {
       throw new Error(`cudaVersion not supported: ${cudaVersion}`)
   }
 }
+type ComputePlatform = 'cpu' | 'cu101' | 'cu102' | 'cu112' | 'cu113' | 'cu114'
+
+function getCUDAVersionByComputePlatform(
+  computePlatform: ComputePlatform
+): CudaVersion {
+  switch (computePlatform) {
+    case 'cpu':
+      return 'none'
+    case 'cu102':
+      return '10.2'
+    case 'cu112':
+      return '11.2'
+    case 'cu113':
+      return '11.3'
+    case 'cu114':
+      return '11.4'
+    default:
+      throw new Error(`computePlatform not supported: ${computePlatform}`)
+  }
+}
+
 export async function buildWithCondaOrManyLinux(): Promise<void> {
   const buildEnv: BuildEnv = core.getInput('oneflow-build-env') as BuildEnv
   let cudaVersion: CudaVersion = core.getInput('cuda-version', {
     required: false
   }) as CudaVersion
+  const computePlatform = core.getInput('compute-platform', {
+    required: false
+  }) as ComputePlatform
+  if (cudaVersion === '' && computePlatform) {
+    cudaVersion = getCUDAVersionByComputePlatform(computePlatform)
+  }
+  if (cudaVersion && computePlatform) {
+    throw new Error("computePlatform and cudaVersion can't be both set")
+  }
   switch (buildEnv) {
     case 'conda':
       await buildWithConda()
       break
     case 'manylinux':
       if (isSelfHosted()) {
-        switch (cudaVersion) {
-          case '10.2':
-            break
-
-          default:
-            break
-        }
         const tag = getCUDAImageByVersion(cudaVersion)
         await exec.exec('docker', ['pull', tag])
         await buildOneFlow(tag)
