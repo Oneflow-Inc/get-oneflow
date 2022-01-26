@@ -49,15 +49,15 @@ inputs:
   force-rebuild:
     description: 'rebuild even package with same key found'
     required: false
-    default: false
+    default: "false"
   dry-run:
     description: ''
     required: false
-    default: false
+    default: "false"
   self-hosted:
     description: ''
     required: false
-    default: false
+    default: "false"
   python-versions:
     description: ''
     required: true
@@ -70,30 +70,30 @@ inputs:
   wheel-audit:
     description: 'clear wheelhouse-dir'
     required: false
-    default: true
+    default: "true"
   build-script:
     description: 'a bash script to build oneflow'
     required: true
   retry-failed-build:
     description: 'Retry a failed build oneflow or not'
     required: false
-    default: false
+    default: "false"
   clean-ccache:
     description: ''
     required: false
-    default: false
+    default: "false"
   docker-run-use-system-http-proxy:
     description: ''
     required: false
-    default: false
+    default: "false"
   docker-run-use-lld:
     description: ''
     required: false
-    default: false
+    default: "false"
   ssh-tank-host:
     description: ''
     required: false
-    default: false
+    default: "false"
   ssh-tank-path:
     description: ''
     required: false
