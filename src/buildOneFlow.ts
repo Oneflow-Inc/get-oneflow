@@ -151,11 +151,13 @@ export async function buildWithCondaOrManyLinux(): Promise<void> {
   const computePlatform = core.getInput('compute-platform', {
     required: false
   }) as ComputePlatform
+  if (cudaVersion && computePlatform) {
+    throw new Error(
+      `computePlatform (${cudaVersion}) and cudaVersion (${computePlatform}) can't be both set`
+    )
+  }
   if (cudaVersion === '' && computePlatform) {
     cudaVersion = getCUDAVersionByComputePlatform(computePlatform)
-  }
-  if (cudaVersion !== '' && computePlatform !== '') {
-    throw new Error("computePlatform and cudaVersion can't be both set")
   }
   switch (buildEnv) {
     case 'conda':
