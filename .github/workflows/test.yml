@@ -242,6 +242,7 @@ jobs:
           parallel: ${{ env.ONEFLOW_CI_BUILD_PARALLEL }}
           python-versions: |
             3.6
+          wheel-audit: false
       - name: Copy key
         if: ${{ !fromJson(matrix.cache-hit) }}
         run: cp ~/.ssh/id_rsa $RUNNER_TEMP/_github_workflow
