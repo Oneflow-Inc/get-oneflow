@@ -121,7 +121,10 @@ async function getTests(): Promise<EntryInclude[]> {
 
 function checkUniqueIncludesByEntry(entryIncludes: EntryInclude[]): void {
   const uniqueItems = [...new Set(entryIncludes.map(x => x.entry))]
-  ok(uniqueItems.length === entryIncludes.length)
+  ok(
+    uniqueItems.length === entryIncludes.length,
+    `not unique, entries: ${JSON.stringify(entryIncludes, null, 2)}`
+  )
 }
 
 export async function setTestMatrix(): Promise<void> {

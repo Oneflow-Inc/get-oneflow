@@ -326,7 +326,7 @@ export async function postCacheRun(): Promise<void> {
   const keys: string[] = JSON.parse(core.getState('keys'))
   // TODO: clear cache if failed
   if (markAsCompleted) {
-    ok(keys)
+    ok(keys, 'no key found')
     await cacheComplete(keys)
     for (const key of keys) {
       core.info(`[complete] ${key}`)
