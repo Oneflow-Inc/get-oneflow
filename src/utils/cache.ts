@@ -167,7 +167,10 @@ export function getPatterns(
     'tools/functional/**/*.py',
     'cmake/**/*.cmake',
     'python/oneflow/**/*.py',
-    'python/setup.py'
+    'python/setup.py',
+    'ci/**/*.sh',
+    'ci/**/*.txt',
+    'ci/**/*.py'
   ]
 
   let excludePatterns = [
