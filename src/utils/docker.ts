@@ -185,7 +185,7 @@ async function runCPack(
 
 export async function buildOneFlow(tag: string): Promise<void> {
   const oneflowSrc: string = getPathInput('oneflow-src', {required: true})
-  const isNightly: boolean = getPathInput('nightly', {required: false}) !== ''
+  const isNightly = core.getBooleanInput('nightly', {required: false})
   const wheelhouseDir: string = getPathInput('wheelhouse-dir', {required: true})
   const docker = new Docker({socketPath: '/var/run/docker.sock'})
   const containerName = 'oneflow-manylinux-'.concat(os.userInfo().username)

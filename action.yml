@@ -105,8 +105,9 @@ inputs:
     description: 'make/ninja -j {parallel}, default will be $(nproc)'
     required: false
   nightly:
-    description: 'is nightly build, note this is not a boolean filed, any none empty string will be considered as true'
+    description: 'is nightly build'
     required: false
+    default: "false"
 
 outputs:
   pip-index-url:
