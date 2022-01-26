@@ -105,7 +105,7 @@ inputs:
     description: 'make/ninja -j {parallel}, default will be $(nproc)'
     required: false
   nightly:
-    description: 'is nightly build'
+    description: 'is nightly build, note this is not a boolean filed, any none empty string will be considered as true'
     required: false
 
 outputs:
