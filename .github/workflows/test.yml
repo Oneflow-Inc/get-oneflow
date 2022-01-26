@@ -45,7 +45,7 @@ jobs:
         include:
           - entry: gh-hosted
             os: ['self-hosted', 'linux', 'provision']
-          - entry: gh-hosted
+          - entry: self-hosted
             os: [ubuntu-latest]
     env:
       ONEFLOW_SRC: oneflow-src
