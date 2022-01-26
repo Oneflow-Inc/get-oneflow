@@ -41,8 +41,12 @@ jobs:
       fail-fast: false
       max-parallel: 5
       matrix:
-        os: [['self-hosted', 'linux', 'provision'], [ubuntu-latest]]
-        docker-run-use-system-http-proxy: [false]
+        entry: [gh-hosted, self-hosted]
+        include:
+          - entry: gh-hosted
+            os: ['self-hosted', 'linux', 'provision']
+          - entry: gh-hosted
+            os: [ubuntu-latest]
     env:
       ONEFLOW_SRC: oneflow-src
     steps:
@@ -62,7 +66,17 @@ jobs:
           repository: Oneflow-Inc/oneflow
           ref: ${{ env.ONEFLOW_REF }}
           path: ${{ env.ONEFLOW_SRC }}
+      - uses: ./cache-complete
+        name: Save cache if successful
+        id: save-cache
+        timeout-minutes: 5
+        with:
+          oneflow-src: ${{ env.ONEFLOW_SRC }}
+          entry: build-with-clang
+          digest-type: build
+          mark-as-completed: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
       - name: Checkout Oneflow-Inc/conda-env
+        if: ${{ !matrix.cache-hit }}
         uses: actions/checkout@v2
         with:
           repository: Oneflow-Inc/conda-env
@@ -70,7 +84,7 @@ jobs:
           path: conda-env
       - uses: ./
         name: Test conda on gh-hosted
-        if: ${{ contains(matrix.os, 'ubuntu-latest') }}
+        if: ${{ contains(matrix.os, 'ubuntu-latest') && !matrix.cache-hit }}
         with:
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/ci/gh-hosted/cpu-clang.cmake
           oneflow-src: ${{ env.ONEFLOW_SRC }}
@@ -79,7 +93,7 @@ jobs:
           conda-env-name: oneflow-dev-clang10-v2
       - uses: ./
         name: Test conda on self-hosted
-        if: ${{ contains(matrix.os, 'self-hosted') }}
+        if: ${{ contains(matrix.os, 'self-hosted') && !matrix.cache-hit }}
         with:
           cmake-init-cache: ${{ env.ONEFLOW_SRC }}/cmake/caches/cn/fast/cpu-clang.cmake
           oneflow-src: ${{ env.ONEFLOW_SRC }}
