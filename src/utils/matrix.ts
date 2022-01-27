@@ -157,6 +157,7 @@ export async function setBuildMatrix(): Promise<void> {
     entry: ComputePlatform
     'cache-hit': boolean
     'runs-on': 'ubuntu-latest' | string[]
+    'build-digest': string
   }
   const entries: ComputePlatform[] = core.getMultilineInput('entries', {
     required: true
@@ -179,7 +180,8 @@ export async function setBuildMatrix(): Promise<void> {
       {
         entry,
         'cache-hit': !!foundKey,
-        'runs-on': foundKey ? 'ubuntu-latest' : runnerLabels
+        'runs-on': foundKey ? 'ubuntu-latest' : runnerLabels,
+        'build-digest': buildDigest
       }
     ])
   }

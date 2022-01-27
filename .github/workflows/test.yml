@@ -140,6 +140,9 @@ jobs:
     name: 'Build OneFlow manylinux'
     runs-on: ${{ matrix.runs-on }}
     needs: [find-build-cache]
+    concurrency:
+      group: test-build-manylinux-${{ matrix.entry }}-${{ matrix.build-digest }}
+      cancel-in-progress: true
     strategy:
       fail-fast: false
       max-parallel: 2
