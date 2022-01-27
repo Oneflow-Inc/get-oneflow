@@ -11,7 +11,7 @@ import {BuildEnv, buildOneFlow} from './utils/docker'
 import {getParallel, isSelfHosted} from './utils/util'
 
 const LLVM13DevContainerTag =
-  'registry.cn-beijing.aliyuncs.com/oneflow/llvm13_cuda11.2:f3f3b6eb3fc5965777a3b325ae63de08057ee8a4'
+  'registry.cn-beijing.aliyuncs.com/oneflow/llvm13_cuda10.1:6df2a5216c9bd6312cd08bc5e29a233b09c0d78a'
 
 async function condaRun(
   condaEnvName: string,

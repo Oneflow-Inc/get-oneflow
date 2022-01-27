@@ -113,9 +113,11 @@ async function buildAndMakeWheel(
   if (shouldSymbolicLinkLld) {
     core.warning('docker-run-use-lld not supported for now')
   }
-  const shouldAuditWheel = core.getBooleanInput('wheel-audit', {
-    required: false
-  })
+  const buildEnv: BuildEnv = core.getInput('oneflow-build-env') as BuildEnv
+  const shouldAuditWheel =
+    core.getBooleanInput('wheel-audit', {
+      required: false
+    }) && buildEnv !== 'llvm'
   const oneflowSrc: string = getPathInput('oneflow-src', {required: true})
   const wheelhouseDir: string = getPathInput('wheelhouse-dir', {required: true})
   const buildScript: string = getPathInput('build-script', {
@@ -127,7 +129,7 @@ async function buildAndMakeWheel(
       required: false
     }
   )
-  const buildEnv: BuildEnv = core.getInput('oneflow-build-env') as BuildEnv
+
   const container = await docker.createContainer(createOptions)
   await container.start()
   if (opts.shouldCleanBuildDir) {
