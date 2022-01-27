@@ -10,8 +10,8 @@ import {ensureConda} from './utils/conda'
 import {BuildEnv, buildOneFlow} from './utils/docker'
 import {getParallel, isSelfHosted} from './utils/util'
 
-const LLVM12DevContainerTag =
-  'registry.cn-beijing.aliyuncs.com/oneflow/devcontainer:llvm13'
+const LLVM13DevContainerTag =
+  'registry.cn-beijing.aliyuncs.com/oneflow/llvm13_cuda11.2:f3f3b6eb3fc5965777a3b325ae63de08057ee8a4'
 
 async function condaRun(
   condaEnvName: string,
@@ -174,7 +174,7 @@ export async function buildWithCondaOrManyLinux(): Promise<void> {
       break
     case 'llvm':
       if (isSelfHosted()) {
-        const tag = LLVM12DevContainerTag
+        const tag = LLVM13DevContainerTag
         await exec.exec('docker', ['pull', tag])
         await buildOneFlow(tag)
       } else {

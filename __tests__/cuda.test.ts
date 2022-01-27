@@ -19,11 +19,11 @@ export const CUDAInitCache = 'cmake/caches/ci/cuda.cmake'
 export const LLVMInitCache = 'cmake/caches/ci/llvm/cuda-75-clang.cmake'
 export const GCC10BuildSh = 'ci/manylinux/build.sh'
 export const GCC7BuildSh = 'ci/manylinux/build-gcc7.sh'
-export const LLCMBuildSh = 'ci/clang/build-llvm.sh'
+export const LLVMBuildSh = 'ci/clang/build-llvm.sh'
 test(
   'build manylinux pip',
   async () => {
-    if (!process.env['TEST_MANYLINUX']) {
+    if (!process.env['MANYLINUX']) {
       return
     }
     // await testOneCUDA('none', false)
@@ -39,12 +39,18 @@ test(
     env.setInput('cmake-init-cache', path.join(sourceDir, CUDAInitCache))
     env.setInput('cmake-init-cache', path.join(sourceDir, CPUInitCache))
     env.setInput('oneflow-build-env', 'manylinux')
-    // env.setInput('oneflow-build-env', 'llvm')
-    env.setInput('oneflow-src', sourceDir)
     const cudaVersion = 'none'
-    process.env[
-      'INPUT_MANYLINUX-CACHE-DIR'
-    ] = '~/manylinux-cache-dirs/unittest-'.concat(cudaVersion)
+    env.setInput(
+      'manylinux-cache-dir',
+      '~/manylinux-cache-dirs/unittest-'.concat(cudaVersion)
+    )
+
+    env.setInput('cmake-init-cache', path.join(sourceDir, LLVMInitCache))
+    env.setInput('oneflow-build-env', 'llvm')
+    env.setInput('build-script', path.join(sourceDir, LLVMBuildSh))
+    env.setInput('manylinux-cache-dir', '~/manylinux-cache-dirs/llvm')
+
+    env.setInput('oneflow-src', sourceDir)
     env.setInput('cuda-version', cudaVersion)
     env.setMultilineInput('python-versions', ['3.7', '3.6'])
     env.setInput('self-hosted', 'true')
@@ -52,6 +58,7 @@ test(
     env.setBooleanInput('clear-wheelhouse-dir', true)
     env.setBooleanInput('retry-failed-build', false)
     env.setBooleanInput('clean-ccache', true)
+    env.setBooleanInput('nightly', false)
     await buildWithCondaOrManyLinux()
     // await testOneCUDA('10.1', true)
     // await testOneCUDA('11.4', false)
