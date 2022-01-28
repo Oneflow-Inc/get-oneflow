@@ -37,7 +37,6 @@ test(
     env.setInput('build-script', path.join(sourceDir, GCC7BuildSh))
     env.setBooleanInput('docker-run-use-system-http-proxy', false)
     env.setInput('cmake-init-cache', path.join(sourceDir, CUDAInitCache))
-    env.setInput('cmake-init-cache', path.join(sourceDir, CPUInitCache))
     env.setInput('oneflow-build-env', 'manylinux')
     const cudaVersion = 'none'
     env.setInput(
@@ -45,14 +44,21 @@ test(
       '~/manylinux-cache-dirs/unittest-'.concat(cudaVersion)
     )
 
-    env.setInput('cmake-init-cache', path.join(sourceDir, LLVMInitCache))
-    env.setInput('oneflow-build-env', 'llvm')
-    env.setInput('build-script', path.join(sourceDir, LLVMBuildSh))
-    env.setInput('manylinux-cache-dir', '~/manylinux-cache-dirs/llvm')
+    // CPU
+    env.setInput('cmake-init-cache', path.join(sourceDir, CPUInitCache))
+    env.setInput('build-script', path.join(sourceDir, GCC10BuildSh))
+
+    // LLVM
+    // env.setInput('cmake-init-cache', path.join(sourceDir, LLVMInitCache))
+    // env.setInput('oneflow-build-env', 'llvm')
+    // env.setInput('build-script', path.join(sourceDir, LLVMBuildSh))
+    // env.setInput('manylinux-cache-dir', '~/manylinux-cache-dirs/llvm')
 
     env.setInput('oneflow-src', sourceDir)
     env.setInput('cuda-version', cudaVersion)
     env.setMultilineInput('python-versions', ['3.7', '3.6'])
+    env.setMultilineInput('python-versions', ['3.7'])
+    env.setBooleanInput('wheel-audit', false)
     env.setInput('self-hosted', 'true')
     env.setBooleanInput('docker-run-use-lld', false)
     env.setBooleanInput('clear-wheelhouse-dir', true)
