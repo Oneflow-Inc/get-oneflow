@@ -13,7 +13,7 @@ concurrency:
 env:
   OSS_ACCESS_KEY_ID: ${{ secrets.OSS_ACCESS_KEY_ID }}
   OSS_ACCESS_KEY_SECRET: ${{ secrets.OSS_ACCESS_KEY_SECRET }}
-  ONEFLOW_REF: master
+  ONEFLOW_REF: PragmaTwice-patch-2
   ONEFLOW_CI_BUILD_PARALLEL: 32
 
 jobs:
