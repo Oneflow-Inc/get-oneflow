@@ -5,8 +5,6 @@ import {buildWithCondaOrManyLinux} from './buildOneFlow'
 import {cacheRun, postCacheRun} from './utils/cache'
 import * as matrix from './utils/matrix'
 import {downloadByDigest, uploadByDigest} from './utils/ssh'
-import {runMirror} from './utils/mirrorTools'
-import {runBuildManylinux} from './utils/docker'
 import {findWheel} from './utils/findWheel'
 type ActionType =
   | 'build-oneflow'
@@ -38,7 +36,5 @@ runAndSetFailed(async () => {
   if (actionType === 'cache-complete/matrix/test') await matrix.setTestMatrix()
   if (actionType === 'digest/download') await downloadByDigest()
   if (actionType === 'digest/upload') await uploadByDigest()
-  if (actionType === 'mirror') await runMirror()
-  if (actionType === 'manylinux') await runBuildManylinux()
   if (actionType === 'find-wheel') await findWheel()
 })

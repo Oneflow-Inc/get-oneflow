@@ -15,6 +15,15 @@ export function getPathInput(name: string, options?: InputOptions): string {
   return val
 }
 
+export function getParallel(): string {
+  const parallel: string = core.getInput('parallel', {required: false})
+  let ONEFLOW_CI_BUILD_PARALLEL = os.cpus().length.toString()
+  if (parallel) {
+    ONEFLOW_CI_BUILD_PARALLEL = parallel
+  }
+  return ONEFLOW_CI_BUILD_PARALLEL
+}
+
 export function isSelfHosted(): boolean {
   return core.getBooleanInput('self-hosted', {required: false})
 }

@@ -3,8 +3,6 @@ import * as cp from 'child_process'
 import * as path from 'path'
 import {test} from '@jest/globals'
 import os from 'os'
-import {ensureDocker} from '../src/utils/docker'
-import {TOOLS, mirrorToDownloads, ensureCUDA102} from '../src/utils/ensure'
 import * as env from '../src/utils/env'
 import {isOnPremise} from '../src/utils/util'
 
@@ -68,41 +66,6 @@ test(
       console.log(error.output.toString())
       throw error
     }
-  },
-  MINUTES15
-)
-
-test(
-  'test docker',
-  async () => {
-    if (!process.env['TEST_DOCKER']) {
-      return
-    }
-    process.env['INPUT_DRY-RUN'] = 'true'
-    if (isOnPremise() == false) {
-      return
-    }
-    await ensureDocker()
-  },
-  MINUTES15
-)
-
-test(
-  'mirror tools',
-  async () => {
-    if (!process.env['TEST_MANYLINUX']) return
-    await Promise.all(TOOLS.map(t => mirrorToDownloads(t.url)))
-  },
-  MINUTES15
-)
-
-test(
-  'ensure cuda',
-  async () => {
-    if (isOnPremise() == false) {
-      return
-    }
-    await ensureCUDA102()
   },
   MINUTES15
 )

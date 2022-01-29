@@ -1,56 +1,12 @@
 import * as core from '@actions/core'
-import * as exec from '@actions/exec'
-import * as tc from '@actions/tool-cache'
 import Docker, {Container, MountSettings} from 'dockerode'
-import {getPathInput, isSelfHosted} from './util'
+import {getParallel, getPathInput} from './util'
 import * as io from '@actions/io'
 import path from 'path'
 import fs from 'fs'
 import {ok} from 'assert'
-import {getOSSDownloadURL, ensureTool, LLVM12, ensureCUDA} from './ensure'
 import os from 'os'
 export type BuildEnv = 'conda' | 'manylinux' | 'llvm'
-export const LLVM12DevContainerTag =
-  'registry.cn-beijing.aliyuncs.com/oneflow/devcontainer:llvm13'
-async function load_img(tag: string, url: string): Promise<void> {
-  if (isSelfHosted()) {
-    await exec.exec('docker', ['ps'], {silent: true})
-    const inspect = await exec.exec('docker', ['inspect', tag], {
-      ignoreReturnCode: true,
-      silent: true
-    })
-    if (inspect !== 0) {
-      const imgPath = await tc.downloadTool(url)
-      await exec.exec('docker', ['load', '-i', imgPath])
-    }
-  } else {
-    await exec.exec('docker', ['pull', tag], {silent: false})
-  }
-}
-
-export async function ensureDocker(): Promise<void> {
-  try {
-    await exec.exec('docker', ['ps'], {silent: true})
-    await load_img(
-      'quay.io/pypa/manylinux1_x86_64',
-      'https://oneflow-static.oss-cn-beijing.aliyuncs.com/img/quay.iopypamanylinux1_x86_64.tar.gz'
-    )
-    await load_img(
-      'quay.io/pypa/manylinux2010_x86_64',
-      'https://oneflow-static.oss-cn-beijing.aliyuncs.com/img/quay.iopypamanylinux2010_x86_64.tar.gz'
-    )
-    await load_img(
-      'quay.io/pypa/manylinux2014_x86_64:latest',
-      'https://oneflow-static.oss-cn-beijing.aliyuncs.com/img/quay.iopypamanylinux2014_x86_64.tar.gz'
-    )
-    await load_img(
-      'quay.io/pypa/manylinux_2_24_x86_64',
-      'https://oneflow-static.oss-cn-beijing.aliyuncs.com/img/quay.iopypamanylinux_2_24_x86_64.tar.gz'
-    )
-  } catch (error) {
-    core.setFailed(error as Error)
-  }
-}
 
 type ManylinuxVersion = '1' | '2010' | '2014' | '2_24'
 
@@ -66,111 +22,6 @@ export function tagFromversion(version: ManylinuxVersion): string {
     default:
       throw new Error(`${version} not supported`)
   }
-}
-
-type StreamErr = {
-  errorDetail: {
-    code: number
-    message: string
-  }
-  error: string
-}
-type StreamStatus = {
-  status: string
-  progressDetail?: {
-    current: string
-    total: string
-  }
-  progress?: string
-  id?: string
-}
-type StreamFrameData = {stream: string}
-type StreamFrame = StreamFrameData | StreamStatus | StreamErr
-
-export const DOCKER_TOOL_URLS = {
-  sccache:
-    'https://github.com/mozilla/sccache/releases/download/v0.2.15/sccache-v0.2.15-x86_64-unknown-linux-musl.tar.gz',
-  ccache:
-    'https://github.com/ccache/ccache/releases/download/v4.4/ccache-4.4.tar.gz',
-  bazel:
-    'https://github.com/bazelbuild/bazel/releases/download/3.4.1/bazel-3.4.1-linux-x86_64',
-  llvm1201src:
-    'https://github.com/llvm/llvm-project/releases/download/llvmorg-12.0.1/llvm-project-12.0.1.src.tar.xz'
-}
-
-export async function buildManylinuxAndTag(
-  version: ManylinuxVersion
-): Promise<string> {
-  const fromTag = tagFromversion(version)
-  const splits = fromTag.split('/')
-  let toTag: string = 'oneflowinc/'.concat(splits[splits.length - 1])
-  toTag = [toTag, os.userInfo().username].join(':')
-  const docker = new Docker({socketPath: '/var/run/docker.sock'})
-  let buildArgs = {
-    from: fromTag,
-    HTTP_PROXY: process.env.HTTP_PROXY as string,
-    http_proxy: process.env.http_proxy as string,
-    HTTPS_PROXY: process.env.HTTPS_PROXY as string,
-    https_proxy: process.env.https_proxy as string
-  }
-  if (isSelfHosted()) {
-    const selfHostedBuildArgs = {
-      SCCACHE_RELEASE_URL: getOSSDownloadURL(DOCKER_TOOL_URLS.sccache),
-      CCACHE_RELEASE_URL: getOSSDownloadURL(DOCKER_TOOL_URLS.ccache),
-      LLVM_SRC_URL: getOSSDownloadURL(DOCKER_TOOL_URLS.llvm1201src),
-      BAZEL_URL: getOSSDownloadURL(DOCKER_TOOL_URLS.bazel)
-    }
-    buildArgs = {...buildArgs, ...selfHostedBuildArgs}
-  }
-  core.info(
-    JSON.stringify(
-      {
-        toTag,
-        buildArgs
-      },
-      null,
-      2
-    )
-  )
-  const stream = await docker.buildImage(
-    {
-      context: version === '2_24' ? 'manylinux/debian' : 'manylinux/centos',
-      src: ['Dockerfile']
-    },
-    {
-      t: toTag,
-      networkmode: 'host',
-      buildargs: buildArgs
-    }
-  )
-  core.debug('started building docker img')
-  new Docker().modem.demuxStream(stream, process.stdout, process.stderr)
-  await new Promise((resolve, reject) => {
-    new Docker().modem.followProgress(
-      stream,
-      (err, res: StreamFrame[]) => {
-        const lastFrame = res[res.length - 1] as StreamErr
-        lastFrame.error ? reject(lastFrame) : resolve(res)
-        err ? reject(err) : resolve(res)
-      },
-      (event: StreamFrame) => {
-        const err = event as StreamErr
-        const status = event as StreamStatus
-        const data = event as StreamFrameData
-        if (err.error) {
-          core.info(err.error)
-        } else if (status.status) {
-          core.info(`[${status.status}] ${status.progress}`)
-        } else if (data.stream) {
-          core.info(data.stream)
-        } else {
-          core.info(JSON.stringify(event, null, 2))
-        }
-      }
-    )
-  })
-  core.debug('done building docker img')
-  return toTag
 }
 
 interface RunExecOptions {
@@ -244,7 +95,7 @@ function getPythonExe(pythonVersion: string): string {
     return 'python3'
   }
   const exe = PythonExeMap.get(pythonVersion)
-  ok(exe, pythonVersion)
+  ok(exe, `python3 version not supported: ${pythonVersion}`)
   return exe
 }
 
@@ -259,9 +110,14 @@ async function buildAndMakeWheel(
   opts: BuildAndMakeWheelOptions
 ): Promise<void> {
   const shouldSymbolicLinkLld = core.getBooleanInput('docker-run-use-lld')
-  const shouldAuditWheel = core.getBooleanInput('wheel-audit', {
-    required: false
-  })
+  if (shouldSymbolicLinkLld) {
+    core.warning('docker-run-use-lld not supported for now')
+  }
+  const buildEnv: BuildEnv = core.getInput('oneflow-build-env') as BuildEnv
+  const shouldAuditWheel =
+    core.getBooleanInput('wheel-audit', {
+      required: false
+    }) && buildEnv !== 'llvm'
   const oneflowSrc: string = getPathInput('oneflow-src', {required: true})
   const wheelhouseDir: string = getPathInput('wheelhouse-dir', {required: true})
   const buildScript: string = getPathInput('build-script', {
@@ -273,7 +129,7 @@ async function buildAndMakeWheel(
       required: false
     }
   )
-  const buildEnv: BuildEnv = core.getInput('oneflow-build-env') as BuildEnv
+
   const container = await docker.createContainer(createOptions)
   await container.start()
   if (opts.shouldCleanBuildDir) {
@@ -292,18 +148,6 @@ async function buildAndMakeWheel(
   if (buildEnv === 'llvm') {
     pythonVersions = ['any']
   }
-  if (shouldSymbolicLinkLld) {
-    for (const gccVersion of ['7', '10']) {
-      await runBash(
-        container,
-        `rm -f /opt/rh/devtoolset-${gccVersion}/root/usr/bin/ld`
-      )
-      await runBash(
-        container,
-        `ln -s $(which lld) /opt/rh/devtoolset-${gccVersion}/root/usr/bin/ld`
-      )
-    }
-  }
   const distDir = path.join(oneflowSrc, 'python', 'dist')
   runExec(container, ['rm', '-rf', distDir])
   for (const pythonVersion of pythonVersions) {
@@ -311,13 +155,14 @@ async function buildAndMakeWheel(
     await buildOnePythonVersion(container, buildScript, pythonExe)
   }
   const whlFiles = await fs.promises.readdir(distDir)
+  ok(whlFiles.length, `no .whl found in ${distDir}`)
   if (clearWheelhouseDir) {
     await runBash(container, `rm -rf ${path.join(wheelhouseDir, '*')}`)
   }
-  ok(whlFiles.length)
   // TODO: copy from dist
+  let postProcessCmds = [runCPack(container, buildDir)]
   if (shouldAuditWheel) {
-    await Promise.all(
+    postProcessCmds = postProcessCmds.concat(
       whlFiles.map(async (whl: string) =>
         runExec(
           container,
@@ -327,13 +172,24 @@ async function buildAndMakeWheel(
       )
     )
   }
+  await Promise.all(postProcessCmds)
+}
+
+async function runCPack(
+  container: Docker.Container,
+  buildDir: string
+): Promise<void> {
+  await runExec(container, ['cpack'], {cwd: buildDir})
+  await runExec(container, ['rm', '-rf', './cpack/_CPack_Packages'], {
+    cwd: buildDir
+  })
 }
 
 export async function buildOneFlow(tag: string): Promise<void> {
   const oneflowSrc: string = getPathInput('oneflow-src', {required: true})
+  const isNightly = core.getBooleanInput('nightly', {required: false})
   const wheelhouseDir: string = getPathInput('wheelhouse-dir', {required: true})
   const docker = new Docker({socketPath: '/var/run/docker.sock'})
-  const cudaTools = await ensureCUDA()
   const containerName = 'oneflow-manylinux-'.concat(os.userInfo().username)
   let httpProxyEnvs: string[] = []
   const manylinuxCacheDir = getPathInput('manylinux-cache-dir', {
@@ -353,37 +209,9 @@ export async function buildOneFlow(tag: string): Promise<void> {
       `https_proxy=${process.env.https_proxy}`
     ]
   }
-  let llvmDir = ''
-  const shouldMountLLVM = false
-  let mounts: MountSettings[] = []
-  if (cudaTools) {
-    const CUDA_TOOLKIT_ROOT_DIR = cudaTools.cudaToolkit
-    const CUDNN_ROOT_DIR = path.join(cudaTools.cudnn, 'cuda')
-    mounts = mounts.concat([
-      {
-        Source: CUDA_TOOLKIT_ROOT_DIR,
-        Target: '/usr/local/cuda',
-        ReadOnly: true,
-        Type: 'bind'
-      },
-      {
-        Source: CUDNN_ROOT_DIR,
-        Target: '/usr/local/cudnn',
-        ReadOnly: true,
-        Type: 'bind'
-      }
-    ])
-  }
-  if (shouldMountLLVM) {
-    llvmDir = await ensureTool(LLVM12)
-    mounts.push({
-      Source: llvmDir,
-      Target: '/usr/local/llvm',
-      ReadOnly: true,
-      Type: 'bind'
-    })
-  }
+  const mounts: MountSettings[] = []
   const buildDir = path.join(manylinuxCacheDir, `build`)
+  const nightlyEnv = isNightly ? ['ONEFLOW_RELEASE_NIGHTLY=1'] : []
   const createOptions = {
     Cmd: ['sleep', '3000'],
     Image: tag,
@@ -404,8 +232,10 @@ export async function buildOneFlow(tag: string): Promise<void> {
     Env: [
       `ONEFLOW_CI_BUILD_DIR=${buildDir}`,
       `ONEFLOW_CI_SRC_DIR=${oneflowSrc}`,
-      `ONEFLOW_CI_LLVM_DIR=${llvmDir}`
-    ].concat(httpProxyEnvs)
+      `ONEFLOW_CI_BUILD_PARALLEL=${getParallel()}`
+    ]
+      .concat(httpProxyEnvs)
+      .concat(nightlyEnv)
   }
 
   try {
@@ -425,7 +255,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
       await killContainer(docker, containerName)
       await buildAndMakeWheel(createOptions, docker, buildDir, {
         shouldCleanBuildDir: true,
-        shouldCleanCcache: false
+        shouldCleanCcache: true
       })
     } else {
       core.setFailed(error as Error)
@@ -469,16 +299,4 @@ async function buildOnePythonVersion(
       `ONEFLOW_CI_CMAKE_INIT_CACHE=${cmakeInitCache}`
     ]
   })
-}
-
-export async function runBuildManylinux(): Promise<void> {
-  const manylinuxVersion: string = core.getInput('manylinux-version', {
-    required: true
-  })
-  if (manylinuxVersion === '2014') {
-    const tag = await buildManylinuxAndTag(manylinuxVersion)
-    core.setOutput('tag', tag)
-  } else {
-    core.setFailed(`unsupported manylinuxVersion: ${manylinuxVersion}`)
-  }
 }

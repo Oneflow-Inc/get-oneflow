@@ -121,7 +121,10 @@ async function getTests(): Promise<EntryInclude[]> {
 
 function checkUniqueIncludesByEntry(entryIncludes: EntryInclude[]): void {
   const uniqueItems = [...new Set(entryIncludes.map(x => x.entry))]
-  ok(uniqueItems.length === entryIncludes.length)
+  ok(
+    uniqueItems.length === entryIncludes.length,
+    `not unique, entries: ${JSON.stringify(entryIncludes, null, 2)}`
+  )
 }
 
 export async function setTestMatrix(): Promise<void> {
@@ -154,6 +157,7 @@ export async function setBuildMatrix(): Promise<void> {
     entry: ComputePlatform
     'cache-hit': boolean
     'runs-on': 'ubuntu-latest' | string[]
+    'build-digest': string
   }
   const entries: ComputePlatform[] = core.getMultilineInput('entries', {
     required: true
@@ -176,7 +180,8 @@ export async function setBuildMatrix(): Promise<void> {
       {
         entry,
         'cache-hit': !!foundKey,
-        'runs-on': foundKey ? 'ubuntu-latest' : runnerLabels
+        'runs-on': foundKey ? 'ubuntu-latest' : runnerLabels,
+        'build-digest': buildDigest
       }
     ])
   }
