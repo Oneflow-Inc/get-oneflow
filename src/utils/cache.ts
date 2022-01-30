@@ -161,6 +161,8 @@ export function getPatterns(
     'oneflow/core/**/*.cu',
     'oneflow/core/**/*.proto',
     'oneflow/core/**/*.yaml',
+    'oneflow/maybe/**/*.h',
+    'oneflow/maybe/**/*.cpp',
     'tools/cfg/**/*.py',
     'tools/cfg/**/*.cpp',
     'tools/cfg/**/*.h',
