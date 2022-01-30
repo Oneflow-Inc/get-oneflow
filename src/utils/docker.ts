@@ -217,7 +217,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
   const buildDir = path.join(manylinuxCacheDir, `build`)
   const nightlyEnv = isNightly ? ['ONEFLOW_RELEASE_NIGHTLY=1'] : []
   const createOptions: ContainerCreateOptions = {
-    Cmd: ['sleep', '3000'],
+    Cmd: ['sleep', '7200'],
     Image: tag,
     name: containerName,
     HostConfig: {
