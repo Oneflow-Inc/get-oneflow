@@ -170,6 +170,7 @@ export function getPatterns(
     'cmake/**/*.cmake',
     'python/oneflow/**/*.py',
     'python/setup.py',
+    'external/**/*.txt',
     'ci/**/*.sh',
     'ci/**/*.txt',
     'ci/**/*.py'

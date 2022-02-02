@@ -1,5 +1,9 @@
 import * as core from '@actions/core'
-import Docker, {Container, MountSettings} from 'dockerode'
+import Docker, {
+  Container,
+  ContainerCreateOptions,
+  MountSettings
+} from 'dockerode'
 import {getParallel, getPathInput} from './util'
 import * as io from '@actions/io'
 import path from 'path'
@@ -104,7 +108,7 @@ type BuildAndMakeWheelOptions = {
   shouldCleanCcache: Boolean
 }
 async function buildAndMakeWheel(
-  createOptions: Object,
+  createOptions: ContainerCreateOptions,
   docker: Docker,
   buildDir: string,
   opts: BuildAndMakeWheelOptions
@@ -212,8 +216,8 @@ export async function buildOneFlow(tag: string): Promise<void> {
   const mounts: MountSettings[] = []
   const buildDir = path.join(manylinuxCacheDir, `build`)
   const nightlyEnv = isNightly ? ['ONEFLOW_RELEASE_NIGHTLY=1'] : []
-  const createOptions = {
-    Cmd: ['sleep', '3000'],
+  const createOptions: ContainerCreateOptions = {
+    Cmd: ['sleep', '7200'],
     Image: tag,
     name: containerName,
     HostConfig: {
@@ -227,7 +231,8 @@ export async function buildOneFlow(tag: string): Promise<void> {
         `${oneflowSrc}:${oneflowSrc}`,
         `${wheelhouseDir}:${wheelhouseDir}`
       ],
-      Mounts: mounts
+      Mounts: mounts,
+      ShmSize: 8000000000 // 8gb
     },
     Env: [
       `ONEFLOW_CI_BUILD_DIR=${buildDir}`,
