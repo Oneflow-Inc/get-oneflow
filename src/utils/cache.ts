@@ -189,7 +189,8 @@ export function getPatterns(
       'docs/Makefile',
       'ci/test/parallel_run.py',
       'ci/test/distributed_run.py',
-      'ci/test/**/*.sh'
+      'ci/test/**/*.sh',
+      '.github/**/*.yml'
     ])
   } else {
     excludePatterns = excludePatterns.concat([
