@@ -1,7 +1,7 @@
 import os from 'os'
+import * as core from '@actions/core'
 type Rank = 0 | 1
 type IPAddress = '192.168.1.11' | '192.168.1.12'
-import * as core from '@actions/core'
 
 function getMasterAddress(thisRank: Rank): IPAddress {
   if (thisRank === 0) {
@@ -23,7 +23,7 @@ function getMasterAddress(thisRank: Rank): IPAddress {
   )
 }
 
-export function setIPAddress(): void {
+export function setMasterAddress(): void {
   const rank = parseInt(core.getInput('rank')) as Rank
   const addr = getMasterAddress(rank)
   core.setOutput('master-address', addr)
