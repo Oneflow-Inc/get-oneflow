@@ -26,5 +26,6 @@ function getMasterAddress(thisRank: Rank): IPAddress {
 export function setMasterAddress(): void {
   const rank = parseInt(core.getInput('rank')) as Rank
   const addr = getMasterAddress(rank)
+  core.info(`set master address to ${addr}`)
   core.setOutput('master-address', addr)
 }
