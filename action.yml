@@ -108,6 +108,14 @@ inputs:
     description: 'is nightly build'
     required: false
     default: "false"
+  include-distributed:
+    description: 'is nightly build'
+    required: false
+    default: "false"
+  world-size:
+    description: 'is nightly build'
+    required: false
+    default: "1"
 
 outputs:
   pip-index-url:

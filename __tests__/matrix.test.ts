@@ -16,8 +16,10 @@ const MINUTES15 = 1000 * 60 * 15
 test(
   'cache test matrix',
   async () => {
-    const np = process.execPath
     const sourceDir = process.env.ONEFLOW_SRC || '~/oneflow'
+    env.setInput('oneflow-src', sourceDir)
+    env.setBooleanInput('include-distributed', false)
+    env.setInput('world-size', '1')
     env.setInput('oneflow-src', sourceDir)
     env.setMultilineInput('runner-labels', ['self-hosted', 'linux'])
     await setTestMatrix()
@@ -28,9 +30,27 @@ test(
 test(
   'cache test matrix',
   async () => {
-    const np = process.execPath
     const sourceDir = process.env.ONEFLOW_SRC || '~/oneflow'
     env.setInput('oneflow-src', sourceDir)
+    env.setBooleanInput('include-distributed', false)
+    env.setInput('world-size', '1')
+    env.setMultilineInput('runner-labels', [
+      'self-hosted',
+      'linux',
+      'provision'
+    ])
+    await setTestMatrix()
+  },
+  MINUTES15
+)
+
+test(
+  'cache test matrix',
+  async () => {
+    const sourceDir = process.env.ONEFLOW_SRC || '~/oneflow'
+    env.setInput('oneflow-src', sourceDir)
+    env.setBooleanInput('include-distributed', true)
+    env.setInput('world-size', '2')
     env.setMultilineInput('runner-labels', [
       'self-hosted',
       'linux',
@@ -44,7 +64,6 @@ test(
 test(
   'cache build matrix',
   async () => {
-    const np = process.execPath
     const sourceDir = process.env.ONEFLOW_SRC || '~/oneflow'
     env.setInput('oneflow-src', sourceDir)
     env.setMultilineInput('entries', ['cpu', 'cuda', 'cuda-xla'])

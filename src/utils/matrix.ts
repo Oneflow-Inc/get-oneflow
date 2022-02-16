@@ -23,6 +23,7 @@ interface EntryInclude {
   'is-xla': Boolean
   'is-experimental': Boolean
   'digest-type': cache.DigestType
+  rank: number
 }
 export function isXla(device: Device): Boolean {
   return device === 'cuda-xla' || device === 'cpu-xla'
@@ -89,11 +90,16 @@ async function getTests(): Promise<EntryInclude[]> {
   const devices: Device[] = ['cuda', 'cpu']
   const tests: Test[] = ['module', 'misc', 'speed-test']
   const digestType = 'test'
-  for (const device of devices) {
-    for (const isDistributed of [true, false]) {
+  const isDistributed = core.getBooleanInput('include-distributed')
+  const worldSize = parseInt(core.getInput('world-size'))
+  for (let rank = 0; rank < worldSize; rank++) {
+    for (const device of devices) {
       for (const test of tests) {
         const digest = await cache.getDigestByType(digestType)
-        const entry = `${device}-${test}${isDistributed ? '-distributed' : ''}`
+        let entry = `${device}-${test}${isDistributed ? '-distributed' : ''}`
+        if (rank > 0) {
+          entry = `${entry}-rank-${rank}`
+        }
         if (test === 'speed-test' && device !== 'cuda') continue
         if (isDistributed && test !== 'module') continue
         if (isDistributed && device !== 'cuda') continue
@@ -111,7 +117,8 @@ async function getTests(): Promise<EntryInclude[]> {
           'test-type': test,
           'is-xla': false,
           'is-experimental': false,
-          'digest-type': digestType
+          'digest-type': digestType,
+          rank
         })
       }
     }
