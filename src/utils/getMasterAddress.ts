@@ -7,14 +7,14 @@ function getMasterAddress(thisRank: Rank): IPAddress {
   if (thisRank === 0) {
     if (os.hostname() === 'oneflow-11') {
       return '192.168.1.11'
-    } else {
+    } else if (os.hostname() === 'oneflow-12') {
       return '192.168.1.12'
     }
   }
   if (thisRank === 1) {
-    if (os.hostname() === 'oneflow-12') {
+    if (os.hostname() === 'oneflow-11') {
       return '192.168.1.12'
-    } else {
+    } else if (os.hostname() === 'oneflow-12') {
       return '192.168.1.11'
     }
   }
