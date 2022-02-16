@@ -46,7 +46,7 @@ function getRunsOn(
   if (test === 'speed-test') {
     runnerLabels = runnerLabels.concat(['speed-test'])
   }
-  if (isDistributed) {
+  if (isDistributed || test !== 'speed-test') {
     runnerLabels = runnerLabels.concat(['cluster-1'])
   }
   return runnerLabels.concat([deviceLabel])
