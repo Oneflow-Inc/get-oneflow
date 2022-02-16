@@ -97,7 +97,7 @@ async function getTests(): Promise<EntryInclude[]> {
       for (const test of tests) {
         const digest = await cache.getDigestByType(digestType)
         let entry = `${device}-${test}${isDistributed ? '-distributed' : ''}`
-        if (rank > 0) {
+        if (isDistributed) {
           entry = `${entry}-rank-${rank}`
         }
         if (test === 'speed-test' && device !== 'cuda') continue
