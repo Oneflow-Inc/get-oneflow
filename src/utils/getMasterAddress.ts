@@ -13,9 +13,9 @@ function getMasterAddress(thisRank: Rank): IPAddress {
   }
   if (thisRank === 1) {
     if (os.hostname() === 'oneflow-12') {
-      return '192.168.1.12'
-    } else if (os.hostname() === 'oneflow-11') {
       return '192.168.1.11'
+    } else if (os.hostname() === 'oneflow-11') {
+      return '192.168.1.12'
     }
   }
   throw new Error(
