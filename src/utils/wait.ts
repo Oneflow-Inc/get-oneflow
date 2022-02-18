@@ -87,7 +87,7 @@ async function num_in_progress_runs(statuses: Status[]): Promise<number> {
     return acc
   }, [])
 
-  core.info(`found ${workflow_runs.length}, 'workflow runs for', ${statuses}`)
+  core.info(`found ${workflow_runs.length} workflow runs for ${statuses}`)
   if (workflow_runs.length === 0) {
     core.info(`no workflow runs found for ${statuses}`)
     core.info('start querying 100 workflow runs')
