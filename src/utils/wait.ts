@@ -10,19 +10,21 @@ const octokit = new Octokit({auth: token})
 const owner = 'Oneflow-Inc'
 const repo = 'oneflow'
 
+function is_test_suite_job(j: components['schemas']['job']): Boolean {
+  return (
+    j.name.startsWith('Test suite') ||
+    j.name.startsWith('Distributed test suite')
+  )
+}
+
 function is_gpu_job(j: components['schemas']['job']): Boolean {
   return (
     ['CPU', 'CUDA', 'XLA'].includes(j.name) ||
     j.name === 'CUDA, XLA, CPU' ||
     j.name.startsWith('CUDA, XLA, CPU') ||
-    ((j.name.startsWith('Test suite') ||
-      j.name.startsWith('Distributed test suite')) &&
+    (is_test_suite_job(j) &&
       (j.name.includes('cuda') || j.name.includes('xla')))
   )
-}
-
-function is_test_suite_job(j: components['schemas']['job']): Boolean {
-  return j.name.startsWith('Test suite')
 }
 
 async function is_occupying_gpu(
@@ -50,18 +52,31 @@ async function is_occupying_gpu(
     .filter(j => is_gpu_job(j))
     .every(j => j.status === 'queued' || j.status === 'in_progress')
 
-  const schedule_job = r.data.jobs.find(j => j.name === 'Wait for GPU slots')
   const test_suite_job_completed = r.data.jobs.filter(
     j => is_test_suite_job(j) && j.status === 'completed'
   )
   const test_suite_job_all = r.data.jobs.filter(j => is_test_suite_job(j))
-  const has_passed_scheduler =
-    schedule_job &&
-    schedule_job.status === 'completed' &&
+  const job_not_all_completed =
     jobs_all_queued &&
     test_suite_job_completed.length !== test_suite_job_all.length
 
-  return has_passed_scheduler || gpu_jobs_in_progress.length > 0
+  // pass distributed
+  const schedule_job = r.data.jobs.find(j => j.name === 'Wait for GPU slots')
+  const has_passed_scheduler =
+    schedule_job && schedule_job.status === 'completed' && job_not_all_completed
+
+  // pass distributed
+  const distributed_job = r.data.jobs.find(j => j.name.includes('Distributed'))
+  const has_passed_distributed =
+    distributed_job &&
+    distributed_job.status === 'completed' &&
+    job_not_all_completed
+
+  return (
+    has_passed_scheduler ||
+    has_passed_distributed ||
+    gpu_jobs_in_progress.length > 0
+  )
 }
 
 // TODO: refactor into in_progress_runs_larger_that(1)
