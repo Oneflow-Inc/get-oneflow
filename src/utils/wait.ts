@@ -75,7 +75,8 @@ async function is_occupying_gpu(
   return (
     has_passed_scheduler ||
     has_passed_distributed ||
-    gpu_jobs_in_progress.length > 0
+    gpu_jobs_in_progress.length > 0 ||
+    test_suite_job_all.length === 0
   )
 }
 
