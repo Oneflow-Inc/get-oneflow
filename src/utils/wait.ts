@@ -63,7 +63,9 @@ async function is_occupying_gpu(
   // pass distributed
   const schedule_job = r.data.jobs.find(j => j.name === 'Wait for GPU slots')
   const has_passed_scheduler =
-    schedule_job && schedule_job.status === 'completed' && job_not_all_completed
+    schedule_job &&
+    schedule_job.status === 'completed' &&
+    (job_not_all_completed || test_suite_job_all.length === 0)
 
   // pass distributed
   const distributed_job = r.data.jobs.find(j => j.name.includes('Distributed'))
@@ -75,8 +77,7 @@ async function is_occupying_gpu(
   return (
     has_passed_scheduler ||
     has_passed_distributed ||
-    gpu_jobs_in_progress.length > 0 ||
-    test_suite_job_all.length === 0
+    gpu_jobs_in_progress.length > 0
   )
 }
 
