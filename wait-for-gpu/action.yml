@@ -11,6 +11,9 @@ inputs:
   timeout-minutes:
     required: true
     description: ''
+  token:
+    required: true
+    description: ''
 
 runs:
   using: 'node12'

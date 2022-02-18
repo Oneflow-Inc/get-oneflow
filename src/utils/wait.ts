@@ -5,11 +5,7 @@ import {Octokit} from '@octokit/core'
 import {components} from '@octokit/openapi-types/types'
 import {Endpoints} from '@octokit/types/dist-types/generated/Endpoints'
 
-const token = process.env.CI_PERSONAL_ACCESS_TOKEN
-if (!token) {
-  core.setFailed('required CI_PERSONAL_ACCESS_TOKEN')
-  process.exit(1)
-}
+const token = core.getInput('token')
 const octokit = new Octokit({auth: token})
 const owner = 'Oneflow-Inc'
 const repo = 'oneflow'
