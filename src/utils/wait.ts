@@ -65,7 +65,9 @@ async function is_occupying_gpu(
   const has_passed_scheduler =
     schedule_job &&
     schedule_job.status === 'completed' &&
-    (job_not_all_completed || test_suite_job_all.length === 0)
+    (job_not_all_completed ||
+      test_suite_job_all.length ===
+        0) /*test_suite_job_all.length === 0 means matrix generated is not materialized as jobs*/
 
   // pass distributed
   const distributed_job = r.data.jobs.find(j => j.name.includes('Distributed'))
