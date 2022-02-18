@@ -1,5 +1,6 @@
 import OSS from 'ali-oss'
 import path from 'path'
+import {URL} from 'url'
 import * as cache from './cache'
 
 export function ossStore(): OSS {

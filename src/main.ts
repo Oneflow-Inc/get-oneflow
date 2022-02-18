@@ -7,6 +7,7 @@ import * as matrix from './utils/matrix'
 import {downloadByDigest, uploadByDigest} from './utils/ssh'
 import {findWheel} from './utils/findWheel'
 import {setMasterAddress} from './utils/getMasterAddress'
+import {waitForGPURunner} from './utils/wait'
 type ActionType =
   | 'build-oneflow'
   | 'cache-complete'
@@ -18,6 +19,7 @@ type ActionType =
   | 'manylinux'
   | 'mirror'
   | 'master-address'
+  | 'wait-for-gpu'
 runAndSetFailed(async () => {
   core.debug(JSON.stringify(gh, null, 2))
   const actionType = core.getInput('action-type', {
@@ -40,4 +42,5 @@ runAndSetFailed(async () => {
   if (actionType === 'digest/upload') await uploadByDigest()
   if (actionType === 'find-wheel') await findWheel()
   if (actionType === 'master-address') setMasterAddress()
+  if (actionType === 'wait-for-gpu') waitForGPURunner()
 })
