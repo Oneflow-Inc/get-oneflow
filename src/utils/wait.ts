@@ -159,7 +159,7 @@ export async function waitForGPURunner(): Promise<void> {
       core.info(`try  ${i + 1}/${max_try}, timeout ${timeout_minutes} minutes`)
       core.info(`runs ${num}, max: ${max_num_parallel}`)
     } catch (error) {
-      core.setFailed(JSON.stringify(error, null, 2))
+      core.info(JSON.stringify(error, null, 2))
     }
     if (num < max_num_parallel) {
       break // success
