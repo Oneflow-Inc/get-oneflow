@@ -25,7 +25,7 @@ export async function checkPriorityPR(): Promise<void> {
     )
     if (pr.data.state === 'open') {
       throw new Error(
-        `This PR is not allowed to run as long as priority PR is still open :#${pull_number} `
+        `This PR is not allowed to run as long as priority PR is still open #${pull_number}: ${pr.url} `
       )
     }
   }
