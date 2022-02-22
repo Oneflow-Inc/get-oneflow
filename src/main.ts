@@ -8,6 +8,7 @@ import {downloadByDigest, uploadByDigest} from './utils/ssh'
 import {findWheel} from './utils/findWheel'
 import {setMasterAddress} from './utils/getMasterAddress'
 import {waitForGPURunner} from './utils/wait'
+import {checkPriorityPR} from './utils/crashUnlessPriority'
 type ActionType =
   | 'build-oneflow'
   | 'cache-complete'
@@ -20,6 +21,7 @@ type ActionType =
   | 'mirror'
   | 'master-address'
   | 'wait-for-gpu'
+  | 'priority-pr'
 runAndSetFailed(async () => {
   core.debug(JSON.stringify(gh, null, 2))
   const actionType = core.getInput('action-type', {
@@ -43,4 +45,6 @@ runAndSetFailed(async () => {
   if (actionType === 'find-wheel') await findWheel()
   if (actionType === 'master-address') setMasterAddress()
   if (actionType === 'wait-for-gpu') waitForGPURunner()
+  if (actionType === 'priority-pr') checkPriorityPR()
+  throw new Error(`Action type not implemented ${actionType}`)
 })

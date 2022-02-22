@@ -1,0 +1,20 @@
+name: 'Find oneflow wheel in oss'
+description: ''
+inputs:
+  action-type:
+    description: ''
+    required: false
+    default: 'priority-pr'
+  token:
+    required: true
+    description: ''
+  priority-pr-number:
+    required: true
+    description: ''
+
+runs:
+  using: 'node12'
+  main: '../dist/index.js'
+branding:
+  icon: 'archive'
+  color: 'gray-dark'
