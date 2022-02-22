@@ -8,9 +8,6 @@ inputs:
   token:
     required: true
     description: ''
-  priority-pr-number:
-    required: true
-    description: ''
 
 runs:
   using: 'node12'

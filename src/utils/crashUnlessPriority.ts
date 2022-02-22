@@ -4,29 +4,21 @@ import * as gh from '@actions/github'
 
 export async function checkPriorityPR(): Promise<void> {
   const token = core.getInput('token')
-  const priorityPRNumber = core.getInput('priority-pr-number', {
-    required: false
-  })
   const octokit = new Octokit({auth: token})
   const owner = 'Oneflow-Inc'
   const repo = 'oneflow'
-  if (priorityPRNumber) {
-    const pull_number = parseInt(priorityPRNumber)
-    if (pull_number === gh.context.issue.number) {
-      return
-    }
-    const pr = await octokit.request(
-      'GET /repos/{owner}/{repo}/pulls/{pull_number}',
-      {
-        owner,
-        repo,
-        pull_number
-      }
+  const priority_prs = (
+    await octokit.request('GET /search/issues', {
+      q: `label:need-highest-priority repo:${owner}/${repo}`
+    })
+  ).data.items.filter(pr => pr.state !== 'close')
+  if (
+    priority_prs.length > 0 &&
+    !priority_prs.map(pr => pr.number).includes(gh.context.issue.number)
+  ) {
+    const urls = priority_prs.map(pr => pr.url).join('\n')
+    throw new Error(
+      `CI of this PR is not allowed to run as long as priority PR is still open:\n${urls}`
     )
-    if (pr.data.state === 'open') {
-      throw new Error(
-        `This PR is not allowed to run as long as priority PR is still open #${pull_number}: ${pr.url} `
-      )
-    }
   }
 }
