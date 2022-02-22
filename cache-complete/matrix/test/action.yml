@@ -11,6 +11,14 @@ inputs:
   runner-labels:
     required: true
     description: 'runner labels to output if cache not found'
+  include-distributed:
+    description: 'is nightly build'
+    required: false
+    default: "false"
+  world-size:
+    description: 'is nightly build'
+    required: false
+    default: "1"
 outputs:
   matrix:
     description: 'if cache found, will generate a ubuntu-latest, in JSON'

@@ -23,7 +23,7 @@ export async function checkIfWheelExists(
     result = await store.get(pipIndexPath)
   } catch (error) {
     core.info('Could not find a version that satisfies the requirement')
-    core.info(error)
+    core.info(JSON.stringify(error, null, 2))
     core.setOutput('find-wheel-hit', false)
     return false
   }
