@@ -16,7 +16,7 @@ export async function checkPriorityPR(): Promise<void> {
     priority_prs.length > 0 &&
     !priority_prs.map(pr => pr.number).includes(gh.context.issue.number)
   ) {
-    const urls = priority_prs.map(pr => pr.url).join('\n')
+    const urls = priority_prs.map(pr => pr.html_url).join('\n')
     throw new Error(
       `CI of this PR is not allowed to run as long as priority PR is still open:\n${urls}`
     )
