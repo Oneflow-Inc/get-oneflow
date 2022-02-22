@@ -9,9 +9,9 @@ export async function checkPriorityPR(): Promise<void> {
   const repo = 'oneflow'
   const priority_prs = (
     await octokit.request('GET /search/issues', {
-      q: `label:need-highest-priority repo:${owner}/${repo}`
+      q: `label:need-highest-priority state:open repo:${owner}/${repo}`
     })
-  ).data.items.filter(pr => pr.state === 'open')
+  ).data.items
   if (
     priority_prs.length > 0 &&
     !priority_prs.map(pr => pr.number).includes(gh.context.issue.number)
