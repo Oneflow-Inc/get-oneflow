@@ -11,7 +11,7 @@ export async function checkPriorityPR(): Promise<void> {
     await octokit.request('GET /search/issues', {
       q: `label:need-highest-priority repo:${owner}/${repo}`
     })
-  ).data.items.filter(pr => pr.state !== 'close')
+  ).data.items.filter(pr => pr.state === 'open')
   if (
     priority_prs.length > 0 &&
     !priority_prs.map(pr => pr.number).includes(gh.context.issue.number)
