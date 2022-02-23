@@ -8,6 +8,7 @@ import {downloadByDigest, uploadByDigest} from './utils/ssh'
 import {findWheel} from './utils/findWheel'
 import {setMasterAddress} from './utils/getMasterAddress'
 import {waitForGPURunner} from './utils/wait'
+import {checkPriorityPR} from './utils/crashUnlessPriority'
 type ActionType =
   | 'build-oneflow'
   | 'cache-complete'
@@ -20,13 +21,14 @@ type ActionType =
   | 'mirror'
   | 'master-address'
   | 'wait-for-gpu'
+  | 'priority-pr'
 runAndSetFailed(async () => {
   core.debug(JSON.stringify(gh, null, 2))
   const actionType = core.getInput('action-type', {
     required: true
   }) as ActionType
   if (actionType === 'build-oneflow') await buildWithCondaOrManyLinux()
-  if (actionType === 'cache-complete') {
+  else if (actionType === 'cache-complete') {
     const isPostState = core.getState('isPost')
     if (isPostState && JSON.parse(isPostState)) {
       await postCacheRun()
@@ -34,13 +36,15 @@ runAndSetFailed(async () => {
       await cacheRun()
       core.saveState('isPost', true)
     }
-  }
-  if (actionType === 'cache-complete/matrix/build')
+  } else if (actionType === 'cache-complete/matrix/build')
     await matrix.setBuildMatrix()
-  if (actionType === 'cache-complete/matrix/test') await matrix.setTestMatrix()
-  if (actionType === 'digest/download') await downloadByDigest()
-  if (actionType === 'digest/upload') await uploadByDigest()
-  if (actionType === 'find-wheel') await findWheel()
-  if (actionType === 'master-address') setMasterAddress()
-  if (actionType === 'wait-for-gpu') waitForGPURunner()
+  else if (actionType === 'cache-complete/matrix/test')
+    await matrix.setTestMatrix()
+  else if (actionType === 'digest/download') await downloadByDigest()
+  else if (actionType === 'digest/upload') await uploadByDigest()
+  else if (actionType === 'find-wheel') await findWheel()
+  else if (actionType === 'master-address') setMasterAddress()
+  else if (actionType === 'wait-for-gpu') await waitForGPURunner()
+  else if (actionType === 'priority-pr') await checkPriorityPR()
+  else throw new Error(`Action type not implemented ${actionType}`)
 })
