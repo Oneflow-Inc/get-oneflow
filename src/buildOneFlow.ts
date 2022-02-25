@@ -122,6 +122,7 @@ type ComputePlatform =
   | 'cpu'
   | 'cu101'
   | 'cu102'
+  | 'cu110'
   | 'cu112'
   | 'cu113'
   | 'cu114'
@@ -135,6 +136,8 @@ function getCUDAVersionByComputePlatform(
       return 'none'
     case 'cu102':
       return '10.2'
+    case 'cu110':
+      return '11.0'
     case 'cu112':
       return '11.2'
     case 'cu113':
