@@ -92,10 +92,11 @@ const ProductionCommit = '2211ee6d62f17120cc0145e60c63fca39e388b68'
 const CUDA_114_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.4:617d3245410d4d35d9a0637269d0aab14c996029`
 const CUDA_113_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.3:617d3245410d4d35d9a0637269d0aab14c996029`
 const CUDA_112_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.2:${ProductionCommit}`
+const CUDA_110_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.0:78e5485bc983684cf6b1234d4d0175d361c8f66a`
 const CUDA_102_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda10.2:${ProductionCommit}`
 const CUDA_CPU_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cpu:${ProductionCommit}`
 
-type CudaVersion = '10.2' | '11.2' | '11.3' | '11.4' | 'none' | ''
+type CudaVersion = '10.2' | '11.0' | '11.2' | '11.3' | '11.4' | 'none' | ''
 
 function getCUDAImageByVersion(cudaVersion: CudaVersion): string {
   switch (cudaVersion) {
@@ -105,6 +106,8 @@ function getCUDAImageByVersion(cudaVersion: CudaVersion): string {
       return CUDA_CPU_IMG_TAG
     case '10.2':
       return CUDA_102_IMG_TAG
+    case '11.0':
+      return CUDA_110_IMG_TAG
     case '11.2':
       return CUDA_112_IMG_TAG
     case '11.3':
@@ -119,6 +122,7 @@ type ComputePlatform =
   | 'cpu'
   | 'cu101'
   | 'cu102'
+  | 'cu110'
   | 'cu112'
   | 'cu113'
   | 'cu114'
@@ -132,6 +136,8 @@ function getCUDAVersionByComputePlatform(
       return 'none'
     case 'cu102':
       return '10.2'
+    case 'cu110':
+      return '11.0'
     case 'cu112':
       return '11.2'
     case 'cu113':
