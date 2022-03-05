@@ -3,6 +3,18 @@
     "version": "0.0.0",
     "private": true,
     "description": "TypeScript template action",
+    "bin": {
+        "template": "./bin/get-oneflow"
+    },
+    "files": [
+        "/bin",
+        "/lib",
+        "/npm-shrinkwrap.json",
+        "/oclif.manifest.json",
+        "/action.yml",
+        "/tsconfig.json",
+        "/oclif.sh"
+    ],
     "main": "lib/main.js",
     "scripts": {
         "build": "tsc",
@@ -17,7 +29,11 @@
         "test-ssh": "npm run build && TEST_SSH=1 npm run test -- __tests__/ssh.test.ts",
         "test-cuda": "TEST_MANYLINUX='1' npm run test -- __tests__/cuda.test.ts",
         "test-hash": "npm run build && npm run test -- __tests__/hash.test.ts",
-        "pub": "rm -rf dist && rm -rf lib && npm run all && git add . && git commit -m publishing && git push"
+        "pub": "rm -rf dist && rm -rf lib && npm run all && git add . && git commit -m publishing && git push",
+        "precommit": "rm -rf dist && rm -rf lib && npm run all && git add .",
+        "command-build": "shx rm -rf lib && tsc -b",
+        "command-run": "bash +x oclif.sh",
+        "command-pack": "npm run command-build && oclif manifest && oclif readme && oclif pack tarballs && shx rm -f oclif.manifest.json"
     },
     "repository": {
         "type": "git",
@@ -42,7 +58,12 @@
         "dockerode": "^3.3.0",
         "node-ssh": "^12.0.0",
         "ssh2-sftp-client": "^7.0.4",
-        "uuid": "^8.3.2"
+        "uuid": "^8.3.2",
+        "@oclif/core": "^1",
+        "@oclif/plugin-help": "^5",
+        "@oclif/plugin-plugins": "^2.0.1",
+        "js-yaml": "^4.1.0",
+        "ts-node": "^10.2.1"
     },
     "devDependencies": {
         "@types/ali-oss": "^6.0.10",
@@ -60,9 +81,30 @@
         "eslint-plugin-github": "^4.1.1",
         "eslint-plugin-jest": "^24.3.6",
         "jest": "^27.0.6",
-        "js-yaml": "^4.1.0",
         "prettier": "2.2.1",
         "ts-jest": "^27.0.3",
-        "typescript": "^4.1.3"
+        "typescript": "^4.1.3",
+        "@oclif/test": "^2",
+        "@types/chai": "^4",
+        "@types/mocha": "^9.0.0",
+        "chai": "^4",
+        "eslint-config-oclif": "^4",
+        "eslint-config-oclif-typescript": "^1.0.2",
+        "globby": "^11",
+        "mocha": "^9",
+        "oclif": "^2",
+        "shx": "^0.3.3",
+        "tslib": "^2.3.1"
+    },
+    "oclif": {
+        "bin": "template",
+        "dirname": "template",
+        "commands": "./lib/commands",
+        "helpClass": "./lib/commands-help",
+        "plugins": [
+            "@oclif/plugin-help",
+            "@oclif/plugin-plugins"
+        ],
+        "topicSeparator": " "
     }
 }

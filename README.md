@@ -103,3 +103,16 @@ See the [actions tab](https://github.com/actions/typescript-action/actions) for 
 ## Usage:
 
 After testing you can [create a v1 tag](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md) to reference the stable and latest V1 action
+
+## Oclif:
+```bash
+# this command will show the optional flags
+./bin/get-oneflow build --help
+# this command will build cpu version with default settings
+npm run command-run
+# package this project into tarballs
+# maybe we just need the linux version in tarballs
+npm run command-pack
+tar -zxf ./dist/*linux-x64.tar.gz -C .
+bash +ex template/oclif.sh
+```
