@@ -57,7 +57,8 @@ inputs:
   self-hosted:
     description: ''
     required: false
-    default: "false"
+    # manylinux need setting self-hosted to true
+    default: "true"
   python-versions:
     description: ''
     required: true
@@ -81,11 +82,11 @@ inputs:
   clean-ccache:
     description: ''
     required: false
-    default: "false"
+    default: "true"
   docker-run-use-system-http-proxy:
     description: ''
     required: false
-    default: "false"
+    default: "true"
   docker-run-use-lld:
     description: ''
     required: false
