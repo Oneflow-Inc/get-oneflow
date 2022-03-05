@@ -29,7 +29,7 @@ test(
     // await testOneCUDA('none', false)
     // await testOneCUDA('10.2', false)
     env.setBooleanInput('docker-run-use-system-http-proxy', true) // xla needs it to download nested pkgs
-    const sourceDir = '~/oneflow'
+    const sourceDir = '/home/caishenghang/oneflow-llvm-in-tree'
     process.env['INPUT_WHEELHOUSE-DIR'] = '~/manylinux-wheelhouse'
     env.setBooleanInput('wheel-audit', true)
     // env.setInput('cmake-init-cache', path.join(sourceDir, XLAInitCache))
@@ -38,15 +38,15 @@ test(
     env.setBooleanInput('docker-run-use-system-http-proxy', false)
     env.setInput('cmake-init-cache', path.join(sourceDir, CUDAInitCache))
     env.setInput('oneflow-build-env', 'manylinux')
-    const cudaVersion = 'none'
+    const cudaVersion = '10.2'
     env.setInput(
       'manylinux-cache-dir',
       '~/manylinux-cache-dirs/unittest-'.concat(cudaVersion)
     )
 
     // CPU
-    env.setInput('cmake-init-cache', path.join(sourceDir, CPUInitCache))
-    env.setInput('build-script', path.join(sourceDir, GCC10BuildSh))
+    // env.setInput('cmake-init-cache', path.join(sourceDir, CPUInitCache))
+    env.setInput('build-script', path.join(sourceDir, GCC7BuildSh))
 
     // LLVM
     // env.setInput('cmake-init-cache', path.join(sourceDir, LLVMInitCache))
@@ -56,9 +56,8 @@ test(
 
     env.setInput('oneflow-src', sourceDir)
     env.setInput('cuda-version', cudaVersion)
-    env.setMultilineInput('python-versions', ['3.7', '3.6'])
     env.setMultilineInput('python-versions', ['3.7'])
-    env.setBooleanInput('wheel-audit', false)
+    env.setBooleanInput('wheel-audit', true)
     env.setInput('self-hosted', 'true')
     env.setBooleanInput('docker-run-use-lld', false)
     env.setBooleanInput('clear-wheelhouse-dir', true)
