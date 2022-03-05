@@ -196,7 +196,8 @@ export function getPatterns(
     excludePatterns = excludePatterns.concat([
       'python/oneflow/test/**',
       'python/oneflow/compatible/single_client/test/**',
-      'ci/test/**/*.sh'
+      'ci/test/**/*.sh',
+      'ci/test/**/*.py'
     ])
   }
   if (!opts.includeSingleClient) {
