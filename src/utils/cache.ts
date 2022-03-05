@@ -173,7 +173,8 @@ export function getPatterns(
     'external/**/*.txt',
     'ci/**/*.sh',
     'ci/**/*.txt',
-    'ci/**/*.py'
+    'ci/**/*.py',
+    'CMakeLists.txt'
   ]
 
   let excludePatterns = [
