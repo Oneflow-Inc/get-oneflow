@@ -1,4 +1,7 @@
 #!/bin/bash
+
+cd $(dirname $0)
+
 ./bin/get-oneflow build														    \
 --action-type   						undefined								\
 --oneflow-build-env   					manylinux                               \

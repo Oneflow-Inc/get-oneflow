@@ -13,17 +13,24 @@ interface SimpleObject {
     [key: string]: any
 }
 
+export function fetch_yml_configuration(): SimpleObject {
+    const yaml = require('js-yaml');
+    const fs = require('fs');
+
+    const settings = yaml.load(fs.readFileSync('action.yml', 'utf8')).inputs as SimpleObject;
+    return settings;
+}
+
 export default class Cuda extends Command {
 
     async init(): Promise<void> {
-        const yaml = require('js-yaml');
-        const fs = require('fs');
+        let settings = fetch_yml_configuration();
 
-        const settings = yaml.load(fs.readFileSync('action.yml', 'utf8')).inputs as SimpleObject;
+        
         const flags = {} as SimpleObject;
         for (let key in settings) {
             let val = settings[key]['default'];
-            let req = settings[key]['required'] == 'true' && !val;
+            let req = settings[key]['required'] == true && !val;
             if (val) env.setInput(key as string, val);
             flags[key] = Flags.string({
                 description: `set ${key}`,
@@ -39,8 +46,6 @@ export default class Cuda extends Command {
     ];
 
     async run(): Promise<void> {
-        for (let key in Cuda.flags)
-            console.log(key)
         const { args, flags } = await this.parse(Cuda);
 
         for (let key in flags as SimpleObject) {
