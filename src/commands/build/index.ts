@@ -7,39 +7,15 @@ import * as env from '../../utils/env'
 process.env['RUNNER_TOOL_CACHE'] = '~/runner_tool_cache'.replace('~', os.homedir)
 process.env['RUNNER_TEMP'] = '~/runner_temp'.replace('~', os.homedir)
 process.env['INPUT_WHEELHOUSE-DIR'] = '~/manylinux-wheelhouse'
+process.env['MANYLINUX'] = '1'
 
 interface SimpleObject {
     [key: string]: any
 }
 
 export default class Cuda extends Command {
-    static description = 'Build cuda version of oneflow';
 
-    static examples = [
-        `$ get-oneflow build cuda --$key $value`,
-    ];
-
-    static flags = {};
-
-    static args = [];
-
-    async run(): Promise<void> {
-        try {
-            Cuda.init();
-        } catch (e) {
-            console.log(e as string);
-            return
-        }
-        const { args, flags } = await this.parse(Cuda);
-
-        for (let key in flags as SimpleObject) {
-            env.setInput(key as string, flags[key]);
-        }
-        await buildWithCondaOrManyLinux();
-    }
-
-    private static init() {
-
+    async init(): Promise<void> {
         const yaml = require('js-yaml');
         const fs = require('fs');
 
@@ -47,11 +23,32 @@ export default class Cuda extends Command {
         const flags = {} as SimpleObject;
         for (let key in settings) {
             let val = settings[key]['default'];
-            let req = settings[key]['required'];
-            val ? env.setInput(key as string, val) :
-                flags[key] = Flags.string({ description: key, required: req });
+            let req = settings[key]['required'] == 'true' && !val;
+            if (val) env.setInput(key as string, val);
+            flags[key] = Flags.string({
+                description: `set ${key}`,
+                required: req
+            });
         }
-        Cuda.flags = flags as {};
+        Cuda.flags = flags;
     }
+    static description = 'Build cuda version of oneflow';
+
+    static examples = [
+        `$ get-oneflow build --$key $value`,
+    ];
+
+    async run(): Promise<void> {
+        for (let key in Cuda.flags)
+            console.log(key)
+        const { args, flags } = await this.parse(Cuda);
+
+        for (let key in flags as SimpleObject) {
+            flags[key] == 'undefined' ? delete process.env[key] :
+                env.setInput(key as string, flags[key]);
+        }
+        await buildWithCondaOrManyLinux();
+    }
+
 
 }

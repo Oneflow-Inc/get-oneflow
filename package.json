@@ -28,6 +28,7 @@
         "test-hash": "npm run build && npm run test -- __tests__/hash.test.ts",
         "pub": "rm -rf dist && rm -rf lib && npm run all && git add . && git commit -m publishing && git push",
         "command-build": "shx rm -rf lib && tsc -b",
+        "command-run": "bash +x oclif.sh",
         "command-prepack": "npm run command-build && oclif manifest && oclif readme"
     },
     "repository": {

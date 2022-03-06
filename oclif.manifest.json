@@ -1,1 +1,0 @@
-{"version":"0.0.0","commands":{"build":{"id":"build","description":"Build cuda version of oneflow","strict":true,"pluginName":"typescript-action","pluginAlias":"typescript-action","pluginType":"core","aliases":[],"examples":["$ get-oneflow build cuda"],"flags":{},"args":[],"_globalFlags":{}}}}
