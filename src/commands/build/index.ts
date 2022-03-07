@@ -16,8 +16,9 @@ interface SimpleObject {
 export function fetch_yml_configuration(): SimpleObject {
     const yaml = require('js-yaml');
     const fs = require('fs');
-
-    const settings = yaml.load(fs.readFileSync('action.yml', 'utf8')).inputs as SimpleObject;
+    const dir = `${__dirname}/../../../action.yml`;
+    const data = fs.readFileSync(dir, 'utf8');
+    const settings = yaml.load(data).inputs as SimpleObject;
     return settings;
 }
 
