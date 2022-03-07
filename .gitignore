@@ -106,3 +106,12 @@ lib/**/*
 # oneflow
 /log
 oneflow-src
+
+# oclif
+tmp
+oclif.manifest.json
+dist/*.tar.gz
+dist/*.tar.xz
+template
+# ide
+.vscode
