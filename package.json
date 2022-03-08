@@ -9,7 +9,6 @@
     "files": [
         "/bin",
         "/lib",
-        "/npm-shrinkwrap.json",
         "/oclif.manifest.json",
         "/action.yml",
         "/tsconfig.json",

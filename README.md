@@ -114,5 +114,5 @@ npm run command-run
 # maybe we just need the linux version in tarballs
 npm run command-pack
 tar -zxf ./dist/*linux-x64.tar.gz -C .
-bash +ex template/oclif.sh
+bash +ex get-oneflow/oclif.sh
 ```
