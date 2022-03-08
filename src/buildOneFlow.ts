@@ -13,7 +13,7 @@ import {getParallel, isSelfHosted} from './utils/util'
 const LLVM13DevContainerTag =
   'registry.cn-beijing.aliyuncs.com/oneflow/llvm13_cuda10.1:6df2a5216c9bd6312cd08bc5e29a233b09c0d78a'
 const openvinoContainerTag =
-  'registry.cn-beijing.aliyuncs.com/oneflow/openvino_ubuntu20_dev_no_samples_2021.4.2:2536bf9a494cc2a4b317ed396d395b9ab5dbc964'
+  'registry.cn-beijing.aliyuncs.com/oneflow/openvino_ubuntu18_dev_no_samples_2021.2:2536bf9a494cc2a4b317ed396d395b9ab5dbc964'
 async function condaRun(
   condaEnvName: string,
   commandLine: string,
