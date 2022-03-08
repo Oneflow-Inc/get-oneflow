@@ -67,6 +67,7 @@ inputs:
   clear-wheelhouse-dir:
     description: 'clear wheelhouse-dir'
     required: false
+    default: "false" # boolean identification
   wheel-audit:
     description: 'clear wheelhouse-dir'
     required: false
@@ -90,17 +91,6 @@ inputs:
     description: ''
     required: false
     default: "false"
-  ssh-tank-host:
-    description: ''
-    required: false
-    default: "false"
-  ssh-tank-path:
-    description: ''
-    required: false
-    default: '/tank'
-  ssh-tank-base-url:
-    description: ''
-    required: true
   parallel:
     description: 'make/ninja -j {parallel}, default will be $(nproc)'
     required: false
