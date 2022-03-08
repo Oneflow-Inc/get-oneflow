@@ -10,7 +10,7 @@ import path from 'path'
 import fs from 'fs'
 import {ok} from 'assert'
 import os from 'os'
-export type BuildEnv = 'conda' | 'manylinux' | 'llvm'
+export type BuildEnv = 'conda' | 'manylinux' | 'llvm' | 'openvino'
 
 type ManylinuxVersion = '1' | '2010' | '2014' | '2_24'
 
@@ -95,7 +95,7 @@ const PythonExeMap = new Map([
 
 function getPythonExe(pythonVersion: string): string {
   const buildEnv: BuildEnv = core.getInput('oneflow-build-env') as BuildEnv
-  if (buildEnv === 'llvm') {
+  if (buildEnv !== 'manylinux') {
     return 'python3'
   }
   const exe = PythonExeMap.get(pythonVersion)
