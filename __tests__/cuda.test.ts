@@ -30,7 +30,7 @@ test(
     // await testOneCUDA('none', false)
     // await testOneCUDA('10.2', false)
     env.setBooleanInput('docker-run-use-system-http-proxy', true) // xla needs it to download nested pkgs
-    const sourceDir = '/home/caishenghang/oneflow-llvm-in-tree'
+    const sourceDir = '~/oneflow'
     process.env['INPUT_WHEELHOUSE-DIR'] = '~/manylinux-wheelhouse'
     env.setBooleanInput('wheel-audit', true)
     // env.setInput('cmake-init-cache', path.join(sourceDir, XLAInitCache))
