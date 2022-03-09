@@ -1,0 +1,28 @@
+#. github/workflows/release.yml
+name: release oclif tarballs
+on:
+  release:
+    types: [published]
+
+jobs:
+  release:
+    name: release tarballs
+    runs-on: ubuntu-latest
+    steps:
+    - run: sudo apt update
+    - run: sudo apt install nsis p7zip-full p7zip-rar -y
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v2
+      with:
+        node-version: '16'
+    - run: npm install
+    - run: npm run command-pack
+    - run: npm run command-test
+    - name: Attach artifacts to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ./dist/get-oneflow*
+        file_glob: true
+        overwrite: true
+        tag: ${{ github.ref }}
