@@ -21,7 +21,7 @@ export async function revivePRs(): Promise<void> {
       }
     )
   ).data.workflow_runs.length
-  core.info(`numInProgress: ${numInProgress}`)
+  core.warning(`numInProgress: ${numInProgress}`)
   // if there are no running test workflow runs, add ci-bot as reviewer for 3 PRs
   if (numInProgress === 0) {
     const Bot = 'oneflow-ci-bot'
@@ -36,7 +36,7 @@ export async function revivePRs(): Promise<void> {
       .slice(0, N)
       .map(async issue => {
         if (issue.pull_request) {
-          core.info(
+          core.warning(
             `adding ${Bot} as reviewer for PR #${issue.number}, html_url: ${issue.html_url}`
           )
           const arg = {
