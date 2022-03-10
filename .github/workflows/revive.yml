@@ -1,5 +1,5 @@
 #. github/workflows/release.yml
-name: release oclif tarballs
+name: Revive PRs
 on:
   workflow_dispatch:
   schedule:
@@ -7,6 +7,9 @@ on:
   push:
     branches:
       - "support-openvino"
+concurrency:
+  group: revive-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   revive-prs:
