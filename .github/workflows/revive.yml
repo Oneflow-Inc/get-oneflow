@@ -1,0 +1,23 @@
+#. github/workflows/release.yml
+name: Revive PRs
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/15 * * * *"
+  push:
+    branches:
+      - "support-openvino"
+concurrency:
+  group: revive-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  revive-prs:
+    name: "Revive PRs"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./revive-pr
+        name: Revive PRs
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}

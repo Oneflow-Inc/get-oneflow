@@ -12,7 +12,8 @@ import {getParallel, isSelfHosted} from './utils/util'
 
 const LLVM13DevContainerTag =
   'registry.cn-beijing.aliyuncs.com/oneflow/llvm13_cuda10.1:6df2a5216c9bd6312cd08bc5e29a233b09c0d78a'
-
+const openvinoContainerTag =
+  'registry.cn-beijing.aliyuncs.com/oneflow/openvino_ubuntu18_dev_no_samples_2021.2:2536bf9a494cc2a4b317ed396d395b9ab5dbc964'
 async function condaRun(
   condaEnvName: string,
   commandLine: string,
@@ -185,6 +186,15 @@ export async function buildWithCondaOrManyLinux(): Promise<void> {
         await buildOneFlow(tag)
       } else {
         throw new Error('must build with llvm on self-hosted')
+      }
+      break
+    case 'openvino':
+      if (isSelfHosted()) {
+        const tag = openvinoContainerTag
+        await exec.exec('docker', ['pull', tag])
+        await buildOneFlow(tag)
+      } else {
+        throw new Error('must build with openvino on self-hosted')
       }
       break
     default:

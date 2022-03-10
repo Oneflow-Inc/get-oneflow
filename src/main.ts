@@ -9,6 +9,7 @@ import {findWheel} from './utils/findWheel'
 import {setMasterAddress} from './utils/getMasterAddress'
 import {waitForGPURunner} from './utils/wait'
 import {checkPriorityPR} from './utils/crashUnlessPriority'
+import {revivePRs} from './utils/revivePullRequests'
 type ActionType =
   | 'build-oneflow'
   | 'cache-complete'
@@ -22,6 +23,8 @@ type ActionType =
   | 'master-address'
   | 'wait-for-gpu'
   | 'priority-pr'
+  | 'revive-pr'
+
 runAndSetFailed(async () => {
   core.debug(JSON.stringify(gh, null, 2))
   const actionType = core.getInput('action-type', {
@@ -46,5 +49,6 @@ runAndSetFailed(async () => {
   else if (actionType === 'master-address') setMasterAddress()
   else if (actionType === 'wait-for-gpu') await waitForGPURunner()
   else if (actionType === 'priority-pr') await checkPriorityPR()
+  else if (actionType === 'revive-pr') await revivePRs()
   else throw new Error(`Action type not implemented ${actionType}`)
 })
