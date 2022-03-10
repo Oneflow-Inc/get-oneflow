@@ -25,8 +25,7 @@ export async function revivePRs(): Promise<void> {
   // if there are no running test workflow runs, add ci-bot as reviewer for 3 PRs
   if (numInProgress === 0) {
     const Bot = 'oneflow-ci-bot'
-    const q =
-      'label:automerge state:open review:approved review-requested:${Bot} repo:${owner}/${repo}'
+    const q = `label:automerge state:open review:approved review-requested:${Bot} repo:${owner}/${repo}`
     core.warning(`q: ${q}`)
     const N = 3
     const eligiblePRs = (
