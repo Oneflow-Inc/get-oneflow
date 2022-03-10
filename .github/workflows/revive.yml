@@ -1,0 +1,20 @@
+#. github/workflows/release.yml
+name: release oclif tarballs
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/15 * * * *"
+  push:
+    branches:
+      - "support-openvino"
+
+jobs:
+  revive-prs:
+    name: "Revive PRs"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./revive-pr
+        name: Revive PRs
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
