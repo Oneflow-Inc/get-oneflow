@@ -5,5 +5,6 @@ export async function benchmarkWithPytest(): Promise<void> {
   const benchmarkId = core.getInput('benchmark-id')
   const pytestArgs = core.getMultilineInput('pytest-args')
   const pytestCompareArgs = core.getMultilineInput('pytest-compare-args')
+  const containerName = core.getMultilineInput('container-name')
   // TODO: by yuhao
 }
