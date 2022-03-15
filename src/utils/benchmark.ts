@@ -1,6 +1,7 @@
 import * as core from '@actions/core'
 import OSS from 'ali-oss'
 import {execSync} from 'child_process'
+import * as path from 'path'
 
 class OssStorage {
   private client
@@ -38,41 +39,6 @@ class OssStorage {
   }
 }
 
-class Benchmark {
-  constructor(
-    public pytest_script: string,
-    public benchmark_id: string,
-    public pytest_args: string,
-    public pytest_cmp_args: string,
-    public docker_name: string
-  ) {}
-  async run(): Promise<void> {
-    const oss = new OssStorage()
-    const cache_dir = `benchmark_result/${this.benchmark_id}`
-    const docker_pre_cmd = `docker exec -i ${this.docker_name}`
-    execSync(`${docker_pre_cmd} mkdir -p ${cache_dir}`)
-    execSync(
-      `${docker_pre_cmd} python3 -m pytest -v ${this.pytest_script} ${this.pytest_args} --benchmark_cache_dir ${cache_dir} --benchmark-save=pytest`,
-      {stdio: [0, 1, 2]}
-    )
-    if (
-      await oss.pull(
-        `benchmark/${this.benchmark_id}`,
-        `benchmark_result/${this.benchmark_id}/0002_pytest.json`
-      )
-    ) {
-      execSync(
-        `${docker_pre_cmd} python3 -m pytest-benchmark  --benchmark_cache_dir ${cache_dir} compare 0001 0002 ${this.pytest_cmp_args}`
-      )
-    } else {
-      await oss.push(
-        `benchmark/${this.benchmark_id}`,
-        `benchmark_result/${this.benchmark_id}/0001_pytest.json`
-      )
-    }
-  }
-}
-
 export async function benchmarkWithPytest(): Promise<void> {
   const pyTestScript = core.getInput('pytest-script')
   const benchmarkId = core.getInput('benchmark-id')
@@ -80,12 +46,28 @@ export async function benchmarkWithPytest(): Promise<void> {
   const pytestCompareArgs = core.getMultilineInput('pytest-compare-args')
   const containerName = core.getMultilineInput('container-name')
 
-  const benchmark = new Benchmark(
-    pyTestScript,
-    benchmarkId,
-    pytestArgs.join('\n'),
-    pytestCompareArgs.join('\n'),
-    containerName.join('\n')
+  const oss = new OssStorage()
+  const cache_dir = `benchmark_result/${benchmarkId}`
+  const docker_pre_cmd = `docker exec ${containerName}`
+  const jsonPath = path.join(cache_dir, 'result.json')
+  execSync(`${docker_pre_cmd} mkdir -p ${cache_dir}`)
+  execSync(
+    `${docker_pre_cmd} python3 -m pytest -v ${pyTestScript} ${pytestArgs} --benchmark-json ${jsonPath} --benchmark-save=pytest`,
+    {stdio: [0, 1, 2]}
   )
-  await benchmark.run()
+  if (
+    await oss.pull(
+      `benchmark/${benchmarkId}`,
+      `benchmark_result/${benchmarkId}/0002_pytest.json`
+    )
+  ) {
+    execSync(
+      `${docker_pre_cmd} python3 -m pytest-benchmark  --benchmark_cache_dir ${cache_dir} compare 0001 0002 ${pytestCompareArgs}`
+    )
+  } else {
+    await oss.push(
+      `benchmark/${benchmarkId}`,
+      `benchmark_result/${benchmarkId}/0001_pytest.json`
+    )
+  }
 }
