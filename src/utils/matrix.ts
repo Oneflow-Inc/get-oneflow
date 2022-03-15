@@ -10,6 +10,7 @@ type Test =
   | 'module'
   | 'misc'
   | 'speed-test'
+  | 'benchmark'
 
 interface EntryInclude {
   entry: string
@@ -43,7 +44,7 @@ function getRunsOn(
   if (runnerLabels.includes('provision')) {
     return runnerLabels
   }
-  if (test === 'speed-test') {
+  if (test === 'speed-test' || test === 'benchmark') {
     runnerLabels = runnerLabels.concat(['speed-test'])
   }
   if (deviceLabel !== 'cpu') {
@@ -89,8 +90,8 @@ async function getSingleClientOpTests(): Promise<EntryInclude[]> {
 
 async function getTests(): Promise<EntryInclude[]> {
   const includes: EntryInclude[] = []
-  const devices: Device[] = ['cuda', 'cpu']
-  const tests: Test[] = ['module', 'misc', 'speed-test']
+  const devices: Device[] = core.getMultilineInput('devices') as Device[]
+  const tests: Test[] = core.getMultilineInput('tests') as Test[]
   const digestType = 'test'
   const isDistributed = core.getBooleanInput('include-distributed')
   const worldSize = parseInt(core.getInput('world-size'))
