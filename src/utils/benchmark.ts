@@ -74,9 +74,9 @@ export async function benchmarkWithPytest(): Promise<void> {
   await exec.exec('mkdir', ['-p', cache_dir])
   await pytest(
     [
-      '-v',
+      // '-v',
       // `--benchmark-json=${jsonPath}`,
-      '--benchmark-save=pytest',
+      // '--benchmark-save=pytest',
       pyTestScript
     ].concat(pytestArgs)
   )
