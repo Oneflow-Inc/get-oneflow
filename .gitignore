@@ -115,3 +115,7 @@ dist/*.tar.xz
 template
 # ide
 .vscode
+
+# benchmark
+.benchmarks
+benchmark_result

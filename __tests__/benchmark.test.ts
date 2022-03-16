@@ -18,7 +18,7 @@ test(
     if (!process.env['BENCHMARK']) {
       return
     }
-    env.setInput('pytest-script', '~/vision/benchmark/test_resnet50.py ')
+    env.setInput('pytest-script', '~/vision/benchmark/test_alexnet.py')
     env.setInput('benchmark-id', 'test-benchmark-id')
     env.setMultilineInput('pytest-args', [])
     env.setMultilineInput('pytest-compare-args', [])

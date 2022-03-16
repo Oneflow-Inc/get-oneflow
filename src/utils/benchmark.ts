@@ -8,7 +8,7 @@ class OssStorage {
   private client
   oss_region = 'oss-cn-beijing'
   oss_entry = 'https://oss-cn-beijing.aliyuncs.com'
-  oss_bucket = 'oneflow-ci-benchmark'
+  oss_bucket = 'oneflow-static'
   oss_id = process.env['OSS_ACCESS_KEY_ID'] as string
   oss_secret = process.env['OSS_ACCESS_KEY_SECRET'] as string
   constructor() {
@@ -71,23 +71,25 @@ export async function benchmarkWithPytest(): Promise<void> {
       ].concat(args)
     )
   }
+
+  const benchmarkCompare = async (args: string[]): Promise<void> => {
+    await dockerExec(['pytest-benchmark', 'compare'].concat(args))
+  }
+
   await exec.exec('mkdir', ['-p', cache_dir])
   await pytest(
     [
-      // '-v',
-      // `--benchmark-json=${jsonPath}`,
-      // '--benchmark-save=pytest',
+      '-v',
+      `--benchmark-json=${jsonPath}`,
+      '--benchmark-save=pytest',
       pyTestScript
     ].concat(pytestArgs)
   )
   if (await oss.pull(`benchmark/${benchmarkId}`, bestInHistoryJSONPath)) {
-    await pytest(
-      ['compare', jsonPath, bestInHistoryJSONPath].concat(pytestCompareArgs)
+    await benchmarkCompare(
+      [jsonPath, bestInHistoryJSONPath].concat(pytestCompareArgs)
     )
   } else {
-    await oss.push(
-      `benchmark/${benchmarkId}`,
-      `benchmark_result/${benchmarkId}/0001_pytest.json`
-    )
+    await oss.push(`benchmark/${benchmarkId}`, jsonPath)
   }
 }
