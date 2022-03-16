@@ -2,6 +2,7 @@ import * as core from '@actions/core'
 import OSS from 'ali-oss'
 import {execSync} from 'child_process'
 import * as path from 'path'
+import * as util from './util'
 
 class OssStorage {
   private client
@@ -40,11 +41,11 @@ class OssStorage {
 }
 
 export async function benchmarkWithPytest(): Promise<void> {
-  const pyTestScript = core.getInput('pytest-script')
+  const pyTestScript = util.getPathInput('pytest-script')
   const benchmarkId = core.getInput('benchmark-id')
   const pytestArgs = core.getMultilineInput('pytest-args')
   const pytestCompareArgs = core.getMultilineInput('pytest-compare-args')
-  const containerName = core.getMultilineInput('container-name')
+  const containerName = core.getInput('container-name')
 
   const oss = new OssStorage()
   const cache_dir = `benchmark_result/${benchmarkId}`
