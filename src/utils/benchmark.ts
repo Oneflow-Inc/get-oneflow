@@ -52,7 +52,10 @@ export async function benchmarkWithPytest(): Promise<void> {
   const jsonPath = path.join(cache_dir, 'result.json')
   const bestInHistoryJSONPath = path.join(cache_dir, 'best.json')
   const dockerExec = async (args: string[]): Promise<void> => {
-    await exec.exec('docker', ['exec', containerName].concat(args))
+    await exec.exec(
+      'docker',
+      ['exec', '-w', process.cwd(), containerName].concat(args)
+    )
   }
   const pytest = async (args: string[]): Promise<void> => {
     await dockerExec(
