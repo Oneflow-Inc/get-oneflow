@@ -44,11 +44,12 @@ function getRunsOn(
   if (runnerLabels.includes('provision')) {
     return runnerLabels
   }
-  if (test === 'speed-test' || test === 'benchmark') {
+  const isSpeedTest = test === 'speed-test' || test === 'benchmark'
+  if (isSpeedTest) {
     runnerLabels = runnerLabels.concat(['speed-test'])
   }
   if (deviceLabel !== 'cpu') {
-    if (isDistributed || (test !== 'speed-test' && test !== 'benchmark')) {
+    if (isDistributed || !isSpeedTest) {
       runnerLabels = runnerLabels.concat(['cluster-1'])
     }
   }
