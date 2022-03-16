@@ -81,7 +81,7 @@ export async function benchmarkWithPytest(): Promise<void> {
       [
         '-v',
         `--benchmark-json=${jsonPath}`,
-        '--benchmark-save=pytest',
+        `--benchmark-storage=${cache_dir}`,
         `--benchmark-compare=best`,
         pyTestScript
       ]
@@ -90,12 +90,7 @@ export async function benchmarkWithPytest(): Promise<void> {
     )
   } else {
     await pytest(
-      [
-        '-v',
-        `--benchmark-json=${jsonPath}`,
-        '--benchmark-save=pytest',
-        pyTestScript
-      ].concat(pytestArgs)
+      ['-v', `--benchmark-json=${jsonPath}`, pyTestScript].concat(pytestArgs)
     )
     await oss.push(`benchmark/${benchmarkId}`, jsonPath)
   }
