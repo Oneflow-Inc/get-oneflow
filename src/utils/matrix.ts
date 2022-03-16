@@ -48,7 +48,7 @@ function getRunsOn(
     runnerLabels = runnerLabels.concat(['speed-test'])
   }
   if (deviceLabel !== 'cpu') {
-    if (isDistributed || test !== 'speed-test') {
+    if (isDistributed || (test !== 'speed-test' && test !== 'benchmark')) {
       runnerLabels = runnerLabels.concat(['cluster-1'])
     }
   }
