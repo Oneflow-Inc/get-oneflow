@@ -17,7 +17,7 @@
     "main": "lib/main.js",
     "scripts": {
         "build": "tsc",
-        "format": "prettier --write src/utils/*.ts",
+        "format": "prettier --write **/*.ts",
         "format-check": "prettier --check **/*.ts",
         "lint": "eslint src/**/*.ts",
         "package-main": "ncc build --minify -o dist src/main.ts",
@@ -28,7 +28,7 @@
         "test-ssh": "npm run build && TEST_SSH=1 npm run test -- __tests__/ssh.test.ts",
         "test-cuda": "TEST_MANYLINUX='1' npm run test -- __tests__/cuda.test.ts",
         "test-hash": "npm run build && npm run test -- __tests__/hash.test.ts",
-        "pub": "rm -rf dist && rm -rf lib && npm run all && git add src/utils/benchmark.ts && git commit -m publishing && git push origin main:support-auto-benchmark",
+        "pub": "rm -rf dist && rm -rf lib && npm run all && git add . && git commit -m publishing && git push",
         "command-build": "shx rm -rf lib && tsc -b",
         "command-run": "bash +x oclif.sh",
         "command-pack": "npm run command-build && oclif manifest && oclif readme && oclif pack tarballs && shx rm -f oclif.manifest.json",

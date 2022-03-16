@@ -26,7 +26,6 @@ class OssStorage {
       await this.client.put(remote_path, local_path)
       return true
     } catch (e) {
-      console.log(e)
       return false
     }
   }
@@ -36,7 +35,6 @@ class OssStorage {
       await this.client.get(remote_path, local_path)
       return true
     } catch (e) {
-      // console.log(e)
       return false
     }
   }
