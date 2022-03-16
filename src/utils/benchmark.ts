@@ -79,7 +79,7 @@ export async function benchmarkWithPytest(): Promise<void> {
         '-v',
         `--benchmark-json=${jsonPath}`,
         '--benchmark-save=pytest',
-        `--benchmark-compare=${bestInHistoryJSONPath}`,
+        `--benchmark-compare=best`,
         pyTestScript
       ]
         .concat(pytestArgs)
