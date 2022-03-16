@@ -71,18 +71,23 @@ export async function benchmarkWithPytest(): Promise<void> {
       ].concat(args)
     )
   }
+
+  const benchmarkCompare = async (args: string[]): Promise<void> => {
+    await dockerExec(['pytest-benchmark', 'compare'].concat(args))
+  }
+
   await exec.exec('mkdir', ['-p', cache_dir])
   await pytest(
     [
       '-v',
-      // `--benchmark-json=${jsonPath}`,
+      `--benchmark-json=${jsonPath}`,
       '--benchmark-save=pytest',
       pyTestScript
     ].concat(pytestArgs)
   )
   if (await oss.pull(`benchmark/${benchmarkId}`, bestInHistoryJSONPath)) {
-    await pytest(
-      ['compare', jsonPath, bestInHistoryJSONPath].concat(pytestCompareArgs)
+    await benchmarkCompare(
+      [jsonPath, bestInHistoryJSONPath].concat(pytestCompareArgs)
     )
   } else {
     await oss.push(
