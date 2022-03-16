@@ -1,6 +1,6 @@
+import * as exec from '@actions/exec'
 import * as core from '@actions/core'
 import OSS from 'ali-oss'
-import {execSync} from 'child_process'
 import * as path from 'path'
 import * as util from './util'
 
@@ -49,17 +49,40 @@ export async function benchmarkWithPytest(): Promise<void> {
 
   const oss = new OssStorage()
   const cache_dir = `benchmark_result/${benchmarkId}`
-  const dockerExec = `docker exec ${containerName}`
   const jsonPath = path.join(cache_dir, 'result.json')
   const bestInHistoryJSONPath = path.join(cache_dir, 'best.json')
-  execSync(`${dockerExec} mkdir -p ${cache_dir}`)
-  execSync(
-    `${dockerExec} python3 -m pytest -v ${pyTestScript} ${pytestArgs} --benchmark-json ${jsonPath} --benchmark-save=pytest`,
-    {stdio: [0, 1, 2]}
+  const dockerExec = async (args: string[]): Promise<void> => {
+    await exec.exec('docker', ['exec', containerName].concat(args))
+  }
+  const pytest = async (args: string[]): Promise<void> => {
+    await dockerExec(
+      [
+        'python3',
+        '-m',
+        'pytest',
+        '-p',
+        'no:randomly',
+        '-p',
+        'no:cacheprovider',
+        '--max-worker-restart=0',
+        '-x',
+        '--durations=50',
+        '--capture=sys'
+      ].concat(args)
+    )
+  }
+  await exec.exec('mkdir', ['-p', cache_dir])
+  await pytest(
+    [
+      '-v',
+      // `--benchmark-json=${jsonPath}`,
+      '--benchmark-save=pytest',
+      pyTestScript
+    ].concat(pytestArgs)
   )
   if (await oss.pull(`benchmark/${benchmarkId}`, bestInHistoryJSONPath)) {
-    execSync(
-      `${dockerExec} python3 -m pytest-benchmark compare ${jsonPath} ${bestInHistoryJSONPath} ${pytestCompareArgs}`
+    await pytest(
+      ['compare', jsonPath, bestInHistoryJSONPath].concat(pytestCompareArgs)
     )
   } else {
     await oss.push(
