@@ -1,3 +1,4 @@
+import * as gh from '@actions/github'
 import * as exec from '@actions/exec'
 import * as core from '@actions/core'
 import OSS from 'ali-oss'
@@ -51,6 +52,10 @@ export async function benchmarkWithPytest(): Promise<void> {
   const cache_dir = `benchmark_result/${benchmarkId}`
   const jsonPath = path.join(cache_dir, 'result.json')
   const bestInHistoryJSONPath = path.join(cache_dir, 'best.json')
+  const ossHistoricalBestJSONPath = `benchmark/best/${benchmarkId}.json`
+  const ossPRJSONPath = `benchmark/pr/${gh.context.issue.number}/run/${gh.context.runId}/${benchmarkId}.json`
+  // TODO: if it beats historical best, save it to PR best and replace historical best when PR is merged
+  // const ossPRBESTJSONPath = `benchmark/pr/${gh.context.issue.number}/best/${benchmarkId}.json`
   const dockerExec = async (args: string[]): Promise<void> => {
     await exec.exec(
       'docker',
@@ -76,7 +81,7 @@ export async function benchmarkWithPytest(): Promise<void> {
   }
 
   await exec.exec('mkdir', ['-p', cache_dir])
-  if (await oss.pull(`benchmark/${benchmarkId}`, bestInHistoryJSONPath)) {
+  if (await oss.pull(ossHistoricalBestJSONPath, bestInHistoryJSONPath)) {
     await pytest(
       [
         '-v',
@@ -92,6 +97,8 @@ export async function benchmarkWithPytest(): Promise<void> {
     await pytest(
       ['-v', `--benchmark-json=${jsonPath}`, pyTestScript].concat(pytestArgs)
     )
-    await oss.push(`benchmark/${benchmarkId}`, jsonPath)
+    core.warning(`saving best record for benchmark: ${benchmarkId} `)
+    await oss.push(ossHistoricalBestJSONPath, jsonPath)
   }
+  await oss.push(ossPRJSONPath, jsonPath)
 }
