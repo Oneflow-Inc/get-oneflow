@@ -8,7 +8,7 @@ class OssStorage {
   private client
   oss_region = 'oss-cn-beijing'
   oss_entry = 'https://oss-cn-beijing.aliyuncs.com'
-  oss_bucket = 'oneflow-ci-benchmark'
+  oss_bucket = 'oneflow-static'
   oss_id = process.env['OSS_ACCESS_KEY_ID'] as string
   oss_secret = process.env['OSS_ACCESS_KEY_SECRET'] as string
   constructor() {
@@ -26,6 +26,7 @@ class OssStorage {
       await this.client.put(remote_path, local_path)
       return true
     } catch (e) {
+      console.log(e)
       return false
     }
   }
@@ -35,6 +36,7 @@ class OssStorage {
       await this.client.get(remote_path, local_path)
       return true
     } catch (e) {
+      // console.log(e)
       return false
     }
   }
@@ -90,9 +92,6 @@ export async function benchmarkWithPytest(): Promise<void> {
       [jsonPath, bestInHistoryJSONPath].concat(pytestCompareArgs)
     )
   } else {
-    await oss.push(
-      `benchmark/${benchmarkId}`,
-      `benchmark_result/${benchmarkId}/0001_pytest.json`
-    )
+    await oss.push(`benchmark/${benchmarkId}`, jsonPath)
   }
 }
