@@ -3,6 +3,7 @@ import * as exec from '@actions/exec'
 import * as core from '@actions/core'
 import OSS from 'ali-oss'
 import * as path from 'path'
+import * as fs from 'fs'
 import * as util from './util'
 
 class OssStorage {
@@ -37,6 +38,78 @@ class OssStorage {
       return true
     } catch (e) {
       return false
+    }
+  }
+}
+
+function getFunc(flags: string): (a1: number, a2: number) => boolean {
+  if (flags === '') {
+    return function (a1: number, a2: number) {
+      return a1 !== a2 || true
+    }
+  }
+  if (flags.endsWith('%')) {
+    const num = parseFloat(flags.substring(0, flags.length - 1))
+    return function (a1: number, a2: number) {
+      return a1 * (1 - num / 100) >= a2
+    }
+  } else {
+    const num = parseFloat(flags)
+    return function (a1: number, a2: number) {
+      return a1 - num >= a2
+    }
+  }
+}
+
+export async function compareJson(
+  bestJsonPath: string,
+  cmpJsonPath: string,
+  minFlags = '',
+  maxFlags = '',
+  meanFlags = ''
+): Promise<boolean> {
+  const best_data = JSON.parse(fs.readFileSync(bestJsonPath, 'utf-8'))
+    .benchmarks.stats
+  const cmp_data = JSON.parse(fs.readFileSync(cmpJsonPath, 'utf-8')).benchmarks
+    .stats
+  if (minFlags === '' && maxFlags === '' && meanFlags === '') return false
+  return (
+    getFunc(minFlags)(parseFloat(best_data.min), parseFloat(cmp_data.min)) &&
+    getFunc(maxFlags)(parseFloat(best_data.max), parseFloat(cmp_data.max)) &&
+    getFunc(meanFlags)(parseFloat(best_data.mean), parseFloat(cmp_data.mean))
+  )
+}
+
+export async function benchmarkRefreshLog(): Promise<void> {
+  const benchmarkId = '1-gpu-Resnet50'
+  const oss = new OssStorage()
+  const ossBestJsonPath = `benchmark/best/${benchmarkId}.json`
+  const localPath = 'tmp'
+
+  const minFlags = core.getInput('min-flag')
+  const maxFlags = core.getInput('max-flag')
+  const meanFlags = core.getInput('mean-flag')
+
+  await exec.exec('rm', ['-rf', localPath])
+  await exec.exec('mkdir', ['-p', localPath])
+  //const ossPRJSONPath = `benchmark/pr/${gh.context.issue.number}/run/${gh.context.runId}/${benchmarkId}.json`
+  const ossPRJSONPath = `benchmark/pr/7806/run/1992968915/${benchmarkId}.json`
+  const localBestJsonPath = `${localPath}/best.json`
+  const localPrJsonPath = `${localPath}/pr.json`
+  if (
+    (await oss.pull(ossBestJsonPath, localBestJsonPath)) &&
+    (await oss.pull(ossPRJSONPath, localPrJsonPath))
+  ) {
+    if (
+      await compareJson(
+        localBestJsonPath,
+        localPrJsonPath,
+        minFlags,
+        maxFlags,
+        meanFlags
+      )
+    ) {
+      await oss.push(localPrJsonPath, ossBestJsonPath)
     }
   }
 }
