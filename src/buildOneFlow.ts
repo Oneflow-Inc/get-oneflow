@@ -90,7 +90,7 @@ async function buildWithConda(): Promise<void> {
 }
 
 const ProductionCommit = '2211ee6d62f17120cc0145e60c63fca39e388b68'
-const CUDA_115_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.5:da0a5aa1512ea169d3b188337c52540c9e29be3e`
+const CUDA_115_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.5:4fd9cc268bbe59c6245ca3941b8264fd256a8670`
 const CUDA_114_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.4:617d3245410d4d35d9a0637269d0aab14c996029`
 const CUDA_113_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.3:617d3245410d4d35d9a0637269d0aab14c996029`
 const CUDA_112_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.2:${ProductionCommit}`
