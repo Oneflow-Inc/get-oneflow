@@ -42,76 +42,42 @@ class OssStorage {
   }
 }
 
-function getFunc(flags: string): (a1: number, a2: number) => boolean {
-  if (flags === '') {
-    return function (a1: number, a2: number) {
-      return a1 !== a2 || true
+interface logJSON {
+  machine_info: unknown
+  commit_info: unknown
+  benchmarks: {
+    stats: {
+      min: number
+      max: number
+      mean: number
     }
   }
-  if (flags.endsWith('%')) {
-    const num = parseFloat(flags.substring(0, flags.length - 1))
-    return function (a1: number, a2: number) {
-      return a1 * (1 - num / 100) >= a2
-    }
-  } else {
-    const num = parseFloat(flags)
-    return function (a1: number, a2: number) {
-      return a1 - num >= a2
-    }
-  }
+  datetime: string
+  version: string
 }
 
 export async function compareJson(
   bestJsonPath: string,
-  cmpJsonPath: string,
-  minFlags = '',
-  maxFlags = '',
-  meanFlags = ''
+  cmpJsonPath: string
 ): Promise<boolean> {
-  const best_data = JSON.parse(fs.readFileSync(bestJsonPath, 'utf-8'))
-    .benchmarks.stats
-  const cmp_data = JSON.parse(fs.readFileSync(cmpJsonPath, 'utf-8')).benchmarks
-    .stats
-  if (minFlags === '' && maxFlags === '' && meanFlags === '') return false
-  return (
-    getFunc(minFlags)(parseFloat(best_data.min), parseFloat(cmp_data.min)) &&
-    getFunc(maxFlags)(parseFloat(best_data.max), parseFloat(cmp_data.max)) &&
-    getFunc(meanFlags)(parseFloat(best_data.mean), parseFloat(cmp_data.mean))
-  )
-}
-
-export async function benchmarkRefreshLog(): Promise<void> {
-  const benchmarkId = '1-gpu-Resnet50'
-  const oss = new OssStorage()
-  const ossBestJsonPath = `benchmark/best/${benchmarkId}.json`
-  const localPath = 'tmp'
-
-  const minFlags = core.getInput('min-flag')
-  const maxFlags = core.getInput('max-flag')
-  const meanFlags = core.getInput('mean-flag')
-
-  await exec.exec('rm', ['-rf', localPath])
-  await exec.exec('mkdir', ['-p', localPath])
-  //const ossPRJSONPath = `benchmark/pr/${gh.context.issue.number}/run/${gh.context.runId}/${benchmarkId}.json`
-  const ossPRJSONPath = `benchmark/pr/7806/run/1992968915/${benchmarkId}.json`
-  const localBestJsonPath = `${localPath}/best.json`
-  const localPrJsonPath = `${localPath}/pr.json`
+  const bestJSON: logJSON = JSON.parse(fs.readFileSync(bestJsonPath, 'utf-8'))
+  const best_data = bestJSON.benchmarks.stats
+  const cmpJSON: logJSON = JSON.parse(fs.readFileSync(cmpJsonPath, 'utf-8'))
+  const cmp_data = cmpJSON.benchmarks.stats
   if (
-    (await oss.pull(ossBestJsonPath, localBestJsonPath)) &&
-    (await oss.pull(ossPRJSONPath, localPrJsonPath))
+    best_data.min === cmp_data.min &&
+    best_data.max === cmp_data.max &&
+    best_data.mean === cmp_data.mean
   ) {
-    if (
-      await compareJson(
-        localBestJsonPath,
-        localPrJsonPath,
-        minFlags,
-        maxFlags,
-        meanFlags
-      )
-    ) {
-      await oss.push(localPrJsonPath, ossBestJsonPath)
-    }
+    return false
+  } else if (
+    best_data.min >= cmp_data.min &&
+    best_data.max >= cmp_data.max &&
+    best_data.mean >= cmp_data.mean
+  ) {
+    return true
   }
+  return false
 }
 
 export async function benchmarkWithPytest(): Promise<void> {
@@ -127,8 +93,7 @@ export async function benchmarkWithPytest(): Promise<void> {
   const bestInHistoryJSONPath = path.join(cache_dir, 'best.json')
   const ossHistoricalBestJSONPath = `benchmark/best/${benchmarkId}.json`
   const ossPRJSONPath = `benchmark/pr/${gh.context.issue.number}/run/${gh.context.runId}/${benchmarkId}.json`
-  // TODO: if it beats historical best, save it to PR best and replace historical best when PR is merged
-  // const ossPRBESTJSONPath = `benchmark/pr/${gh.context.issue.number}/best/${benchmarkId}.json`
+  const ossPRBESTJSONPath = `benchmark/pr/${gh.context.issue.number}/best/${benchmarkId}.json`
   const dockerExec = async (args: string[]): Promise<void> => {
     await exec.exec(
       'docker',
@@ -174,4 +139,7 @@ export async function benchmarkWithPytest(): Promise<void> {
     await oss.push(ossHistoricalBestJSONPath, jsonPath)
   }
   await oss.push(ossPRJSONPath, jsonPath)
+  if (await compareJson(bestInHistoryJSONPath, jsonPath)) {
+    await oss.push(ossPRBESTJSONPath, jsonPath)
+  }
 }
