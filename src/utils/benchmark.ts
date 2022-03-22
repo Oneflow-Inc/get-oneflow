@@ -40,6 +40,31 @@ class OssStorage {
       return false
     }
   }
+
+  async copy(dst_path: string, src_path: string): Promise<boolean> {
+    try {
+      await this.client.copy(dst_path, src_path)
+      return true
+    } catch (e) {
+      return false
+    }
+  }
+
+  async list(remote_path: string): Promise<string[]> {
+    const res: string[] = []
+    try {
+      const bestList = await this.client.list(
+        {'max-keys': 1000, prefix: remote_path},
+        {}
+      )
+      for (const object of bestList.objects) {
+        res.push(object['name'])
+      }
+      return res
+    } catch (e) {
+      return res
+    }
+  }
 }
 
 interface logJSON {
@@ -56,7 +81,7 @@ interface logJSON {
   version: string
 }
 
-export async function compareJson(
+async function compareJson(
   bestJsonPath: string,
   cmpJsonPath: string
 ): Promise<boolean> {
@@ -78,6 +103,18 @@ export async function compareJson(
     return true
   }
   return false
+}
+
+export async function updateBenchmakrHistory(): Promise<void> {
+  const issueNumber = gh.context.issue.number
+  const ossPRBESTJSONDir = `benchmark/pr/${issueNumber}/best`
+  const oss = new OssStorage()
+  const bestNameList = await oss.list(ossPRBESTJSONDir)
+  for (const name of bestNameList) {
+    const benchmarkId = name.split('/').pop()
+    const ossHistoricalBestJSONPath = `benchmark/best/${benchmarkId}`
+    await oss.copy(ossHistoricalBestJSONPath, name)
+  }
 }
 
 export async function benchmarkWithPytest(): Promise<void> {

@@ -2,7 +2,10 @@ import * as process from 'process'
 import {test} from '@jest/globals'
 import os from 'os'
 import * as env from '../src/utils/env'
-import {benchmarkWithPytest} from '../src/utils/benchmark'
+import {
+  benchmarkWithPytest,
+  updateBenchmakrHistory
+} from '../src/utils/benchmark'
 process.env['RUNNER_TOOL_CACHE'] = '~/runner_tool_cache'.replace(
   '~',
   os.homedir
@@ -23,7 +26,8 @@ test(
     env.setMultilineInput('pytest-args', [])
     env.setMultilineInput('pytest-compare-args', [])
     env.setInput('container-name', `test-${os.userInfo().username}`)
-    await benchmarkWithPytest()
+    //await benchmarkWithPytest()
+    await updateBenchmakrHistory()
   },
   MINUTES15
 )
