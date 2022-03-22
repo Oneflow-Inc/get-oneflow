@@ -90,6 +90,7 @@ async function buildWithConda(): Promise<void> {
 }
 
 const ProductionCommit = '2211ee6d62f17120cc0145e60c63fca39e388b68'
+const CUDA_115_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.5:4fd9cc268bbe59c6245ca3941b8264fd256a8670`
 const CUDA_114_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.4:617d3245410d4d35d9a0637269d0aab14c996029`
 const CUDA_113_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.3:617d3245410d4d35d9a0637269d0aab14c996029`
 const CUDA_112_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.2:${ProductionCommit}`
@@ -97,7 +98,15 @@ const CUDA_110_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014
 const CUDA_102_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda10.2:${ProductionCommit}`
 const CUDA_CPU_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cpu:${ProductionCommit}`
 
-type CudaVersion = '10.2' | '11.0' | '11.2' | '11.3' | '11.4' | 'none' | ''
+type CudaVersion =
+  | '10.2'
+  | '11.0'
+  | '11.2'
+  | '11.3'
+  | '11.4'
+  | '11.5'
+  | 'none'
+  | ''
 
 function getCUDAImageByVersion(cudaVersion: CudaVersion): string {
   switch (cudaVersion) {
@@ -115,6 +124,8 @@ function getCUDAImageByVersion(cudaVersion: CudaVersion): string {
       return CUDA_113_IMG_TAG
     case '11.4':
       return CUDA_114_IMG_TAG
+    case '11.5':
+      return CUDA_115_IMG_TAG
     default:
       throw new Error(`cudaVersion not supported: ${cudaVersion}`)
   }
@@ -127,6 +138,7 @@ type ComputePlatform =
   | 'cu112'
   | 'cu113'
   | 'cu114'
+  | 'cu115'
   | ''
 
 function getCUDAVersionByComputePlatform(
@@ -145,6 +157,8 @@ function getCUDAVersionByComputePlatform(
       return '11.3'
     case 'cu114':
       return '11.4'
+    case 'cu115':
+      return '11.5'
     default:
       throw new Error(`computePlatform not supported: ${computePlatform}`)
   }
