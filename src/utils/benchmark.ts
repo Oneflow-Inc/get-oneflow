@@ -70,13 +70,15 @@ class OssStorage {
 interface logJSON {
   machine_info: unknown
   commit_info: unknown
-  benchmarks: {
-    stats: {
-      min: number
-      max: number
-      mean: number
+  benchmarks: [
+    {
+      stats: {
+        min: number
+        max: number
+        mean: number
+      }
     }
-  }
+  ]
   datetime: string
   version: string
 }
@@ -86,23 +88,25 @@ async function compareJson(
   cmpJsonPath: string
 ): Promise<boolean> {
   const bestJSON: logJSON = JSON.parse(fs.readFileSync(bestJsonPath, 'utf-8'))
-  const best_data = bestJSON.benchmarks.stats
+  const best_data_list = bestJSON.benchmarks
   const cmpJSON: logJSON = JSON.parse(fs.readFileSync(cmpJsonPath, 'utf-8'))
-  const cmp_data = cmpJSON.benchmarks.stats
-  if (
-    best_data.min === cmp_data.min &&
-    best_data.max === cmp_data.max &&
-    best_data.mean === cmp_data.mean
-  ) {
-    return false
-  } else if (
-    best_data.min >= cmp_data.min &&
-    best_data.max >= cmp_data.max &&
-    best_data.mean >= cmp_data.mean
-  ) {
-    return true
+  const cmp_data_list = cmpJSON.benchmarks
+  if (best_data_list.length !== cmp_data_list.length) return false
+  for (let index = 0; index < best_data_list.length; index++) {
+    const best_data = best_data_list[index].stats
+    const cmp_data = cmp_data_list[index].stats
+    if (
+      best_data.min >= cmp_data.min &&
+      best_data.max >= cmp_data.max &&
+      best_data.mean >= cmp_data.mean
+    ) {
+      continue
+    } else {
+      return false
+    }
   }
-  return false
+
+  return true
 }
 
 export async function updateBenchmakrHistory(): Promise<void> {
