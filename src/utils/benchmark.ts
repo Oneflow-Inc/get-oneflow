@@ -10,7 +10,7 @@ class OssStorage {
   private client
   oss_region = 'oss-cn-beijing'
   oss_entry = 'https://oss-cn-beijing.aliyuncs.com'
-  oss_bucket = 'oneflow-static'
+  oss_bucket = 'oneflow-benchmark-test'
   oss_id = process.env['OSS_ACCESS_KEY_ID'] as string
   oss_secret = process.env['OSS_ACCESS_KEY_SECRET'] as string
   private constructor() {
@@ -48,12 +48,12 @@ class OssStorage {
     }
   }
 
-  async pull2Json(remote_path: string): Promise<logJSON | null> {
+  async pull2Json(remote_path: string): Promise<string> {
     try {
       const buffer = await this.client.get(remote_path)
-      return buffer.content.toJSON()
+      return buffer.content.toString()
     } catch (e) {
-      return null
+      return ''
     }
   }
 
@@ -105,9 +105,9 @@ async function compareJson(
 ): Promise<boolean> {
   const oss = OssStorage.getInstance()
 
-  const bestJSON: logJSON = (await oss.pull2Json(bestJsonPath)) as logJSON
+  const bestJSON: logJSON = JSON.parse(await oss.pull2Json(bestJsonPath))
   const best_data_list = bestJSON.benchmarks
-  const cmpJSON: logJSON = (await oss.pull2Json(cmpJsonPath)) as logJSON
+  const cmpJSON: logJSON = JSON.parse(await oss.pull2Json(cmpJsonPath))
   const cmp_data_list = cmpJSON.benchmarks
   if (best_data_list.length !== cmp_data_list.length) return false
   for (let index = 0; index < best_data_list.length; index++) {
