@@ -26,8 +26,7 @@ test(
     env.setMultilineInput('pytest-args', [])
     env.setMultilineInput('pytest-compare-args', [])
     env.setInput('container-name', `test-${os.userInfo().username}`)
-    //await benchmarkWithPytest()
-    await updateBenchmakrHistory()
+    await benchmarkWithPytest()
   },
   MINUTES15
 )

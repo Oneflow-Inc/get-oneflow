@@ -3,17 +3,17 @@ import * as exec from '@actions/exec'
 import * as core from '@actions/core'
 import OSS from 'ali-oss'
 import * as path from 'path'
-import * as fs from 'fs'
 import * as util from './util'
 
 class OssStorage {
+  private static instance: OssStorage
   private client
   oss_region = 'oss-cn-beijing'
   oss_entry = 'https://oss-cn-beijing.aliyuncs.com'
   oss_bucket = 'oneflow-static'
   oss_id = process.env['OSS_ACCESS_KEY_ID'] as string
   oss_secret = process.env['OSS_ACCESS_KEY_SECRET'] as string
-  constructor() {
+  private constructor() {
     this.client = new OSS({
       region: this.oss_region,
       accessKeyId: this.oss_id,
@@ -21,6 +21,13 @@ class OssStorage {
       endpoint: this.oss_entry,
       bucket: this.oss_bucket
     })
+  }
+
+  static getInstance(): OssStorage {
+    if (!OssStorage.instance) {
+      OssStorage.instance = new OssStorage()
+    }
+    return OssStorage.instance
   }
 
   async push(remote_path: string, local_path: string): Promise<boolean> {
@@ -38,6 +45,15 @@ class OssStorage {
       return true
     } catch (e) {
       return false
+    }
+  }
+
+  async pull2Json(remote_path: string): Promise<logJSON | null> {
+    try {
+      const buffer = await this.client.get(remote_path)
+      return buffer.content.toJSON()
+    } catch (e) {
+      return null
     }
   }
 
@@ -87,9 +103,11 @@ async function compareJson(
   bestJsonPath: string,
   cmpJsonPath: string
 ): Promise<boolean> {
-  const bestJSON: logJSON = JSON.parse(fs.readFileSync(bestJsonPath, 'utf-8'))
+  const oss = OssStorage.getInstance()
+
+  const bestJSON: logJSON = (await oss.pull2Json(bestJsonPath)) as logJSON
   const best_data_list = bestJSON.benchmarks
-  const cmpJSON: logJSON = JSON.parse(fs.readFileSync(cmpJsonPath, 'utf-8'))
+  const cmpJSON: logJSON = (await oss.pull2Json(cmpJsonPath)) as logJSON
   const cmp_data_list = cmpJSON.benchmarks
   if (best_data_list.length !== cmp_data_list.length) return false
   for (let index = 0; index < best_data_list.length; index++) {
@@ -109,15 +127,35 @@ async function compareJson(
   return true
 }
 
+export async function findLastCommit(prID: number): Promise<string> {
+  const ossPRJSONPath = `benchmark/pr/${prID}`
+  const oss = OssStorage.getInstance()
+  let max_run_id = 0
+  let max_commit_id = ''
+  for (const pathName of await oss.list(ossPRJSONPath)) {
+    const res = pathName.match(/(\w+)\/run\/(\d+)/)
+    if (res?.length === 3) {
+      const current_run_id = parseInt(res[2])
+      if (current_run_id > max_run_id) {
+        max_run_id = current_run_id
+        max_commit_id = res[1]
+      }
+    }
+  }
+  return max_commit_id
+}
 export async function updateBenchmakrHistory(): Promise<void> {
   const issueNumber = gh.context.issue.number
-  const ossPRBESTJSONDir = `benchmark/pr/${issueNumber}/best`
-  const oss = new OssStorage()
-  const bestNameList = await oss.list(ossPRBESTJSONDir)
-  for (const name of bestNameList) {
+  // const issueNumber = 7806
+  const lastCommitPRID = await findLastCommit(issueNumber)
+  const ossPRBESTJSONDir = `benchmark/pr/${issueNumber}/commit/${lastCommitPRID}/run`
+  const oss = OssStorage.getInstance()
+  const lastCommitHistoryList = await oss.list(ossPRBESTJSONDir)
+  for (const name of lastCommitHistoryList) {
     const benchmarkId = name.split('/').pop()
     const ossHistoricalBestJSONPath = `benchmark/best/${benchmarkId}`
-    await oss.copy(ossHistoricalBestJSONPath, name)
+    if (await compareJson(ossHistoricalBestJSONPath, name))
+      await oss.copy(ossHistoricalBestJSONPath, name)
   }
 }
 
@@ -128,13 +166,12 @@ export async function benchmarkWithPytest(): Promise<void> {
   const pytestCompareArgs = core.getMultilineInput('pytest-compare-args')
   const containerName = core.getInput('container-name')
 
-  const oss = new OssStorage()
+  const oss = OssStorage.getInstance()
   const cache_dir = `benchmark_result/${benchmarkId}`
   const jsonPath = path.join(cache_dir, 'result.json')
   const bestInHistoryJSONPath = path.join(cache_dir, 'best.json')
   const ossHistoricalBestJSONPath = `benchmark/best/${benchmarkId}.json`
-  const ossPRJSONPath = `benchmark/pr/${gh.context.issue.number}/run/${gh.context.runId}/${benchmarkId}.json`
-  const ossPRBESTJSONPath = `benchmark/pr/${gh.context.issue.number}/best/${benchmarkId}.json`
+  const ossPRJSONPath = `benchmark/pr/${gh.context.issue.number}/commit/${gh.context.sha}/run/${gh.context.runId}/${benchmarkId}.json`
   const dockerExec = async (args: string[]): Promise<void> => {
     await exec.exec(
       'docker',
@@ -180,7 +217,4 @@ export async function benchmarkWithPytest(): Promise<void> {
     await oss.push(ossHistoricalBestJSONPath, jsonPath)
   }
   await oss.push(ossPRJSONPath, jsonPath)
-  if (await compareJson(bestInHistoryJSONPath, jsonPath)) {
-    await oss.push(ossPRBESTJSONPath, jsonPath)
-  }
 }
