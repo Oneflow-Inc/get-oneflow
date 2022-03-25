@@ -4,7 +4,7 @@ import os from 'os'
 import * as env from '../src/utils/env'
 import {
   benchmarkWithPytest,
-  updateBenchmakrHistory
+  updateBenchmarkHistory
 } from '../src/utils/benchmark'
 process.env['RUNNER_TOOL_CACHE'] = '~/runner_tool_cache'.replace(
   '~',

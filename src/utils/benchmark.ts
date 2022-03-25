@@ -144,7 +144,7 @@ export async function findLastCommit(prID: number): Promise<string> {
   }
   return max_commit_id
 }
-export async function updateBenchmakrHistory(): Promise<void> {
+export async function updateBenchmarkHistory(): Promise<void> {
   const issueNumber = gh.context.issue.number
   // const issueNumber = 7806
   const lastCommitPRID = await findLastCommit(issueNumber)

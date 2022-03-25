@@ -10,7 +10,7 @@ import {setMasterAddress} from './utils/getMasterAddress'
 import {waitForGPURunner} from './utils/wait'
 import {checkPriorityPR} from './utils/crashUnlessPriority'
 import {revivePRs} from './utils/revivePullRequests'
-import {benchmarkWithPytest, updateBenchmakrHistory} from './utils/benchmark'
+import {benchmarkWithPytest, updateBenchmarkHistory} from './utils/benchmark'
 type ActionType =
   | 'build-oneflow'
   | 'cache-complete'
@@ -55,6 +55,6 @@ runAndSetFailed(async () => {
   else if (actionType === 'revive-pr') await revivePRs()
   else if (actionType === 'pytest-benchmark') await benchmarkWithPytest()
   else if (actionType === 'update-benchmark-history')
-    await updateBenchmakrHistory()
+    await updateBenchmarkHistory()
   else throw new Error(`Action type not implemented ${actionType}`)
 })
