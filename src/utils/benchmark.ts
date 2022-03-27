@@ -128,23 +128,17 @@ async function compareJson(
   const cmpJSON: logJSON = JSON.parse(await oss.pull2Json(cmpJsonPath))
   const cmp_data_list = cmpJSON.benchmarks
   if (best_data_list.length !== cmp_data_list.length) return false
-  for (let index = 0; index < best_data_list.length; index++) {
-    if (best_data_list[index].name !== cmp_data_list[index].name) return false
-    const best_data = best_data_list[index].stats
+  return best_data_list.every(function (elem, index): boolean {
+    if (elem.name !== cmp_data_list[index].name) return false
+    const best_data = elem.stats
     const cmp_data = cmp_data_list[index].stats
-    if (
+    return (
       best_data.min >= cmp_data.min &&
       best_data.max >= cmp_data.max &&
       best_data.mean >= cmp_data.mean &&
       best_data.median >= cmp_data.median
-    ) {
-      continue
-    } else {
-      return false
-    }
-  }
-
-  return true
+    )
+  })
 }
 
 export async function findLastCommit(prID: number): Promise<string> {
