@@ -88,10 +88,28 @@ interface logJSON {
   commit_info: unknown
   benchmarks: [
     {
+      group: string | null
+      name: string
+      fullname: string
       stats: {
         min: number
         max: number
         mean: number
+        stddev: number
+        rounds: number
+        median: number
+        iqr: number
+        q1: number
+        q3: number
+        iqr_outliers: number
+        stddev_outliers: number
+        outliers: number
+        ld15iqr: number
+        hd15iqr: number
+        ops: number
+        total: number
+        data: [number]
+        iterations: number
       }
     }
   ]
@@ -111,12 +129,14 @@ async function compareJson(
   const cmp_data_list = cmpJSON.benchmarks
   if (best_data_list.length !== cmp_data_list.length) return false
   for (let index = 0; index < best_data_list.length; index++) {
+    if (best_data_list[index].name !== cmp_data_list[index].name) return false
     const best_data = best_data_list[index].stats
     const cmp_data = cmp_data_list[index].stats
     if (
       best_data.min >= cmp_data.min &&
       best_data.max >= cmp_data.max &&
-      best_data.mean >= cmp_data.mean
+      best_data.mean >= cmp_data.mean &&
+      best_data.median >= cmp_data.median
     ) {
       continue
     } else {
@@ -144,9 +164,9 @@ export async function findLastCommit(prID: number): Promise<string> {
   }
   return max_commit_id
 }
-export async function updateBenchmarkHistory(): Promise<void> {
-  const issueNumber = gh.context.issue.number
-  // const issueNumber = 7806
+export async function updateBenchmarkHistory(
+  issueNumber = gh.context.issue.number
+): Promise<void> {
   const lastCommitPRID = await findLastCommit(issueNumber)
   const ossPRBESTJSONDir = `benchmark/pr/${issueNumber}/commit/${lastCommitPRID}/run`
   const oss = OssStorage.getInstance()
