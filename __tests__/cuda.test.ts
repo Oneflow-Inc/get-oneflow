@@ -11,11 +11,12 @@ process.env['RUNNER_TOOL_CACHE'] = '~/runner_tool_cache'.replace(
   os.homedir
 )
 process.env['RUNNER_TEMP'] = '~/runner_temp'.replace('~', os.homedir)
-const MINUTES30 = 1000 * 60 * 30
+const MINUTES60 = 1000 * 60 * 60
 
 export const XLAInitCache = 'cmake/caches/ci/cuda-xla.cmake'
 export const CPUInitCache = 'cmake/caches/ci/cpu.cmake'
 export const CUDAInitCache = 'cmake/caches/ci/cuda.cmake'
+export const CUDAReleaseInitCache = 'cmake/caches/ci/release/cuda.cmake'
 export const openvinoCache = 'cmake/caches/ci/serving/openvino.cmake'
 export const LLVMInitCache = 'cmake/caches/ci/llvm/cuda-75-clang.cmake'
 export const GCC10BuildSh = 'ci/manylinux/build.sh'
@@ -37,10 +38,9 @@ test(
     // env.setInput('build-script', path.join(sourceDir, GCC7BuildSh))
     env.setInput('build-script', path.join(sourceDir, GCC7BuildSh))
     env.setBooleanInput('docker-run-use-system-http-proxy', false)
-    env.setInput('cmake-init-cache', path.join(sourceDir, openvinoCache))
+    env.setInput('cmake-init-cache', path.join(sourceDir, CUDAReleaseInitCache))
     env.setInput('oneflow-build-env', 'manylinux')
-    env.setInput('oneflow-build-env', 'openvino')
-    const cudaVersion = 'none'
+    const cudaVersion = '11.2'
     env.setInput(
       'manylinux-cache-dir',
       '~/manylinux-cache-dirs/unittest-'.concat(cudaVersion)
@@ -70,5 +70,5 @@ test(
     // await testOneCUDA('10.1', true)
     // await testOneCUDA('11.4', false)
   },
-  MINUTES30
+  MINUTES60
 )
