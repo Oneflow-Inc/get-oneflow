@@ -13,22 +13,23 @@ env:
   ONEFLOW_TIMEOUT_SECONDS: 90
   FLOW_VISION_SRC: flow_vision
   TEST_WITH_TORCH_IMG_TAG: registry.cn-beijing.aliyuncs.com/oneflow/test-with-pytorch-1.9.0-cuda10.2-cudnn7-runtime:9b7ac2af8823bf537a636f8589fd60f51d4af348
+  ONEFLOW_SRC: oneflow-src
+  ONEFLOW_REF: master
 
 jobs:
   find-benchmark-cache:
     name: "Find benchmark cache"
     if: github.event.pull_request.draft == false && github.base_ref == 'main'
     runs-on: ubuntu-latest
-    env:
-      ONEFLOW_SRC: .
     outputs:
       matrix: ${{ steps.find-cache.outputs.matrix }}
     steps:
       - name: Checkout Oneflow-Inc/oneflow
         uses: actions/checkout@v2
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          repository: ${{github.event.pull_request.head.repo.full_name}}
+          repository: Oneflow-Inc/oneflow
+          ref: ${{ env.ONEFLOW_REF }}
+          path: ${{ env.ONEFLOW_SRC }}
       - uses: Oneflow-Inc/get-oneflow/cache-complete/matrix/test@support-auto-benchmark
         name: find cache
         id: find-cache
