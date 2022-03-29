@@ -99,8 +99,6 @@ jobs:
         run: |
           set -x
           echo "ONEFLOW_TEST_CACHE_DIR=$HOME/ci-cache/test_cache" >> $GITHUB_ENV
-          echo "ONEFLOW_WHEEL_PATH=${{ steps.download-digest.outputs.entry-dir }}/whl" >> $GITHUB_ENV
-          echo "ONEFLOW_CPACK_PATH=${{ steps.download-digest.outputs.entry-dir }}/cpack" >> $GITHUB_ENV
       - name: Set environment variables (distributed)
         if: ${{ fromJson(matrix.is-distributed) }}
         run: |
