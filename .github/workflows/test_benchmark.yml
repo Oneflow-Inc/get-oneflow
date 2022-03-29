@@ -15,6 +15,7 @@ env:
   TEST_WITH_TORCH_IMG_TAG: registry.cn-beijing.aliyuncs.com/oneflow/test-with-pytorch-1.9.0-cuda10.2-cudnn7-runtime:9b7ac2af8823bf537a636f8589fd60f51d4af348
   ONEFLOW_SRC: oneflow-src
   ONEFLOW_REF: master
+  OSS_BUCKET: oneflow-benchmark-test
 
 jobs:
   find-benchmark-cache:
@@ -150,7 +151,7 @@ jobs:
         with:
           repository: Oneflow-Inc/vision
           # please use a commit here
-          ref: 0a291a00167143e64c7f7e5743ea93bf6a50a6b6
+          ref: 3bdef31f94e88751dc37b14898ffa7e5edfa39b1
           path: ${{ env.FLOW_VISION_SRC}}
       - name: Install Flow Vision
         if: ${{ !fromJson(matrix.cache-hit) && contains(matrix.runs-on, 'self-hosted') }}

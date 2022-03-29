@@ -10,7 +10,8 @@ class OssStorage {
   private client
   oss_region = 'oss-cn-beijing'
   oss_entry = 'https://oss-cn-beijing.aliyuncs.com'
-  oss_bucket = 'oneflow-benchmark-test'
+  //oss_bucket = 'oneflow-benchmark-test'
+  oss_bucket = process.env['OSS_BUCKET'] as string
   oss_id = process.env['OSS_ACCESS_KEY_ID'] as string
   oss_secret = process.env['OSS_ACCESS_KEY_SECRET'] as string
   private constructor() {
