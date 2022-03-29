@@ -7,7 +7,7 @@ const MINUTES15 = 1000 * 60 * 15
 test(
   'cache test matrix',
   async () => {
-    await updateBenchmarkHistory(7806)
+    // await updateBenchmarkHistory(7806)
   },
   MINUTES15
 )

@@ -142,7 +142,7 @@ async function compareJson(
 }
 
 export async function findLastCommit(prID: number): Promise<string> {
-  const ossPRJSONPath = `${gh.context.ref}/pr/${prID}`
+  const ossPRJSONPath = `${gh.context.repo.owner}/${gh.context.repo.repo}/pr/${prID}`
   const oss = OssStorage.getInstance()
   let max_run_id = 0
   let max_commit_id = ''
@@ -162,12 +162,12 @@ export async function updateBenchmarkHistory(
   issueNumber = gh.context.issue.number
 ): Promise<void> {
   const lastCommitPRID = await findLastCommit(issueNumber)
-  const ossPRBESTJSONDir = `${gh.context.ref}/pr/${issueNumber}/commit/${lastCommitPRID}/run`
+  const ossPRBESTJSONDir = `${gh.context.repo.owner}/${gh.context.repo.repo}/pr/${issueNumber}/commit/${lastCommitPRID}/run`
   const oss = OssStorage.getInstance()
   const lastCommitHistoryList = await oss.list(ossPRBESTJSONDir)
   for (const name of lastCommitHistoryList) {
     const benchmarkId = name.split('/').pop()
-    const ossHistoricalBestJSONPath = `${gh.context.ref}/best/${benchmarkId}`
+    const ossHistoricalBestJSONPath = `${gh.context.repo.owner}/${gh.context.repo.repo}/best/${benchmarkId}`
     if (await compareJson(ossHistoricalBestJSONPath, name))
       await oss.copy(ossHistoricalBestJSONPath, name)
   }
@@ -184,8 +184,8 @@ export async function benchmarkWithPytest(): Promise<void> {
   const cache_dir = `benchmark_result/${benchmarkId}`
   const jsonPath = path.join(cache_dir, 'result.json')
   const bestInHistoryJSONPath = path.join(cache_dir, 'best.json')
-  const ossHistoricalBestJSONPath = `${gh.context.ref}/best/${benchmarkId}.json`
-  const ossPRJSONPath = `${gh.context.ref}/pr/${gh.context.issue.number}/commit/${gh.context.sha}/run/${gh.context.runId}/${benchmarkId}.json`
+  const ossHistoricalBestJSONPath = `${gh.context.repo.owner}/${gh.context.repo.repo}/best/${benchmarkId}.json`
+  const ossPRJSONPath = `${gh.context.repo.owner}/${gh.context.repo.repo}/pr/${gh.context.issue.number}/commit/${gh.context.sha}/run/${gh.context.runId}/${benchmarkId}.json`
   const dockerExec = async (args: string[]): Promise<void> => {
     await exec.exec(
       'docker',
