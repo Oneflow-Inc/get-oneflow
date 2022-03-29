@@ -196,33 +196,10 @@ jobs:
             --benchmark-compare-fail=min:5%
             --benchmark-compare-fail=mean:0.001
           container-name: ${{ env.TEST_CONTAINER_NAME }}
-
-      # end pytest benchmark
-      - name: Print stacks in all core files
-        timeout-minutes: 45
-        if: ${{ failure() && contains(matrix.runs-on, 'self-hosted') }}
-        run: |
-          docker exec ${{ env.TEST_CONTAINER_NAME }} bash ci/test/print_stack_in_all_dirs.sh || true
-      - name: Remove automerge
-        if: ${{ failure() && contains(matrix.runs-on, 'self-hosted') && cancelled() == false && contains(github.event.pull_request.labels.*.name, 'automerge') }}
-        uses: actions/github-script@v4
-        with:
-          script: |
-            github.issues.removeLabel({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              name: 'automerge'
-            })
-            github.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: 'CI failed when running job: ${{ matrix.entry }}. PR label automerge has been removed'
-            })
       - name: Remove container
         timeout-minutes: 45
         if: ${{ always() && contains(matrix.runs-on, 'self-hosted') }}
         run: |
           docker rm -f ${{ env.TEST_CONTAINER_NAME }} || true
           docker run --rm -v $PWD:$PWD -w $PWD busybox rm -rf *
+      
