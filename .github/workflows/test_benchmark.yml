@@ -18,7 +18,7 @@ jobs:
   benchmark:
     name: Benchmark suite
     runs-on: ${{ matrix.runs-on }}
-    if: github.event.pull_request.draft == false && github.base_ref == 'master'
+    if: github.event.pull_request.draft == false && github.base_ref == 'main'
     strategy:
       fail-fast: true
       max-parallel: 1
