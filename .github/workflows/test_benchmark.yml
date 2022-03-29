@@ -72,6 +72,14 @@ jobs:
         with:
           ref: ${{ env.ONEFLOW_REF }}
           repository: Oneflow-Inc/oneflow
+      - name: Checkout Oneflow-Inc/vision
+        if: ${{ !fromJson(matrix.cache-hit) && contains(matrix.runs-on, 'self-hosted') }}
+        uses: actions/checkout@v2
+        with:
+          repository: Oneflow-Inc/vision
+          # please use a commit here
+          ref: 69b140d036cf147a1d06973291145b8b7a818107
+          path: ${{ env.FLOW_VISION_SRC}}
       - uses: actions/checkout@v2
         with:
           path: get-oneflow
@@ -144,14 +152,6 @@ jobs:
           ls ${ONEFLOW_WHEEL_PATH}
           docker exec ${TEST_CONTAINER_NAME} python3 -m pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
           docker exec ${TEST_CONTAINER_NAME} python3 -m pip install --pre oneflow -f https://staging.oneflow.info/branch/master/cu102
-      - name: Checkout Oneflow-Inc/vision
-        if: ${{ !fromJson(matrix.cache-hit) && contains(matrix.runs-on, 'self-hosted') }}
-        uses: actions/checkout@v2
-        with:
-          repository: Oneflow-Inc/vision
-          # please use a commit here
-          ref: 69b140d036cf147a1d06973291145b8b7a818107
-          path: ${{ env.FLOW_VISION_SRC}}
       - name: Install Flow Vision
         if: ${{ !fromJson(matrix.cache-hit) && contains(matrix.runs-on, 'self-hosted') }}
         run: |
