@@ -56,6 +56,7 @@ jobs:
           echo "::error file=test.yml,line=204,col=10::steps.save-cache.outputs.cache-hit != matrix.cache-hit"
           exit 1
       - name: Download wheel and packed liboneflow
+        if: ${{ !fromJson(matrix.cache-hit) && contains(matrix.runs-on, 'self-hosted') }}
         uses: Oneflow-Inc/get-oneflow/digest/download@support-auto-benchmark
         id: download-digest
         timeout-minutes: 10
@@ -65,6 +66,7 @@ jobs:
           ssh-tank-host: ${{ env.SSH_TANK_HOST }}
           ssh-tank-path: ${{ env.SSH_TANK_PATH }}
       - name: Set environment variables
+        if: ${{ !fromJson(matrix.cache-hit) && contains(matrix.runs-on, 'self-hosted') }}
         run: |
           set -x
           echo "ONEFLOW_TEST_CACHE_DIR=$HOME/ci-cache/test_cache" >> $GITHUB_ENV
@@ -82,6 +84,7 @@ jobs:
           EXTRA_DOCKER_ARGS+=" --env ONEFLOW_TEST_VERBOSE=1"
           echo "EXTRA_DOCKER_ARGS=${EXTRA_DOCKER_ARGS}" >> $GITHUB_ENV
       - name: Start container
+        if: ${{ !fromJson(matrix.cache-hit) && contains(matrix.runs-on, 'self-hosted') }}
         working-directory: ${{ env.ONEFLOW_SRC }}
         run: |
           docker run -d --rm --privileged --shm-size=8g \
@@ -105,14 +108,17 @@ jobs:
             ${{ env.TEST_WITH_TORCH_IMG_TAG }} \
             sleep 5400
       - name: Test container
+        if: ${{ !fromJson(matrix.cache-hit) && contains(matrix.runs-on, 'self-hosted') }}
         run: |
           docker exec ${{ env.TEST_CONTAINER_NAME }} ls
       - name: Install OneFlow
+        if: ${{ !fromJson(matrix.cache-hit) && contains(matrix.runs-on, 'self-hosted') }}
         run: |
           ls ${ONEFLOW_WHEEL_PATH}
           docker exec ${TEST_CONTAINER_NAME} python3 -m pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
           docker exec ${TEST_CONTAINER_NAME} python3 -m pip install --pre oneflow -f https://staging.oneflow.info/branch/master/cu102
       - name: Checkout Oneflow-Inc/vision
+        if: ${{ !fromJson(matrix.cache-hit) && contains(matrix.runs-on, 'self-hosted') }}
         uses: actions/checkout@v2
         with:
           repository: Oneflow-Inc/vision
@@ -120,6 +126,7 @@ jobs:
           ref: 0a291a00167143e64c7f7e5743ea93bf6a50a6b6
           path: ${{ env.FLOW_VISION_SRC}}
       - name: Install Flow Vision
+        if: ${{ !fromJson(matrix.cache-hit) && contains(matrix.runs-on, 'self-hosted') }}
         run: |
           docker exec ${TEST_CONTAINER_NAME} python3 -m pip install -e ${{ env.FLOW_VISION_SRC}}
       # start pytest benchmark
