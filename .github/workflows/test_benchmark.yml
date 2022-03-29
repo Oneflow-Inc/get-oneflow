@@ -15,7 +15,6 @@ env:
   TEST_WITH_TORCH_IMG_TAG: registry.cn-beijing.aliyuncs.com/oneflow/test-with-pytorch-1.9.0-cuda10.2-cudnn7-runtime:9b7ac2af8823bf537a636f8589fd60f51d4af348
 
 jobs:
-
   benchmark:
     name: Benchmark suite
     runs-on: ${{ matrix.runs-on }}
@@ -121,7 +120,7 @@ jobs:
         run: |
           ls ${ONEFLOW_WHEEL_PATH}
           docker exec ${TEST_CONTAINER_NAME} python3 -m pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
-          docker exec ${TEST_CONTAINER_NAME} python3 -m pip install --find-links=${ONEFLOW_WHEEL_PATH} oneflow
+          docker exec ${TEST_CONTAINER_NAME} python3 -m pip install --pre oneflow -f https://staging.oneflow.info/branch/master/cu102
       - name: Checkout Oneflow-Inc/vision
         if: ${{ !fromJson(matrix.cache-hit) && contains(matrix.runs-on, 'self-hosted') }}
         uses: actions/checkout@v2
