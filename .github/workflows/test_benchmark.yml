@@ -150,7 +150,7 @@ jobs:
         with:
           repository: Oneflow-Inc/vision
           # please use a commit here
-          ref: cc64fab1331b5a7e19a281e764e134dbf554de5a
+          ref: 645bf78c52979006127b7d3ae6050db943e844d4
           path: ${{ env.FLOW_VISION_SRC}}
       - name: Install Flow Vision
         if: ${{ !fromJson(matrix.cache-hit) && contains(matrix.runs-on, 'self-hosted') }}
@@ -168,7 +168,7 @@ jobs:
             -v
           pytest-compare-args: |
             --benchmark-compare-fail=min:5%
-            --benchmark-compare-fail=mean:0.001
+            --benchmark-compare-fail=mean:5%
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark convnext_tiny_224
         timeout-minutes: 20
@@ -181,7 +181,7 @@ jobs:
             -v
           pytest-compare-args: |
             --benchmark-compare-fail=min:5%
-            --benchmark-compare-fail=mean:0.001
+            --benchmark-compare-fail=mean:5%
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark crossformer_tiny_patch4_group7_224
         timeout-minutes: 20
@@ -194,7 +194,7 @@ jobs:
             -v
           pytest-compare-args: |
             --benchmark-compare-fail=min:5%
-            --benchmark-compare-fail=mean:0.001
+            --benchmark-compare-fail=mean:5%
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Remove container
         timeout-minutes: 45
