@@ -15,6 +15,7 @@ env:
   TEST_WITH_TORCH_IMG_TAG: registry.cn-beijing.aliyuncs.com/oneflow/test-with-pytorch-1.9.0-cuda10.2-cudnn7-runtime:9b7ac2af8823bf537a636f8589fd60f51d4af348
   ONEFLOW_SRC: oneflow-src
   ONEFLOW_REF: master
+  GET_ONEFLOW_DIR: get-oneflow
 
 jobs:
   find-benchmark-cache:
@@ -59,7 +60,6 @@ jobs:
       TEST_CONTAINER_NAME: "ci-benchmark"
       SSH_TANK_HOST: 192.168.1.13
       SSH_TANK_PATH: /tank
-      GET_ONEFLOW_DIR: get-oneflow
     steps:
       - name: Fix permissions
         if: ${{ contains(matrix.runs-on, 'self-hosted') }}
