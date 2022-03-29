@@ -94,16 +94,6 @@ jobs:
         run: |
           echo "::error file=test.yml,line=204,col=10::steps.save-cache.outputs.cache-hit != matrix.cache-hit"
           exit 1
-      - name: Download wheel and packed liboneflow
-        if: ${{ !fromJson(matrix.cache-hit) && contains(matrix.runs-on, 'self-hosted') }}
-        uses: ./get-oneflow/digest/download
-        id: download-digest
-        timeout-minutes: 10
-        with:
-          digest: ${{ steps.save-cache.outputs.build-digest }}
-          entry: ${{ matrix.compute-platform }}
-          ssh-tank-host: ${{ env.SSH_TANK_HOST }}
-          ssh-tank-path: ${{ env.SSH_TANK_PATH }}
       - name: Set environment variables
         if: ${{ !fromJson(matrix.cache-hit) && contains(matrix.runs-on, 'self-hosted') }}
         run: |
