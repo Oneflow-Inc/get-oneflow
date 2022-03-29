@@ -73,7 +73,7 @@ jobs:
       - name: Checkout Oneflow-Inc/oneflow
         uses: actions/checkout@v2
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ env.ONEFLOW_REF }}
           repository: Oneflow-Inc/oneflow
       - name: Remove container
         timeout-minutes: 45
