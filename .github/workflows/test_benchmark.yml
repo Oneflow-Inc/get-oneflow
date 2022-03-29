@@ -19,10 +19,6 @@ jobs:
     name: Benchmark suite
     runs-on: ${{ matrix.runs-on }}
     if: github.event.pull_request.draft == false && github.base_ref == 'main'
-    strategy:
-      fail-fast: true
-      max-parallel: 1
-      matrix: ${{ fromJson(needs.find-benchmark-cache.outputs.matrix) }}
     env:
       ONEFLOW_SRC: .
       TEST_CONTAINER_NAME: "ci-benchmark"
