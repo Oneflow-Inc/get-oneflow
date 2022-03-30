@@ -208,7 +208,6 @@ export async function benchmarkWithPytest(): Promise<void> {
         'no:cacheprovider',
         '--max-worker-restart=0',
         '-x',
-        '--durations=50',
         '--capture=sys'
       ].concat(args)
     )
