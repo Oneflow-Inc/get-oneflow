@@ -337,6 +337,12 @@ jobs:
             linux
             provision
           oneflow-src: ${{ env.ONEFLOW_SRC }}
+          devices: |
+            cuda
+          tests: |
+            module
+            misc
+            speed-test
 
   test-oneflow-doctor:
     name: Test suite
