@@ -167,8 +167,7 @@ jobs:
           pytest-args: |
             -v
           pytest-compare-args: |
-            --benchmark-compare-fail=min:5%
-            --benchmark-compare-fail=mean:5%
+            --benchmark-compare-fail=median:5%
             --benchmark-min-rounds=300
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark convnext_tiny_224
@@ -181,8 +180,7 @@ jobs:
           pytest-args: |
             -v
           pytest-compare-args: |
-            --benchmark-compare-fail=min:5%
-            --benchmark-compare-fail=mean:5%
+            --benchmark-compare-fail=median:5%
             --benchmark-min-rounds=300
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark crossformer_tiny_patch4_group7_224
@@ -195,8 +193,7 @@ jobs:
           pytest-args: |
             -v
           pytest-compare-args: |
-            --benchmark-compare-fail=min:5%
-            --benchmark-compare-fail=mean:5%
+            --benchmark-compare-fail=median:5%
             --benchmark-min-rounds=300
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Remove container
