@@ -196,6 +196,7 @@ export async function benchmarkWithPytest(): Promise<void> {
       ['exec', '-w', process.cwd(), containerName].concat(args)
     )
   }
+  await exec.exec('nvidia-smi', [])
   const pytest = async (args: string[]): Promise<void> => {
     await dockerExec(
       [
