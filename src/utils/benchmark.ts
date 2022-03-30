@@ -221,6 +221,7 @@ export async function benchmarkWithPytest(): Promise<void> {
         `--benchmark-json=${jsonPath}`,
         `--benchmark-storage=${cache_dir}`,
         `--benchmark-compare=best`,
+        '--benchmark-disable-gc',
         pyTestScript
       ]
         .concat(pytestArgs)
