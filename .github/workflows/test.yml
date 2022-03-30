@@ -428,6 +428,7 @@ jobs:
             -e ONEFLOW_WHEEL_PATH=${ONEFLOW_WHEEL_PATH} \
             -e ONEFLOW_BIN_PATH=${ONEFLOW_BIN_PATH} \
             -e ONEFLOW_CI=1 \
+            -e TERM="xterm-256color" \
             -v $PWD:$PWD \
             -w $PWD \
             --name ${{ env.TEST_CONTAINER_NAME }} \
