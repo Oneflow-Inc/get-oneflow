@@ -206,7 +206,6 @@ jobs:
           docker rm -f ${{ env.TEST_CONTAINER_NAME }} || true
           docker run --rm -v $PWD:$PWD -w $PWD busybox rm -rf *
   update-history:
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     steps:
       - uses: Oneflow-Inc/get-oneflow/update-benchmark-history@support-auto-benchmark
