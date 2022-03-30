@@ -339,6 +339,7 @@ jobs:
           oneflow-src: ${{ env.ONEFLOW_SRC }}
           devices: |
             cuda
+            cpu
           tests: |
             module
             misc
