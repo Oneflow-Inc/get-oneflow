@@ -169,7 +169,7 @@ jobs:
           pytest-compare-args: |
             --benchmark-compare-fail=min:5%
             --benchmark-compare-fail=mean:5%
-            --benchmark-min-rounds=30
+            --benchmark-min-rounds=300
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark convnext_tiny_224
         timeout-minutes: 20
@@ -183,7 +183,7 @@ jobs:
           pytest-compare-args: |
             --benchmark-compare-fail=min:5%
             --benchmark-compare-fail=mean:5%
-            --benchmark-min-rounds=30
+            --benchmark-min-rounds=300
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark crossformer_tiny_patch4_group7_224
         timeout-minutes: 20
@@ -197,7 +197,7 @@ jobs:
           pytest-compare-args: |
             --benchmark-compare-fail=min:5%
             --benchmark-compare-fail=mean:5%
-            --benchmark-min-rounds=30
+            --benchmark-min-rounds=300
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Remove container
         timeout-minutes: 45
