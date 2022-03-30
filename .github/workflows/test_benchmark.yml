@@ -207,6 +207,7 @@ jobs:
           docker run --rm -v $PWD:$PWD -w $PWD busybox rm -rf *
   update-history:
     runs-on: ubuntu-latest
+    needs: [benchmark]
     steps:
       - uses: Oneflow-Inc/get-oneflow/update-benchmark-history@support-auto-benchmark
         name: Update benchmark history
