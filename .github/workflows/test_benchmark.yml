@@ -4,7 +4,7 @@ on:
     types: [opened, review_requested, ready_for_review, synchronize, unlocked]
 
 concurrency:
-  group: build-and-test-${{ github.ref }}
+  group: benchmark-${{ github.ref }}
   cancel-in-progress: true
 
 env:
