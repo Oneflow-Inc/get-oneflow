@@ -157,45 +157,306 @@ jobs:
         run: |
           docker exec ${TEST_CONTAINER_NAME} python3 -m pip install -e ${{ env.FLOW_VISION_SRC}}
       # start pytest benchmark
-      - name: Benchmark alexnet
+      - name: Benchmark res2net
         timeout-minutes: 20
         if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'benchmark' && matrix.device == 'cuda' }}
         uses: ./get-oneflow/pytest-benchmark
         with:
-          pytest-script: ${{ env.FLOW_VISION_SRC }}/benchmark/test_alexnet.py
-          benchmark-id: 1-gpu-alexnet
+          pytest-script: ${{ env.FLOW_VISION_SRC }}/benchmark/test_res2net.py
+          benchmark-id: 1-gpu-res2net
           pytest-args: |
             -v
           pytest-compare-args: |
             --benchmark-compare-fail=median:5%
             --benchmark-min-rounds=300
           container-name: ${{ env.TEST_CONTAINER_NAME }}
-      - name: Benchmark convnext_tiny_224
+      - name: Benchmark convnext
         timeout-minutes: 20
         if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'benchmark' && matrix.device == 'cuda' }}
         uses: ./get-oneflow/pytest-benchmark
         with:
-          pytest-script: ${{ env.FLOW_VISION_SRC }}/benchmark/test_convnext_tiny_224.py
-          benchmark-id: 1-gpu-convnext_tiny_224
+          pytest-script: ${{ env.FLOW_VISION_SRC }}/benchmark/test_convnext.py
+          benchmark-id: 1-gpu-convnext
           pytest-args: |
             -v
           pytest-compare-args: |
             --benchmark-compare-fail=median:5%
             --benchmark-min-rounds=300
           container-name: ${{ env.TEST_CONTAINER_NAME }}
-      - name: Benchmark crossformer_tiny_patch4_group7_224
+      - name: Benchmark mlp_mixer
         timeout-minutes: 20
         if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'benchmark' && matrix.device == 'cuda' }}
         uses: ./get-oneflow/pytest-benchmark
         with:
-          pytest-script: ${{ env.FLOW_VISION_SRC }}/benchmark/test_crossformer_tiny_patch4_group7_224.py
-          benchmark-id: 1-gpu-crossformer_tiny_patch4_group7_224
+          pytest-script: ${{ env.FLOW_VISION_SRC }}/benchmark/test_mlp_mixer.py
+          benchmark-id: 1-gpu-mlp_mixer
           pytest-args: |
             -v
           pytest-compare-args: |
             --benchmark-compare-fail=median:5%
             --benchmark-min-rounds=300
           container-name: ${{ env.TEST_CONTAINER_NAME }}
+      - name: Benchmark cswin
+        timeout-minutes: 20
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'benchmark' && matrix.device == 'cuda' }}
+        uses: ./get-oneflow/pytest-benchmark
+        with:
+          pytest-script: ${{ env.FLOW_VISION_SRC }}/benchmark/test_cswin.py
+          benchmark-id: 1-gpu-cswin
+          pytest-args: |
+            -v
+          pytest-compare-args: |
+            --benchmark-compare-fail=median:5%
+            --benchmark-min-rounds=300
+          container-name: ${{ env.TEST_CONTAINER_NAME }}
+      - name: Benchmark crossformer
+        timeout-minutes: 20
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'benchmark' && matrix.device == 'cuda' }}
+        uses: ./get-oneflow/pytest-benchmark
+        with:
+          pytest-script: ${{ env.FLOW_VISION_SRC }}/benchmark/test_crossformer.py
+          benchmark-id: 1-gpu-crossformer
+          pytest-args: |
+            -v
+          pytest-compare-args: |
+            --benchmark-compare-fail=median:5%
+            --benchmark-min-rounds=300
+          container-name: ${{ env.TEST_CONTAINER_NAME }}
+      - name: Benchmark poolformer
+        timeout-minutes: 20
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'benchmark' && matrix.device == 'cuda' }}
+        uses: ./get-oneflow/pytest-benchmark
+        with:
+          pytest-script: ${{ env.FLOW_VISION_SRC }}/benchmark/test_poolformer.py
+          benchmark-id: 1-gpu-poolformer
+          pytest-args: |
+            -v
+          pytest-compare-args: |
+            --benchmark-compare-fail=median:5%
+            --benchmark-min-rounds=300
+          container-name: ${{ env.TEST_CONTAINER_NAME }}
+      - name: Benchmark res_mlp
+        timeout-minutes: 20
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'benchmark' && matrix.device == 'cuda' }}
+        uses: ./get-oneflow/pytest-benchmark
+        with:
+          pytest-script: ${{ env.FLOW_VISION_SRC }}/benchmark/test_res_mlp.py
+          benchmark-id: 1-gpu-res_mlp
+          pytest-args: |
+            -v
+          pytest-compare-args: |
+            --benchmark-compare-fail=median:5%
+            --benchmark-min-rounds=300
+          container-name: ${{ env.TEST_CONTAINER_NAME }}
+      - name: Benchmark uniformer
+        timeout-minutes: 20
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'benchmark' && matrix.device == 'cuda' }}
+        uses: ./get-oneflow/pytest-benchmark
+        with:
+          pytest-script: ${{ env.FLOW_VISION_SRC }}/benchmark/test_uniformer.py
+          benchmark-id: 1-gpu-uniformer
+          pytest-args: |
+            -v
+          pytest-compare-args: |
+            --benchmark-compare-fail=median:5%
+            --benchmark-min-rounds=300
+          container-name: ${{ env.TEST_CONTAINER_NAME }}
+      - name: Benchmark res_mlp
+        timeout-minutes: 20
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'benchmark' && matrix.device == 'cuda' }}
+        uses: ./get-oneflow/pytest-benchmark
+        with:
+          pytest-script: ${{ env.FLOW_VISION_SRC }}/benchmark/test_res_mlp.py
+          benchmark-id: 1-gpu-res_mlp
+          pytest-args: |
+            -v
+          pytest-compare-args: |
+            --benchmark-compare-fail=median:5%
+            --benchmark-min-rounds=300
+          container-name: ${{ env.TEST_CONTAINER_NAME }}
+      - name: Benchmark pvt
+        timeout-minutes: 20
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'benchmark' && matrix.device == 'cuda' }}
+        uses: ./get-oneflow/pytest-benchmark
+        with:
+          pytest-script: ${{ env.FLOW_VISION_SRC }}/benchmark/test_pvt.py
+          benchmark-id: 1-gpu-pvt
+          pytest-args: |
+            -v
+          pytest-compare-args: |
+            --benchmark-compare-fail=median:5%
+            --benchmark-min-rounds=300
+          container-name: ${{ env.TEST_CONTAINER_NAME }}
+      - name: Benchmark vision_transformer
+        timeout-minutes: 20
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'benchmark' && matrix.device == 'cuda' }}
+        uses: ./get-oneflow/pytest-benchmark
+        with:
+          pytest-script: ${{ env.FLOW_VISION_SRC }}/benchmark/test_vision_transformer.py
+          benchmark-id: 1-gpu-vision_transformer
+          pytest-args: |
+            -v
+          pytest-compare-args: |
+            --benchmark-compare-fail=median:5%
+            --benchmark-min-rounds=300
+          container-name: ${{ env.TEST_CONTAINER_NAME }}
+      - name: Benchmark swin_transformer
+        timeout-minutes: 20
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'benchmark' && matrix.device == 'cuda' }}
+        uses: ./get-oneflow/pytest-benchmark
+        with:
+          pytest-script: ${{ env.FLOW_VISION_SRC }}/benchmark/test_swin_transformer.py
+          benchmark-id: 1-gpu-swin_transformer
+          pytest-args: |
+            -v
+          pytest-compare-args: |
+            --benchmark-compare-fail=median:5%
+            --benchmark-min-rounds=300
+          container-name: ${{ env.TEST_CONTAINER_NAME }}
+      - name: Benchmark res2net
+        timeout-minutes: 20
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'benchmark' && matrix.device == 'cuda' }}
+        uses: ./get-oneflow/pytest-benchmark
+        with:
+          pytest-script: ${{ env.FLOW_VISION_SRC }}/benchmark/test_res2net.py
+          benchmark-id: 1-gpu-res2net
+          pytest-args: |
+            -v
+          pytest-compare-args: |
+            --benchmark-compare-fail=median:5%
+            --benchmark-min-rounds=300
+          container-name: ${{ env.TEST_CONTAINER_NAME }}
+      - name: Benchmark squeezenet
+        timeout-minutes: 20
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'benchmark' && matrix.device == 'cuda' }}
+        uses: ./get-oneflow/pytest-benchmark
+        with:
+          pytest-script: ${{ env.FLOW_VISION_SRC }}/benchmark/test_squeezenet.py
+          benchmark-id: 1-gpu-squeezenet
+          pytest-args: |
+            -v
+          pytest-compare-args: |
+            --benchmark-compare-fail=median:5%
+            --benchmark-min-rounds=300
+          container-name: ${{ env.TEST_CONTAINER_NAME }}
+      - name: Benchmark shufflenet
+        timeout-minutes: 20
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'benchmark' && matrix.device == 'cuda' }}
+        uses: ./get-oneflow/pytest-benchmark
+        with:
+          pytest-script: ${{ env.FLOW_VISION_SRC }}/benchmark/test_shufflenet.py
+          benchmark-id: 1-gpu-shufflenet
+          pytest-args: |
+            -v
+          pytest-compare-args: |
+            --benchmark-compare-fail=median:5%
+            --benchmark-min-rounds=300
+          container-name: ${{ env.TEST_CONTAINER_NAME }}
+      - name: Benchmark rexnet
+        timeout-minutes: 20
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'benchmark' && matrix.device == 'cuda' }}
+        uses: ./get-oneflow/pytest-benchmark
+        with:
+          pytest-script: ${{ env.FLOW_VISION_SRC }}/benchmark/test_rexnet.py
+          benchmark-id: 1-gpu-rexnet
+          pytest-args: |
+            -v
+          pytest-compare-args: |
+            --benchmark-compare-fail=median:5%
+            --benchmark-min-rounds=300
+          container-name: ${{ env.TEST_CONTAINER_NAME }}
+      - name: Benchmark mobilenet
+        timeout-minutes: 20
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'benchmark' && matrix.device == 'cuda' }}
+        uses: ./get-oneflow/pytest-benchmark
+        with:
+          pytest-script: ${{ env.FLOW_VISION_SRC }}/benchmark/test_mobilenet.py
+          benchmark-id: 1-gpu-mobilenet
+          pytest-args: |
+            -v
+          pytest-compare-args: |
+            --benchmark-compare-fail=median:5%
+            --benchmark-min-rounds=300
+          container-name: ${{ env.TEST_CONTAINER_NAME }}
+      - name: Benchmark mnasnet
+        timeout-minutes: 20
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'benchmark' && matrix.device == 'cuda' }}
+        uses: ./get-oneflow/pytest-benchmark
+        with:
+          pytest-script: ${{ env.FLOW_VISION_SRC }}/benchmark/test_mnasnet.py
+          benchmark-id: 1-gpu-mnasnet
+          pytest-args: |
+            -v
+          pytest-compare-args: |
+            --benchmark-compare-fail=median:5%
+            --benchmark-min-rounds=300
+          container-name: ${{ env.TEST_CONTAINER_NAME }}
+      - name: Benchmark inception
+        timeout-minutes: 20
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'benchmark' && matrix.device == 'cuda' }}
+        uses: ./get-oneflow/pytest-benchmark
+        with:
+          pytest-script: ${{ env.FLOW_VISION_SRC }}/benchmark/test_inception.py
+          benchmark-id: 1-gpu-inception
+          pytest-args: |
+            -v
+          pytest-compare-args: |
+            --benchmark-compare-fail=median:5%
+            --benchmark-min-rounds=300
+          container-name: ${{ env.TEST_CONTAINER_NAME }}
+      - name: Benchmark googlenet
+        timeout-minutes: 20
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'benchmark' && matrix.device == 'cuda' }}
+        uses: ./get-oneflow/pytest-benchmark
+        with:
+          pytest-script: ${{ env.FLOW_VISION_SRC }}/benchmark/test_googlenet.py
+          benchmark-id: 1-gpu-googlenet
+          pytest-args: |
+            -v
+          pytest-compare-args: |
+            --benchmark-compare-fail=median:5%
+            --benchmark-min-rounds=300
+          container-name: ${{ env.TEST_CONTAINER_NAME }}
+      - name: Benchmark ghostnet
+        timeout-minutes: 20
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'benchmark' && matrix.device == 'cuda' }}
+        uses: ./get-oneflow/pytest-benchmark
+        with:
+          pytest-script: ${{ env.FLOW_VISION_SRC }}/benchmark/test_ghostnet.py
+          benchmark-id: 1-gpu-ghostnet
+          pytest-args: |
+            -v
+          pytest-compare-args: |
+            --benchmark-compare-fail=median:5%
+            --benchmark-min-rounds=300
+          container-name: ${{ env.TEST_CONTAINER_NAME }}
+      - name: Benchmark densenet
+        timeout-minutes: 20
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'benchmark' && matrix.device == 'cuda' }}
+        uses: ./get-oneflow/pytest-benchmark
+        with:
+          pytest-script: ${{ env.FLOW_VISION_SRC }}/benchmark/test_densenet.py
+          benchmark-id: 1-gpu-densenet
+          pytest-args: |
+            -v
+          pytest-compare-args: |
+            --benchmark-compare-fail=median:5%
+            --benchmark-min-rounds=300
+          container-name: ${{ env.TEST_CONTAINER_NAME }}
+      - name: Benchmark resnet
+        timeout-minutes: 20
+        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'benchmark' && matrix.device == 'cuda' }}
+        uses: ./get-oneflow/pytest-benchmark
+        with:
+          pytest-script: ${{ env.FLOW_VISION_SRC }}/benchmark/test_resnet.py
+          benchmark-id: 1-gpu-resnet
+          pytest-args: |
+            -v
+          pytest-compare-args: |
+            --benchmark-compare-fail=median:5%
+            --benchmark-min-rounds=300
+          container-name: ${{ env.TEST_CONTAINER_NAME }}
+
       - name: Remove container
         timeout-minutes: 45
         if: ${{ always() && contains(matrix.runs-on, 'self-hosted') }}
