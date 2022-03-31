@@ -222,19 +222,6 @@ jobs:
             --benchmark-compare-fail=median:5%
             --benchmark-min-rounds=300
           container-name: ${{ env.TEST_CONTAINER_NAME }}
-      - name: Benchmark poolformer
-        timeout-minutes: 20
-        if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'benchmark' && matrix.device == 'cuda' }}
-        uses: ./get-oneflow/pytest-benchmark
-        with:
-          pytest-script: ${{ env.FLOW_VISION_SRC }}/benchmark/test_poolformer.py
-          benchmark-id: 1-gpu-poolformer
-          pytest-args: |
-            -v
-          pytest-compare-args: |
-            --benchmark-compare-fail=median:5%
-            --benchmark-min-rounds=300
-          container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark res_mlp
         timeout-minutes: 20
         if: ${{ !fromJson(matrix.cache-hit) && matrix.test-type == 'benchmark' && matrix.device == 'cuda' }}
