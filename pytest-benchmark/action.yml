@@ -17,9 +17,6 @@ inputs:
   pytest-args:
     required: true
     description: ""
-  pytest-compare-args:
-    required: true
-    description: ""
 
 runs:
   using: "node12"

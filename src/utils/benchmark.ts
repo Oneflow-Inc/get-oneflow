@@ -179,7 +179,6 @@ export async function benchmarkWithPytest(): Promise<void> {
   const pyTestScript = util.getPathInput('pytest-script')
   const benchmarkId = core.getInput('benchmark-id')
   let pytestArgs = core.getMultilineInput('pytest-args')
-  const pytestCompareArgs = core.getMultilineInput('pytest-compare-args')
   const containerName = core.getInput('container-name')
 
   const oss = OssStorage.getInstance()
@@ -222,7 +221,6 @@ export async function benchmarkWithPytest(): Promise<void> {
     )
 
   await exec.exec('mkdir', ['-p', cache_dir])
-  let test_result = 0
   pytestArgs = pytestArgs.concat([
     '-v',
     `--benchmark-json=${jsonPath}`,
@@ -232,18 +230,13 @@ export async function benchmarkWithPytest(): Promise<void> {
     `--benchmark-warmup=on`,
     `--benchmark-histogram=${histogramPrefix}`
   ])
-  if (await oss.pull(ossHistoricalBestJSONPath, bestInHistoryJSONPath)) {
-    test_result = await pytest(
-      pytestArgs.concat(pytestCompareArgs).concat([pyTestScript]),
-      {ignoreReturnCode: true}
-    )
-  } else {
-    test_result = await pytest(pytestArgs.concat([pyTestScript]), {
-      ignoreReturnCode: true
-    })
+  if (!(await oss.pull(ossHistoricalBestJSONPath, bestInHistoryJSONPath))) {
     core.warning(`saving best record for benchmark: ${benchmarkId} `)
     await oss.push(ossHistoricalBestJSONPath, jsonPath)
   }
+  const test_result = await pytest(pytestArgs.concat([pyTestScript]), {
+    ignoreReturnCode: true
+  })
   for (const file of fs.readdirSync(cache_dir)) {
     core.info(`${file}`)
     if (file.endsWith('.svg')) {
