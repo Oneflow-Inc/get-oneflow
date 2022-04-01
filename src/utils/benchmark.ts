@@ -4,6 +4,7 @@ import * as core from '@actions/core'
 import OSS from 'ali-oss'
 import * as path from 'path'
 import * as util from './util'
+import {ExecOptions} from '@actions/exec/lib/interfaces'
 
 class OssStorage {
   private static instance: OssStorage
@@ -188,16 +189,23 @@ export async function benchmarkWithPytest(): Promise<void> {
   const ossHistoricalBestJSONPath = `${gh.context.repo.owner}/${gh.context.repo.repo}/best/${benchmarkId}.json`
   const ossRunPath = `${gh.context.repo.owner}/${gh.context.repo.repo}/pr/${gh.context.issue.number}/commit/${gh.context.sha}/run/${gh.context.runId}`
   const ossRunJSONPath = `${ossRunPath}/${benchmarkId}.json`
-  const ossRunHistogramPath = `${ossRunPath}/${benchmarkId}.svg`
-  const dockerExec = async (args: string[]): Promise<number> =>
+  const ossRunHistogramPathPrefix = `${ossRunPath}/${benchmarkId}`
+  const ossRunHistogramPath = `${ossRunHistogramPathPrefix}.svg`
+  const dockerExec = async (
+    args: string[],
+    options?: ExecOptions
+  ): Promise<number> =>
     await exec.exec(
       'docker',
       ['exec', '-w', process.cwd(), containerName].concat(args),
-      {ignoreReturnCode: true}
+      options
     )
 
   await exec.exec('nvidia-smi', [])
-  const pytest = async (args: string[]): Promise<number> =>
+  const pytest = async (
+    args: string[],
+    options?: ExecOptions
+  ): Promise<number> =>
     await dockerExec(
       [
         'python3',
@@ -210,7 +218,8 @@ export async function benchmarkWithPytest(): Promise<void> {
         '--max-worker-restart=0',
         '-x',
         '--capture=sys'
-      ].concat(args)
+      ].concat(args),
+      options
     )
 
   await exec.exec('mkdir', ['-p', cache_dir])
@@ -224,15 +233,17 @@ export async function benchmarkWithPytest(): Promise<void> {
         `--benchmark-compare=best`,
         '--benchmark-disable-gc',
         `--benchmark-warmup=on`,
-        `--benchmark-histogram=${histogramPath}`,
+        `--benchmark-histogram=${ossRunHistogramPathPrefix}`,
         pyTestScript
       ]
         .concat(pytestArgs)
-        .concat(pytestCompareArgs)
+        .concat(pytestCompareArgs),
+      {ignoreReturnCode: true}
     )
   } else {
     test_result = await pytest(
-      ['-v', `--benchmark-json=${jsonPath}`, pyTestScript].concat(pytestArgs)
+      ['-v', `--benchmark-json=${jsonPath}`, pyTestScript].concat(pytestArgs),
+      {ignoreReturnCode: true}
     )
     core.warning(`saving best record for benchmark: ${benchmarkId} `)
     await oss.push(ossHistoricalBestJSONPath, jsonPath)
