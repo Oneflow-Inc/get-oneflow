@@ -186,7 +186,7 @@ export async function benchmarkWithPytest(): Promise<void> {
   const cache_dir = `benchmark_result/${benchmarkId}`
   const jsonPath = path.join(cache_dir, 'result.json')
   const bestInHistoryJSONPath = path.join(cache_dir, 'best.json')
-  const histogramPrefix = path.join(cache_dir, 'histogram')
+  const histogramPrefix = path.join(cache_dir, benchmarkId)
   const ossHistoricalBestJSONPath = `${gh.context.repo.owner}/${gh.context.repo.repo}/best/${benchmarkId}.json`
   const ossRunPath = `${gh.context.repo.owner}/${gh.context.repo.repo}/pr/${gh.context.issue.number}/commit/${gh.context.sha}/run/${gh.context.runId}`
   const ossRunJSONPath = `${ossRunPath}/${benchmarkId}.json`
