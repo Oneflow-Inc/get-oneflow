@@ -1,6 +1,7 @@
 import * as gh from '@actions/github'
 import * as exec from '@actions/exec'
 import * as core from '@actions/core'
+import * as fs from 'fs'
 import OSS from 'ali-oss'
 import * as path from 'path'
 import * as util from './util'
@@ -247,6 +248,9 @@ export async function benchmarkWithPytest(): Promise<void> {
     )
     core.warning(`saving best record for benchmark: ${benchmarkId} `)
     await oss.push(ossHistoricalBestJSONPath, jsonPath)
+  }
+  for (const file of fs.readdirSync(cache_dir)) {
+    core.info(`${file}`)
   }
   await oss.push(ossRunHistogramPath, histogramPath)
   await oss.push(ossRunJSONPath, jsonPath)
