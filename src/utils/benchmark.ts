@@ -194,14 +194,15 @@ export async function benchmarkWithPytest(): Promise<void> {
   const ossRunPath = `${gh.context.repo.owner}/${gh.context.repo.repo}/pr/${gh.context.issue.number}/commit/${gh.context.sha}/run/${gh.context.runId}`
   const ossRunJSONPath = `${ossRunPath}/${benchmarkId}.json`
   const ossRunHistogramPath = `${ossRunPath}/${benchmarkId}.svg`
-  const dockerExec = async (args: string[]): Promise<void> => {
+  const dockerExec = async (args: string[]): Promise<number> =>
     await exec.exec(
       'docker',
-      ['exec', '-w', process.cwd(), containerName].concat(args)
+      ['exec', '-w', process.cwd(), containerName].concat(args),
+      {ignoreReturnCode: true}
     )
-  }
+
   await exec.exec('nvidia-smi', [])
-  const pytest = async (args: string[]): Promise<void> => {
+  const pytest = async (args: string[]): Promise<number> =>
     await dockerExec(
       [
         'python3',
@@ -216,11 +217,11 @@ export async function benchmarkWithPytest(): Promise<void> {
         '--capture=sys'
       ].concat(args)
     )
-  }
 
   await exec.exec('mkdir', ['-p', cache_dir])
+  let test_result = 0
   if (await oss.pull(ossHistoricalBestJSONPath, bestInHistoryJSONPath)) {
-    await pytest(
+    test_result = await pytest(
       [
         '-v',
         `--benchmark-json=${jsonPath}`,
@@ -235,7 +236,7 @@ export async function benchmarkWithPytest(): Promise<void> {
         .concat(pytestCompareArgs)
     )
   } else {
-    await pytest(
+    test_result = await pytest(
       ['-v', `--benchmark-json=${jsonPath}`, pyTestScript].concat(pytestArgs)
     )
     core.warning(`saving best record for benchmark: ${benchmarkId} `)
@@ -243,4 +244,7 @@ export async function benchmarkWithPytest(): Promise<void> {
   }
   await oss.push(ossRunHistogramPath, histogramPath)
   await oss.push(ossRunJSONPath, jsonPath)
+  if (test_result !== 0) {
+    throw new Error('pytest failed')
+  }
 }
