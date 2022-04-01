@@ -230,13 +230,19 @@ export async function benchmarkWithPytest(): Promise<void> {
     `--benchmark-warmup=on`,
     `--benchmark-histogram=${histogramPrefix}`
   ])
-  if (!(await oss.pull(ossHistoricalBestJSONPath, bestInHistoryJSONPath))) {
+  const hasBest = await oss.pull(
+    ossHistoricalBestJSONPath,
+    bestInHistoryJSONPath
+  )
+  if (!hasBest) {
     core.warning(`saving best record for benchmark: ${benchmarkId} `)
-    await oss.push(ossHistoricalBestJSONPath, jsonPath)
   }
   const test_result = await pytest(pytestArgs.concat([pyTestScript]), {
     ignoreReturnCode: true
   })
+  if (!hasBest) {
+    await oss.push(ossHistoricalBestJSONPath, jsonPath)
+  }
   for (const file of fs.readdirSync(cache_dir)) {
     core.info(`${file}`)
     if (file.endsWith('.svg')) {
