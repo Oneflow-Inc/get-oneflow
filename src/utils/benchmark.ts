@@ -225,7 +225,6 @@ export async function benchmarkWithPytest(): Promise<void> {
     '-v',
     `--benchmark-json=${jsonPath}`,
     `--benchmark-storage=${cache_dir}`,
-    `--benchmark-compare=best`,
     '--benchmark-disable-gc',
     `--benchmark-warmup=on`,
     `--benchmark-histogram=${histogramPrefix}`
@@ -234,6 +233,9 @@ export async function benchmarkWithPytest(): Promise<void> {
     ossHistoricalBestJSONPath,
     bestInHistoryJSONPath
   )
+  if (hasBest) {
+    pytestArgs.concat([`--benchmark-compare=best`])
+  }
   const test_result = await pytest(pytestArgs.concat([pyTestScript]), {
     ignoreReturnCode: true
   })
