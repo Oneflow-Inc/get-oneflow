@@ -188,8 +188,11 @@ export async function benchmarkWithPytest(): Promise<void> {
   const cache_dir = `benchmark_result/${benchmarkId}`
   const jsonPath = path.join(cache_dir, 'result.json')
   const bestInHistoryJSONPath = path.join(cache_dir, 'best.json')
+  const histogramPath = path.join(cache_dir, 'histogram.svg')
   const ossHistoricalBestJSONPath = `${gh.context.repo.owner}/${gh.context.repo.repo}/best/${benchmarkId}.json`
-  const ossPRJSONPath = `${gh.context.repo.owner}/${gh.context.repo.repo}/pr/${gh.context.issue.number}/commit/${gh.context.sha}/run/${gh.context.runId}/${benchmarkId}.json`
+  const ossRunPath = `${gh.context.repo.owner}/${gh.context.repo.repo}/pr/${gh.context.issue.number}/commit/${gh.context.sha}/run/${gh.context.runId}`
+  const ossRunJSONPath = `${ossRunPath}/${benchmarkId}.json`
+  const ossRunHistogramPath = `${ossRunPath}/${benchmarkId}.svg`
   const dockerExec = async (args: string[]): Promise<void> => {
     await exec.exec(
       'docker',
@@ -224,6 +227,7 @@ export async function benchmarkWithPytest(): Promise<void> {
         `--benchmark-compare=best`,
         '--benchmark-disable-gc',
         `--benchmark-warmup=on`,
+        `--benchmark-histogram=${histogramPath}`,
         pyTestScript
       ]
         .concat(pytestArgs)
@@ -236,5 +240,6 @@ export async function benchmarkWithPytest(): Promise<void> {
     core.warning(`saving best record for benchmark: ${benchmarkId} `)
     await oss.push(ossHistoricalBestJSONPath, jsonPath)
   }
-  await oss.push(ossPRJSONPath, jsonPath)
+  await oss.push(ossRunHistogramPath, histogramPath)
+  await oss.push(ossRunJSONPath, jsonPath)
 }
