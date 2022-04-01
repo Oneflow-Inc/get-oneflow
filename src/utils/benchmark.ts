@@ -234,7 +234,9 @@ export async function benchmarkWithPytest(): Promise<void> {
     bestInHistoryJSONPath
   )
   if (hasBest) {
-    pytestArgs.concat([`--benchmark-compare=best`])
+    pytestArgs = pytestArgs.concat([`--benchmark-compare=best`])
+  } else {
+    pytestArgs = pytestArgs.filter(x => !x.includes('benchmark-compare'))
   }
   const test_result = await pytest(pytestArgs.concat([pyTestScript]), {
     ignoreReturnCode: true
