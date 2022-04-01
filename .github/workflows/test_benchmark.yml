@@ -167,8 +167,8 @@ jobs:
           pytest-args: |
             -v
           pytest-compare-args: |
-            --benchmark-compare-fail=median:5%
-            --benchmark-min-rounds=500
+            --benchmark-compare-fail=median:25%
+            --benchmark-min-rounds=100
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark convnext
         timeout-minutes: 20
@@ -180,8 +180,8 @@ jobs:
           pytest-args: |
             -v
           pytest-compare-args: |
-            --benchmark-compare-fail=median:5%
-            --benchmark-min-rounds=500
+            --benchmark-compare-fail=median:25%
+            --benchmark-min-rounds=100
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark mlp_mixer
         timeout-minutes: 20
@@ -193,8 +193,8 @@ jobs:
           pytest-args: |
             -v
           pytest-compare-args: |
-            --benchmark-compare-fail=median:5%
-            --benchmark-min-rounds=500
+            --benchmark-compare-fail=median:25%
+            --benchmark-min-rounds=100
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark cswin
         timeout-minutes: 20
@@ -206,8 +206,8 @@ jobs:
           pytest-args: |
             -v
           pytest-compare-args: |
-            --benchmark-compare-fail=median:5%
-            --benchmark-min-rounds=500
+            --benchmark-compare-fail=median:25%
+            --benchmark-min-rounds=100
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark crossformer
         timeout-minutes: 20
@@ -219,8 +219,8 @@ jobs:
           pytest-args: |
             -v
           pytest-compare-args: |
-            --benchmark-compare-fail=median:5%
-            --benchmark-min-rounds=500
+            --benchmark-compare-fail=median:25%
+            --benchmark-min-rounds=100
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark res_mlp
         timeout-minutes: 20
@@ -232,8 +232,8 @@ jobs:
           pytest-args: |
             -v
           pytest-compare-args: |
-            --benchmark-compare-fail=median:5%
-            --benchmark-min-rounds=500
+            --benchmark-compare-fail=median:25%
+            --benchmark-min-rounds=100
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark uniformer
         timeout-minutes: 20
@@ -245,8 +245,8 @@ jobs:
           pytest-args: |
             -v
           pytest-compare-args: |
-            --benchmark-compare-fail=median:5%
-            --benchmark-min-rounds=500
+            --benchmark-compare-fail=median:25%
+            --benchmark-min-rounds=100
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark res_mlp
         timeout-minutes: 20
@@ -258,8 +258,8 @@ jobs:
           pytest-args: |
             -v
           pytest-compare-args: |
-            --benchmark-compare-fail=median:5%
-            --benchmark-min-rounds=500
+            --benchmark-compare-fail=median:25%
+            --benchmark-min-rounds=100
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark pvt
         timeout-minutes: 20
@@ -271,8 +271,8 @@ jobs:
           pytest-args: |
             -v
           pytest-compare-args: |
-            --benchmark-compare-fail=median:5%
-            --benchmark-min-rounds=500
+            --benchmark-compare-fail=median:25%
+            --benchmark-min-rounds=100
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark vision_transformer
         timeout-minutes: 20
@@ -284,8 +284,8 @@ jobs:
           pytest-args: |
             -v
           pytest-compare-args: |
-            --benchmark-compare-fail=median:5%
-            --benchmark-min-rounds=500
+            --benchmark-compare-fail=median:25%
+            --benchmark-min-rounds=100
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark swin_transformer
         timeout-minutes: 20
@@ -297,8 +297,8 @@ jobs:
           pytest-args: |
             -v
           pytest-compare-args: |
-            --benchmark-compare-fail=median:5%
-            --benchmark-min-rounds=500
+            --benchmark-compare-fail=median:25%
+            --benchmark-min-rounds=100
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark res2net
         timeout-minutes: 20
@@ -310,8 +310,8 @@ jobs:
           pytest-args: |
             -v
           pytest-compare-args: |
-            --benchmark-compare-fail=median:5%
-            --benchmark-min-rounds=500
+            --benchmark-compare-fail=median:25%
+            --benchmark-min-rounds=100
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark squeezenet
         timeout-minutes: 20
@@ -323,8 +323,8 @@ jobs:
           pytest-args: |
             -v
           pytest-compare-args: |
-            --benchmark-compare-fail=median:5%
-            --benchmark-min-rounds=500
+            --benchmark-compare-fail=median:25%
+            --benchmark-min-rounds=100
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark shufflenet
         timeout-minutes: 20
@@ -336,8 +336,8 @@ jobs:
           pytest-args: |
             -v
           pytest-compare-args: |
-            --benchmark-compare-fail=median:5%
-            --benchmark-min-rounds=500
+            --benchmark-compare-fail=median:25%
+            --benchmark-min-rounds=100
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark rexnet
         timeout-minutes: 20
@@ -349,8 +349,8 @@ jobs:
           pytest-args: |
             -v
           pytest-compare-args: |
-            --benchmark-compare-fail=median:5%
-            --benchmark-min-rounds=500
+            --benchmark-compare-fail=median:25%
+            --benchmark-min-rounds=100
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark mobilenet
         timeout-minutes: 20
@@ -362,8 +362,8 @@ jobs:
           pytest-args: |
             -v
           pytest-compare-args: |
-            --benchmark-compare-fail=median:5%
-            --benchmark-min-rounds=500
+            --benchmark-compare-fail=median:25%
+            --benchmark-min-rounds=100
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark mnasnet
         timeout-minutes: 20
@@ -375,8 +375,8 @@ jobs:
           pytest-args: |
             -v
           pytest-compare-args: |
-            --benchmark-compare-fail=median:5%
-            --benchmark-min-rounds=500
+            --benchmark-compare-fail=median:25%
+            --benchmark-min-rounds=100
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark inception
         timeout-minutes: 20
@@ -388,8 +388,8 @@ jobs:
           pytest-args: |
             -v
           pytest-compare-args: |
-            --benchmark-compare-fail=median:5%
-            --benchmark-min-rounds=500
+            --benchmark-compare-fail=median:25%
+            --benchmark-min-rounds=100
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark googlenet
         timeout-minutes: 20
@@ -401,8 +401,8 @@ jobs:
           pytest-args: |
             -v
           pytest-compare-args: |
-            --benchmark-compare-fail=median:5%
-            --benchmark-min-rounds=500
+            --benchmark-compare-fail=median:25%
+            --benchmark-min-rounds=100
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark ghostnet
         timeout-minutes: 20
@@ -414,8 +414,8 @@ jobs:
           pytest-args: |
             -v
           pytest-compare-args: |
-            --benchmark-compare-fail=median:5%
-            --benchmark-min-rounds=500
+            --benchmark-compare-fail=median:25%
+            --benchmark-min-rounds=100
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark densenet
         timeout-minutes: 20
@@ -427,8 +427,8 @@ jobs:
           pytest-args: |
             -v
           pytest-compare-args: |
-            --benchmark-compare-fail=median:5%
-            --benchmark-min-rounds=500
+            --benchmark-compare-fail=median:25%
+            --benchmark-min-rounds=100
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark resnet
         timeout-minutes: 20
@@ -440,8 +440,8 @@ jobs:
           pytest-args: |
             -v
           pytest-compare-args: |
-            --benchmark-compare-fail=median:5%
-            --benchmark-min-rounds=500
+            --benchmark-compare-fail=median:25%
+            --benchmark-min-rounds=100
           container-name: ${{ env.TEST_CONTAINER_NAME }}
 
       - name: Remove container
