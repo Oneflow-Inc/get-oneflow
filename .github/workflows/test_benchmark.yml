@@ -239,7 +239,7 @@ jobs:
           pytest-args: |
             -v
             --benchmark-compare-fail=median:75%
-            --benchmark-min-rounds=300
+            --benchmark-min-rounds=50
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark res_mlp
         timeout-minutes: 20
