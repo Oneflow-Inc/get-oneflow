@@ -187,11 +187,9 @@ export async function benchmarkWithPytest(): Promise<void> {
   const jsonPath = path.join(cache_dir, 'result.json')
   const bestInHistoryJSONPath = path.join(cache_dir, 'best.json')
   const histogramPrefix = path.join(cache_dir, 'histogram')
-  const histogramPath = `${histogramPrefix}.svg`
   const ossHistoricalBestJSONPath = `${gh.context.repo.owner}/${gh.context.repo.repo}/best/${benchmarkId}.json`
   const ossRunPath = `${gh.context.repo.owner}/${gh.context.repo.repo}/pr/${gh.context.issue.number}/commit/${gh.context.sha}/run/${gh.context.runId}`
   const ossRunJSONPath = `${ossRunPath}/${benchmarkId}.json`
-  const ossRunHistogramPath = `${ossRunPath}/${benchmarkId}.svg`
   const dockerExec = async (
     args: string[],
     options?: ExecOptions
@@ -251,8 +249,12 @@ export async function benchmarkWithPytest(): Promise<void> {
   }
   for (const file of fs.readdirSync(cache_dir)) {
     core.info(`${file}`)
+    if (file.endsWith('.svg')) {
+      const histogramPath = `${cache_dir}/${file}`
+      const ossRunHistogramPath = `${ossRunPath}/${file}`
+      await oss.push(ossRunHistogramPath, histogramPath)
+    }
   }
-  await oss.push(ossRunHistogramPath, histogramPath)
   await oss.push(ossRunJSONPath, jsonPath)
   if (test_result !== 0) {
     throw new Error('benchmark failed')
