@@ -33,6 +33,7 @@ class OssStorage {
   async push(remote_path: string, local_path: string): Promise<boolean> {
     try {
       await this.client.put(remote_path, local_path)
+      core.info(`[push] ${remote_path}`)
       return true
     } catch (e) {
       return false
