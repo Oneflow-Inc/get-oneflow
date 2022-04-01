@@ -234,13 +234,11 @@ export async function benchmarkWithPytest(): Promise<void> {
     ossHistoricalBestJSONPath,
     bestInHistoryJSONPath
   )
-  if (!hasBest) {
-    core.warning(`saving best record for benchmark: ${benchmarkId} `)
-  }
   const test_result = await pytest(pytestArgs.concat([pyTestScript]), {
     ignoreReturnCode: true
   })
   if (!hasBest) {
+    core.warning(`saving best record for benchmark: ${benchmarkId} `)
     await oss.push(ossHistoricalBestJSONPath, jsonPath)
   }
   for (const file of fs.readdirSync(cache_dir)) {
