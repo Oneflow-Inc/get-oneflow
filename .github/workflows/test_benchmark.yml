@@ -166,7 +166,7 @@ jobs:
           benchmark-id: 1-gpu-res2net
           pytest-args: |
             -v
-            --benchmark-compare-fail=median:25%
+            --benchmark-compare-fail=median:75%
             --benchmark-min-rounds=300
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark convnext
@@ -178,7 +178,7 @@ jobs:
           benchmark-id: 1-gpu-convnext
           pytest-args: |
             -v
-            --benchmark-compare-fail=median:25%
+            --benchmark-compare-fail=median:75%
             --benchmark-min-rounds=300
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark mlp_mixer
@@ -190,7 +190,7 @@ jobs:
           benchmark-id: 1-gpu-mlp_mixer
           pytest-args: |
             -v
-            --benchmark-compare-fail=median:25%
+            --benchmark-compare-fail=median:75%
             --benchmark-min-rounds=300
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark cswin
@@ -202,7 +202,7 @@ jobs:
           benchmark-id: 1-gpu-cswin
           pytest-args: |
             -v
-            --benchmark-compare-fail=median:25%
+            --benchmark-compare-fail=median:75%
             --benchmark-min-rounds=300
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark crossformer
@@ -214,7 +214,7 @@ jobs:
           benchmark-id: 1-gpu-crossformer
           pytest-args: |
             -v
-            --benchmark-compare-fail=median:25%
+            --benchmark-compare-fail=median:75%
             --benchmark-min-rounds=300
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark res_mlp
@@ -226,7 +226,7 @@ jobs:
           benchmark-id: 1-gpu-res_mlp
           pytest-args: |
             -v
-            --benchmark-compare-fail=median:25%
+            --benchmark-compare-fail=median:75%
             --benchmark-min-rounds=300
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark uniformer
@@ -238,7 +238,7 @@ jobs:
           benchmark-id: 1-gpu-uniformer
           pytest-args: |
             -v
-            --benchmark-compare-fail=median:25%
+            --benchmark-compare-fail=median:75%
             --benchmark-min-rounds=300
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark res_mlp
@@ -250,7 +250,7 @@ jobs:
           benchmark-id: 1-gpu-res_mlp
           pytest-args: |
             -v
-            --benchmark-compare-fail=median:25%
+            --benchmark-compare-fail=median:75%
             --benchmark-min-rounds=300
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark pvt
@@ -262,7 +262,7 @@ jobs:
           benchmark-id: 1-gpu-pvt
           pytest-args: |
             -v
-            --benchmark-compare-fail=median:25%
+            --benchmark-compare-fail=median:75%
             --benchmark-min-rounds=300
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark vision_transformer
@@ -274,7 +274,7 @@ jobs:
           benchmark-id: 1-gpu-vision_transformer
           pytest-args: |
             -v
-            --benchmark-compare-fail=median:25%
+            --benchmark-compare-fail=median:75%
             --benchmark-min-rounds=300
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark swin_transformer
@@ -286,7 +286,7 @@ jobs:
           benchmark-id: 1-gpu-swin_transformer
           pytest-args: |
             -v
-            --benchmark-compare-fail=median:25%
+            --benchmark-compare-fail=median:75%
             --benchmark-min-rounds=300
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark res2net
@@ -298,7 +298,7 @@ jobs:
           benchmark-id: 1-gpu-res2net
           pytest-args: |
             -v
-            --benchmark-compare-fail=median:25%
+            --benchmark-compare-fail=median:75%
             --benchmark-min-rounds=300
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark squeezenet
@@ -310,7 +310,7 @@ jobs:
           benchmark-id: 1-gpu-squeezenet
           pytest-args: |
             -v
-            --benchmark-compare-fail=median:25%
+            --benchmark-compare-fail=median:75%
             --benchmark-min-rounds=300
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark shufflenet
@@ -322,7 +322,7 @@ jobs:
           benchmark-id: 1-gpu-shufflenet
           pytest-args: |
             -v
-            --benchmark-compare-fail=median:25%
+            --benchmark-compare-fail=median:75%
             --benchmark-min-rounds=300
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark rexnet
@@ -334,7 +334,7 @@ jobs:
           benchmark-id: 1-gpu-rexnet
           pytest-args: |
             -v
-            --benchmark-compare-fail=median:25%
+            --benchmark-compare-fail=median:75%
             --benchmark-min-rounds=300
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark mobilenet
@@ -346,7 +346,7 @@ jobs:
           benchmark-id: 1-gpu-mobilenet
           pytest-args: |
             -v
-            --benchmark-compare-fail=median:25%
+            --benchmark-compare-fail=median:75%
             --benchmark-min-rounds=300
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark mnasnet
@@ -358,7 +358,7 @@ jobs:
           benchmark-id: 1-gpu-mnasnet
           pytest-args: |
             -v
-            --benchmark-compare-fail=median:25%
+            --benchmark-compare-fail=median:75%
             --benchmark-min-rounds=300
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark inception
@@ -370,7 +370,7 @@ jobs:
           benchmark-id: 1-gpu-inception
           pytest-args: |
             -v
-            --benchmark-compare-fail=median:25%
+            --benchmark-compare-fail=median:75%
             --benchmark-min-rounds=300
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark googlenet
@@ -382,7 +382,7 @@ jobs:
           benchmark-id: 1-gpu-googlenet
           pytest-args: |
             -v
-            --benchmark-compare-fail=median:25%
+            --benchmark-compare-fail=median:75%
             --benchmark-min-rounds=300
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark ghostnet
@@ -394,7 +394,7 @@ jobs:
           benchmark-id: 1-gpu-ghostnet
           pytest-args: |
             -v
-            --benchmark-compare-fail=median:25%
+            --benchmark-compare-fail=median:75%
             --benchmark-min-rounds=300
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark densenet
@@ -406,7 +406,7 @@ jobs:
           benchmark-id: 1-gpu-densenet
           pytest-args: |
             -v
-            --benchmark-compare-fail=median:25%
+            --benchmark-compare-fail=median:75%
             --benchmark-min-rounds=300
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark resnet
@@ -418,7 +418,7 @@ jobs:
           benchmark-id: 1-gpu-resnet
           pytest-args: |
             -v
-            --benchmark-compare-fail=median:25%
+            --benchmark-compare-fail=median:75%
             --benchmark-min-rounds=300
           container-name: ${{ env.TEST_CONTAINER_NAME }}
 
