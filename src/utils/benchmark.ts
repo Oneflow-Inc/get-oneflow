@@ -30,14 +30,9 @@ class OssStorage {
     return OssStorage.instance
   }
 
-  async push(remote_path: string, local_path: string): Promise<boolean> {
-    try {
-      await this.client.put(remote_path, local_path)
-      core.info(`[push] ${remote_path}`)
-      return true
-    } catch (e) {
-      return false
-    }
+  async push(remote_path: string, local_path: string): Promise<void> {
+    core.info(`[push] ${remote_path}`)
+    await this.client.put(remote_path, local_path)
   }
 
   async pull(remote_path: string, local_path: string): Promise<boolean> {
