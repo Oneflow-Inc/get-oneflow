@@ -225,6 +225,9 @@ export async function benchmarkWithPytest(): Promise<void> {
   let test_result = 0
   pytestArgs = pytestArgs.concat([
     '-v',
+    `--benchmark-json=${jsonPath}`,
+    `--benchmark-storage=${cache_dir}`,
+    `--benchmark-compare=best`,
     '--benchmark-disable-gc',
     `--benchmark-warmup=on`,
     `--benchmark-histogram=${histogramPrefix}`
