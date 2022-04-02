@@ -246,7 +246,7 @@ export async function benchmarkWithPytest(): Promise<void> {
     await oss.push(ossHistoricalBestJSONPath, jsonPath)
   }
   for (const file of fs.readdirSync(cache_dir)) {
-    core.info(`${file}`)
+    core.info(`[file] ${file}`)
     if (file.endsWith('.svg')) {
       const histogramPath = `${cache_dir}/${file}`
       const ossRunHistogramPath = `${ossRunPath}/${file}`
