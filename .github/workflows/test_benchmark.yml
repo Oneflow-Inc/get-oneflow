@@ -250,7 +250,7 @@ jobs:
           benchmark-id: 1-gpu-res_mlp
           pytest-args: |
             -v
-            --benchmark-compare-fail=median:100%
+            --benchmark-compare-fail=median:99%
             --benchmark-min-rounds=300
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark pvt
