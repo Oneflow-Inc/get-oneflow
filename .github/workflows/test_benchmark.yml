@@ -274,7 +274,7 @@ jobs:
           benchmark-id: 1-gpu-vision_transformer
           pytest-args: |
             -v
-            --benchmark-compare-fail=median:75%
+            --benchmark-compare-fail=median:99%
             --benchmark-min-rounds=50
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark swin_transformer
