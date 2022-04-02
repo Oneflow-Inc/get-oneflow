@@ -265,6 +265,6 @@ export async function benchmarkWithPytest(): Promise<void> {
   }
   await oss.push(ossRunJSONPath, jsonPath)
   if (test_result !== 0) {
-    throw new Error('benchmark failed')
+    throw new Error(`benchmark failed, return code: ${test_result}`)
   }
 }
