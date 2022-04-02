@@ -34,6 +34,8 @@ class OssStorage {
 
   async push(remote_path: string, local_path: string): Promise<void> {
     core.info(`[push] ${remote_path}`)
+    const base_url = 'https://oneflow-benchmark.oss-cn-beijing.aliyuncs.com'
+    core.info(`[url] ${base_url}/${remote_path}`)
     await this.client.put(remote_path, local_path)
   }
 
