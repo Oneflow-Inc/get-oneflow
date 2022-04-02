@@ -6,6 +6,7 @@ import OSS from 'ali-oss'
 import * as path from 'path'
 import * as util from './util'
 import {ExecOptions} from '@actions/exec/lib/interfaces'
+import {getOSSCredentials} from './cache'
 
 class OssStorage {
   private static instance: OssStorage
@@ -13,8 +14,8 @@ class OssStorage {
   oss_region = 'oss-cn-beijing'
   oss_entry = 'https://oss-cn-beijing.aliyuncs.com'
   oss_bucket = 'oneflow-benchmark'
-  oss_id = process.env['OSS_ACCESS_KEY_ID'] as string
-  oss_secret = process.env['OSS_ACCESS_KEY_SECRET'] as string
+  oss_id = getOSSCredentials().accessKeyId
+  oss_secret = getOSSCredentials().accessKeySecret
   private constructor() {
     this.client = new OSS({
       region: this.oss_region,
@@ -33,6 +34,12 @@ class OssStorage {
   }
 
   async push(remote_path: string, local_path: string): Promise<void> {
+    if (gh.context.repo.owner !== 'Oneflow-Inc') {
+      core.warning(
+        'Not Oneflow-Inc repo, so skipping benchmarks result uploading due to lack of secrets'
+      )
+      return
+    }
     core.info(`[push] ${remote_path}`)
     const base_url = 'https://oneflow-benchmark.oss-cn-beijing.aliyuncs.com'
     core.info(`[url] ${base_url}/${remote_path}`)
@@ -57,13 +64,14 @@ class OssStorage {
     }
   }
 
-  async copy(dst_path: string, src_path: string): Promise<boolean> {
-    try {
-      await this.client.copy(dst_path, src_path)
-      return true
-    } catch (e) {
-      return false
+  async copy(dst_path: string, src_path: string): Promise<void> {
+    if (gh.context.repo.owner !== 'Oneflow-Inc') {
+      core.warning(
+        'Not Oneflow-Inc repo, so skipping benchmarks best result updating due to lack of secrets'
+      )
+      return
     }
+    await this.client.copy(dst_path, src_path)
   }
 
   async list(remote_path: string): Promise<string[]> {
