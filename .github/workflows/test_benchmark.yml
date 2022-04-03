@@ -262,7 +262,7 @@ jobs:
           benchmark-id: 1-gpu-pvt
           pytest-args: |
             -v
-            --benchmark-compare-fail=median:75%
+            --benchmark-compare-fail=median:100%
             --benchmark-min-rounds=300
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark vision_transformer
