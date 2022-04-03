@@ -275,7 +275,7 @@ jobs:
           pytest-args: |
             -v
             --benchmark-compare-fail=median:99%
-            --benchmark-min-rounds=50
+            --benchmark-min-rounds=100
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark swin_transformer
         timeout-minutes: 20
@@ -287,7 +287,7 @@ jobs:
           pytest-args: |
             -v
             --benchmark-compare-fail=median:75%
-            --benchmark-min-rounds=300
+            --benchmark-min-rounds=100
           container-name: ${{ env.TEST_CONTAINER_NAME }}
       - name: Benchmark res2net
         timeout-minutes: 20
