@@ -397,7 +397,7 @@ jobs:
           benchmark-id: 1-gpu-resnet
           pytest-args: |
             -v
-            --benchmark-min-rounds=300
+            --benchmark-min-rounds=100
           container-name: ${{ env.TEST_CONTAINER_NAME }}
 
       - name: Remove container
