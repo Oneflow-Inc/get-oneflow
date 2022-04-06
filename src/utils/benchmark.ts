@@ -4,7 +4,7 @@ import * as core from '@actions/core'
 import * as fs from 'fs'
 import OSS from 'ali-oss'
 import * as path from 'path'
-import * as util from './util'
+import * as sysutil from 'util'
 import {ExecOptions} from '@actions/exec/lib/interfaces'
 import {getOSSCredentials} from './cache'
 
@@ -185,12 +185,12 @@ export async function updateBenchmarkHistory(
   }
 }
 
-export async function benchmarkWithPytest(): Promise<void> {
-  const pyTestScript = util.getPathInput('pytest-script')
-  const benchmarkId = core.getInput('benchmark-id')
-  let pytestArgs = core.getMultilineInput('pytest-args')
-  const containerName = core.getInput('container-name')
-
+export async function singleBenchmark(
+  pyTestScript: string,
+  benchmarkId: string,
+  pytestArgs: string[],
+  containerName: string
+): Promise<void> {
   const oss = OssStorage.getInstance()
   const cache_dir = `benchmark_result/${benchmarkId}`
   const jsonPath = path.join(cache_dir, 'result.json')
@@ -199,6 +199,7 @@ export async function benchmarkWithPytest(): Promise<void> {
   const ossHistoricalBestJSONPath = `${gh.context.repo.owner}/${gh.context.repo.repo}/best/${benchmarkId}.json`
   const ossRunPath = `${gh.context.repo.owner}/${gh.context.repo.repo}/pr/${gh.context.issue.number}/commit/${gh.context.sha}/run/${gh.context.runId}`
   const ossRunJSONPath = `${ossRunPath}/${benchmarkId}.json`
+
   const dockerExec = async (
     args: string[],
     options?: ExecOptions
@@ -267,4 +268,52 @@ export async function benchmarkWithPytest(): Promise<void> {
   if (test_result !== 0) {
     throw new Error(`benchmark failed, return code: ${test_result}`)
   }
+}
+
+interface collectOutJson {
+  func_name: string
+  file_name: string
+  args: string[]
+}
+
+export async function benchmarkBatch(
+  collectOutputPath: string,
+  containerName: string
+): Promise<void> {
+  const readdir = sysutil.promisify(fs.readdir)
+  const files = await readdir(collectOutputPath)
+  for (const file of files) {
+    const data = fs.readFileSync(path.join(collectOutputPath, file), 'utf8')
+    const config: collectOutJson = JSON.parse(data)
+    await singleBenchmark(
+      `${config.file_name}::${config.func_name}`,
+      `1-gpu-${config.func_name}`,
+      config.args,
+      containerName
+    )
+  }
+}
+
+export async function benchmarkWithPytest(): Promise<void> {
+  const collectPath = core.getInput('collect-path')
+  const containerName = core.getInput('container-name')
+
+  const dockerExec = async (
+    args: string[],
+    options?: ExecOptions
+  ): Promise<number> =>
+    await exec.exec(
+      'docker',
+      ['exec', '-w', process.cwd(), containerName].concat(args),
+      options
+    )
+
+  const collectOutputPath = '.benchmark-collect'
+  await exec.exec('rm', ['-rf', collectOutputPath])
+  await exec.exec('mkdir', ['-p', collectOutputPath])
+  const shellScript = String.raw`python3 -m  pytest -s --collect-only ${collectPath} | grep json | sed "s/'/\\\\\\\"/g" | xargs -d$'\n' -I {}  bash -c "echo "{}`
+  shellScript.replace('.benchmark-collect', collectOutputPath)
+  await dockerExec(['bash', '-c', shellScript])
+
+  await benchmarkBatch(collectOutputPath, containerName)
 }

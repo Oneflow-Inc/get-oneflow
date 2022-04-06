@@ -21,9 +21,7 @@ test(
     if (!process.env['BENCHMARK']) {
       return
     }
-    env.setInput('pytest-script', '~/vision/benchmark/test_alexnet.py')
-    env.setInput('benchmark-id', 'test-benchmark-id')
-    env.setMultilineInput('pytest-args', [])
+    env.setInput('collect-path', '/home/yuhao/vision/benchmark')
     env.setInput('container-name', `test-${os.userInfo().username}`)
     await benchmarkWithPytest()
   },
