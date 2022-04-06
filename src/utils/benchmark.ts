@@ -252,10 +252,6 @@ export async function singleBenchmark(
   const test_result = await pytest(pytestArgs.concat([pyTestScript]), {
     ignoreReturnCode: true
   })
-  if (!hasBest) {
-    core.warning(`saving best record for benchmark: ${benchmarkId} `)
-    await oss.push(ossHistoricalBestJSONPath, jsonPath)
-  }
   for (const file of fs.readdirSync(cache_dir)) {
     core.info(`[file] ${file}`)
     if (file.endsWith('.svg')) {
@@ -267,6 +263,10 @@ export async function singleBenchmark(
   await oss.push(ossRunJSONPath, jsonPath)
   if (test_result !== 0) {
     throw new Error(`benchmark failed, return code: ${test_result}`)
+  }
+  if (!hasBest) {
+    core.warning(`saving best record for benchmark: ${benchmarkId} `)
+    await oss.push(ossHistoricalBestJSONPath, jsonPath)
   }
 }
 
