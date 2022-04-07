@@ -4,7 +4,6 @@ import * as core from '@actions/core'
 import * as fs from 'fs'
 import OSS from 'ali-oss'
 import * as path from 'path'
-import * as sysutil from 'util'
 import {ExecOptions} from '@actions/exec/lib/interfaces'
 import {getOSSCredentials} from './cache'
 
@@ -277,14 +276,11 @@ interface collectOutJson {
 }
 
 export async function benchmarkBatch(
-  collectOutputPath: string,
+  collectOutputJsons: string[],
   containerName: string
 ): Promise<void> {
-  const readdir = sysutil.promisify(fs.readdir)
-  const files = await readdir(collectOutputPath)
-  for (const file of files) {
-    const data = fs.readFileSync(path.join(collectOutputPath, file), 'utf8')
-    const config: collectOutJson = JSON.parse(data)
+  for (const outputJson of collectOutputJsons) {
+    const config: collectOutJson = JSON.parse(outputJson)
     await singleBenchmark(
       `${config.file_name}::${config.func_name}`,
       `1-gpu-${config.func_name}`,
@@ -295,25 +291,46 @@ export async function benchmarkBatch(
 }
 
 export async function benchmarkWithPytest(): Promise<void> {
+  core.info(`[task] benchmark with pytest`)
   const collectPath = core.getInput('collect-path')
   const containerName = core.getInput('container-name')
 
-  const dockerExec = async (
-    args: string[],
-    options?: ExecOptions
-  ): Promise<number> =>
-    await exec.exec(
-      'docker',
-      ['exec', '-w', process.cwd(), containerName].concat(args),
-      options
-    )
+  core.info(`[task] collect pytest functions in ${collectPath}`)
+  const output = await exec.getExecOutput(
+    'docker',
+    [
+      'exec',
+      '-w',
+      process.cwd(),
+      containerName,
+      'python3',
+      '-m',
+      'pytest',
+      '-s',
+      '--collect-only',
+      collectPath
+    ],
+    {silent: true}
+  )
 
-  const collectOutputPath = '.benchmark-collect'
-  await exec.exec('rm', ['-rf', collectOutputPath])
-  await exec.exec('mkdir', ['-p', collectOutputPath])
-  const shellScript = String.raw`python3 -m  pytest -s --collect-only ${collectPath} | grep json | sed "s/'/\\\\\\\"/g" | xargs -d$'\n' -I {}  bash -c "echo "{}`
-  shellScript.replace('.benchmark-collect', collectOutputPath)
-  await dockerExec(['bash', '-c', shellScript])
+  const lines = output.stdout.split('\n')
+  let realFuctionCount = 0
+  let decoratorFunctionCount = 0
+  const collectOutputJsons = []
 
-  await benchmarkBatch(collectOutputPath, containerName)
+  for (const line of lines) {
+    const decoratorRes = line.match(/^oneflow-benchmark-function::(.*)/)
+    if (line.match(/<Function test/)) realFuctionCount++
+    if (decoratorRes) {
+      decoratorFunctionCount++
+      collectOutputJsons.push(decoratorRes[1])
+    }
+  }
+
+  if (realFuctionCount !== decoratorFunctionCount) {
+    core.error(`[error] decorator fail to cover all test function!`)
+  }
+
+  core.info(`[task] exec pytest functions`)
+  await benchmarkBatch(collectOutputJsons, containerName)
 }
