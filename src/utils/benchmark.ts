@@ -188,7 +188,8 @@ export async function singleBenchmark(
   pyTestScript: string,
   benchmarkId: string,
   pytestArgs: string[],
-  containerName: string
+  containerName: string,
+  debugMode: boolean
 ): Promise<void> {
   const oss = OssStorage.getInstance()
   const cache_dir = `benchmark_result/${benchmarkId}`
@@ -243,7 +244,7 @@ export async function singleBenchmark(
     ossHistoricalBestJSONPath,
     bestInHistoryJSONPath
   )
-  if (hasBest) {
+  if (hasBest && !debugMode) {
     pytestArgs = pytestArgs.concat([`--benchmark-compare=best`])
   } else {
     pytestArgs = pytestArgs.filter(x => !x.includes('benchmark-compare'))
@@ -277,7 +278,8 @@ interface collectOutJson {
 
 export async function benchmarkBatch(
   collectOutputJsons: string[],
-  containerName: string
+  containerName: string,
+  debugMode: boolean
 ): Promise<void> {
   for (const outputJson of collectOutputJsons) {
     const config: collectOutJson = JSON.parse(outputJson)
@@ -285,7 +287,8 @@ export async function benchmarkBatch(
       `${config.file_name}::${config.func_name}`,
       `1-gpu-${config.func_name}`,
       config.args,
-      containerName
+      containerName,
+      debugMode
     )
   }
 }
@@ -294,6 +297,7 @@ export async function benchmarkWithPytest(): Promise<void> {
   core.info(`[task] benchmark with pytest`)
   const collectPath = core.getInput('collect-path')
   const containerName = core.getInput('container-name')
+  const debugMode = core.getInput('debug-mode') === 'true'
 
   core.info(`[task] collect pytest functions in ${collectPath}`)
   const output = await exec.getExecOutput(
@@ -332,5 +336,5 @@ export async function benchmarkWithPytest(): Promise<void> {
   }
 
   core.info(`[task] exec pytest functions`)
-  await benchmarkBatch(collectOutputJsons, containerName)
+  await benchmarkBatch(collectOutputJsons, containerName, debugMode)
 }

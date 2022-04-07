@@ -151,6 +151,7 @@ jobs:
         with:
           collect-path: ${{ env.FLOW_VISION_SRC }}/benchmark
           container-name: ${{ env.TEST_CONTAINER_NAME }}
+          debug-mode: true
 
       - name: Remove container
         timeout-minutes: 45
