@@ -121,6 +121,7 @@ jobs:
             -v $PWD:$PWD \
             -w $PWD \
             -v ${ONEFLOW_TEST_CACHE_DIR}:${ONEFLOW_TEST_CACHE_DIR} \
+            -e CUDA_VISIBLE_DEVICES=1 \
             -e ONEFLOW_TEST_CACHE_DIR=${ONEFLOW_TEST_CACHE_DIR} \
             -e ONEFLOW_TIMEOUT_SECONDS=${{ env.ONEFLOW_TIMEOUT_SECONDS }} \
             -e ONEFLOW_MLIR_ENABLE_ROUND_TRIP=1 \

@@ -263,7 +263,7 @@ export async function singleBenchmark(
   if (test_result !== 0) {
     throw new Error(`benchmark failed, return code: ${test_result}`)
   }
-  if (!hasBest) {
+  if (!hasBest && test_result === 0) {
     core.warning(`saving best record for benchmark: ${benchmarkId} `)
     await oss.push(ossHistoricalBestJSONPath, jsonPath)
   }
