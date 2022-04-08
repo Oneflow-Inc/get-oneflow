@@ -250,9 +250,9 @@ async function retryWhile(
   histogramPrefix: string
 ): Promise<boolean> {
   let sucess = false
-  let time = config.retry?.times ? config.retry.times + 1 : 1
+  const time = config.retry?.times ? config.retry.times + 1 : 1
   let index = 1
-  while (!sucess && time > 0) {
+  while (!sucess && index <= time) {
     core.info(`[exec] ${index++}:${time} ${pyTestScript}`)
     await pytest(
       pyTestScript,
@@ -287,7 +287,6 @@ async function retryWhile(
       )
       sucess = false
     }
-    time--
   }
   return sucess
 }
