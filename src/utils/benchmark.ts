@@ -4,7 +4,6 @@ import * as core from '@actions/core'
 import * as fs from 'fs'
 import OSS from 'ali-oss'
 import * as path from 'path'
-import {ExecOptions} from '@actions/exec/lib/interfaces'
 import {getOSSCredentials} from './cache'
 
 class OssStorage {
@@ -188,98 +187,208 @@ export async function updateBenchmarkHistory(
     await oss.copy(ossHistoricalBestJSONPath, name)
   }
 }
+interface collectOutJson {
+  func_name: string
+  file_name: string
+  compare: {
+    median: string | null
+    max: string | null
+    min: string | null
+    mean: string | null
+  } | null
+  retry: {
+    iqr_outliers: number | null
+    stddev_outliers: number | null
+    times: number | null
+  } | null
+}
+
+const pytest = async (
+  pyTestScript: string,
+  containerName: string,
+  jsonPath: string,
+  cachePath: string,
+  histogramPrefix: string
+): Promise<number> =>
+  await exec.exec(
+    'docker',
+    [
+      'exec',
+      '-w',
+      process.cwd(),
+      containerName,
+      'python3',
+      '-m',
+      'pytest',
+      '-p',
+      'no:randomly',
+      '-p',
+      'no:cacheprovider',
+      '--max-worker-restart=0',
+      '-x',
+      '--capture=sys',
+      '-v',
+      `--benchmark-json=${jsonPath}`,
+      `--benchmark-storage=${cachePath}`,
+      '--benchmark-disable-gc',
+      `--benchmark-warmup=on`,
+      `--benchmark-histogram=${histogramPrefix}`,
+      '--benchmark-min-rounds=80',
+      pyTestScript
+    ],
+    {
+      ignoreReturnCode: true
+    }
+  )
+
+async function retryWhile(
+  config: collectOutJson,
+  jsonPath: string,
+  pyTestScript: string,
+  containerName: string,
+  cachePath: string,
+  histogramPrefix: string
+): Promise<boolean> {
+  let sucess = false
+  let time = config.retry?.times ? config.retry.times + 1 : 1
+  let index = 1
+  while (!sucess && time > 0) {
+    core.info(`[exec] ${index++}:${time} ${pyTestScript}`)
+    await pytest(
+      pyTestScript,
+      containerName,
+      jsonPath,
+      cachePath,
+      histogramPrefix
+    )
+
+    const outputContent: logJSON = JSON.parse(
+      fs.readFileSync(jsonPath).toString()
+    )
+
+    sucess = true
+    if (
+      config.retry?.iqr_outliers &&
+      outputContent.benchmarks[0].stats.iqr_outliers >
+        config.retry?.iqr_outliers
+    ) {
+      core.info(
+        `[outliers] ${outputContent.benchmarks[0].stats.iqr_outliers}(iqr_outliers) > ${config.retry?.iqr_outliers}`
+      )
+      sucess = false
+    }
+    if (
+      config.retry?.stddev_outliers &&
+      outputContent.benchmarks[0].stats.stddev_outliers >
+        config.retry?.stddev_outliers
+    ) {
+      core.info(
+        `[outliers] ${outputContent.benchmarks[0].stats.stddev_outliers}(stddev_outliers) > ${config.retry?.stddev_outliers}`
+      )
+      sucess = false
+    }
+    time--
+  }
+  return sucess
+}
+
+function compareOutput(
+  jsonPath: string,
+  bestInHistoryJSONPath: string,
+  config: collectOutJson
+): boolean {
+  core.info(`[compare] ${jsonPath} with ${bestInHistoryJSONPath}`)
+  const bestJSON: logJSON = JSON.parse(
+    fs.readFileSync(bestInHistoryJSONPath).toString()
+  )
+  const best_benchmark = bestJSON.benchmarks
+  const cmpJSON: logJSON = JSON.parse(fs.readFileSync(jsonPath).toString())
+  const cmp_benchmark = cmpJSON.benchmarks
+  if (best_benchmark.length !== cmp_benchmark.length) return false
+
+  const best_data = best_benchmark[0].stats
+  const cmp_data = cmp_benchmark[0].stats
+  if (best_benchmark[0].name !== cmp_benchmark[0].name) return false
+
+  if (config.compare?.median?.endsWith('%')) {
+    const settings = config.compare.median
+    const percent = parseInt(settings.substring(0, settings.length - 1))
+    if (
+      (cmp_data.median - best_data.median) / best_data.median >=
+      percent / 100
+    )
+      return false
+  }
+  if (config.compare?.max?.endsWith('%')) {
+    const settings = config.compare.max
+    const percent = parseInt(settings.substring(0, settings.length - 1))
+    if ((cmp_data.max - best_data.max) / best_data.max >= percent / 100)
+      return false
+  }
+  if (config.compare?.min?.endsWith('%')) {
+    const settings = config.compare.min
+    const percent = parseInt(settings.substring(0, settings.length - 1))
+    if ((cmp_data.min - best_data.min) / best_data.min >= percent / 100)
+      return false
+  }
+  if (config.compare?.mean?.endsWith('%')) {
+    const settings = config.compare.mean
+    const percent = parseInt(settings.substring(0, settings.length - 1))
+    if ((cmp_data.mean - best_data.mean) / best_data.mean >= percent / 100)
+      return false
+  }
+  return true
+}
 
 export async function singleBenchmark(
   pyTestScript: string,
   benchmarkId: string,
-  pytestArgs: string[],
+  config: collectOutJson,
   containerName: string,
   debugMode: boolean
 ): Promise<void> {
   const oss = OssStorage.getInstance()
-  const cache_dir = `benchmark_result/${benchmarkId}`
-  const jsonPath = path.join(cache_dir, 'result.json')
-  const bestInHistoryJSONPath = path.join(cache_dir, 'best.json')
-  const histogramPrefix = path.join(cache_dir, benchmarkId)
+  const cachePath = `benchmark_result/${benchmarkId}`
+  const jsonPath = path.join(cachePath, 'result.json')
+  const bestInHistoryJSONPath = path.join(cachePath, 'best.json')
+  const histogramPrefix = path.join(cachePath, benchmarkId)
   const ossHistoricalBestJSONPath = `${gh.context.repo.owner}/${gh.context.repo.repo}/best/${benchmarkId}.json`
   const ossRunPath = `${gh.context.repo.owner}/${gh.context.repo.repo}/pr/${gh.context.issue.number}/commit/${gh.context.sha}/run/${gh.context.runId}`
   const ossRunJSONPath = `${ossRunPath}/${benchmarkId}.json`
 
-  const dockerExec = async (
-    args: string[],
-    options?: ExecOptions
-  ): Promise<number> =>
-    await exec.exec(
-      'docker',
-      ['exec', '-w', process.cwd(), containerName].concat(args),
-      options
-    )
-
   await exec.exec('nvidia-smi', [])
-  const pytest = async (
-    args: string[],
-    options?: ExecOptions
-  ): Promise<number> =>
-    await dockerExec(
-      [
-        'python3',
-        '-m',
-        'pytest',
-        '-p',
-        'no:randomly',
-        '-p',
-        'no:cacheprovider',
-        '--max-worker-restart=0',
-        '-x',
-        '--capture=sys'
-      ].concat(args),
-      options
-    )
+  await exec.exec('mkdir', ['-p', cachePath])
 
-  await exec.exec('mkdir', ['-p', cache_dir])
-  pytestArgs = pytestArgs.concat([
-    '-v',
-    `--benchmark-json=${jsonPath}`,
-    `--benchmark-storage=${cache_dir}`,
-    '--benchmark-disable-gc',
-    `--benchmark-warmup=on`,
-    `--benchmark-histogram=${histogramPrefix}`,
-    '--benchmark-min-rounds=80'
-  ])
-  const hasBest = await oss.pull(
-    ossHistoricalBestJSONPath,
-    bestInHistoryJSONPath
+  let hasBest = await oss.pull(ossHistoricalBestJSONPath, bestInHistoryJSONPath)
+  if (debugMode) hasBest = false
+
+  const sucess = await retryWhile(
+    config,
+    jsonPath,
+    pyTestScript,
+    containerName,
+    cachePath,
+    histogramPrefix
   )
-  if (hasBest && !debugMode) {
-    pytestArgs = pytestArgs.concat([`--benchmark-compare=best`])
-  } else {
-    pytestArgs = pytestArgs.filter(x => !x.includes('benchmark-compare'))
+  if (!sucess) {
+    core.error(`[task] ${pyTestScript} is satisfied the outliers`)
   }
-  const test_result = await pytest(pytestArgs.concat([pyTestScript]), {
-    ignoreReturnCode: true
-  })
-  for (const file of fs.readdirSync(cache_dir)) {
+  for (const file of fs.readdirSync(cachePath)) {
     core.info(`[file] ${file}`)
     if (file.endsWith('.svg')) {
-      const histogramPath = `${cache_dir}/${file}`
+      const histogramPath = `${cachePath}/${file}`
       const ossRunHistogramPath = `${ossRunPath}/${file}`
       await oss.push(ossRunHistogramPath, histogramPath)
     }
   }
   await oss.push(ossRunJSONPath, jsonPath)
-  if (test_result !== 0) {
-    throw new Error(`benchmark failed, return code: ${test_result}`)
-  }
-  if (!hasBest && test_result === 0) {
-    core.warning(`saving best record for benchmark: ${benchmarkId} `)
-    await oss.push(ossHistoricalBestJSONPath, jsonPath)
-  }
-}
 
-interface collectOutJson {
-  func_name: string
-  file_name: string
-  args: string[]
+  if (hasBest) {
+    const res = compareOutput(jsonPath, bestInHistoryJSONPath, config)
+    if (res) {
+      throw new Error(`benchmark failed`)
+    }
+  }
 }
 
 export async function benchmarkBatch(
@@ -292,7 +401,7 @@ export async function benchmarkBatch(
     await singleBenchmark(
       `${config.file_name}::${config.func_name}`,
       `1-gpu-${config.func_name}`,
-      config.args,
+      config,
       containerName,
       debugMode
     )
