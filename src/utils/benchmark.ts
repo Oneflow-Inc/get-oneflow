@@ -177,6 +177,7 @@ export async function updateBenchmarkHistory(
   const lastCommitHistoryList = await oss.list(ossPRBESTJSONDir)
   for (const name of lastCommitHistoryList) {
     const benchmarkId = name.split('/').pop()
+    if (!benchmarkId?.match(/\.json/)) continue
     core.info(`[compare]: - ${benchmarkId}`)
 
     const ossHistoricalBestJSONPath = `${gh.context.repo.owner}/${gh.context.repo.repo}/best/${benchmarkId}`
