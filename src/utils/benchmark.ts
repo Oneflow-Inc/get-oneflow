@@ -243,7 +243,8 @@ export async function singleBenchmark(
     `--benchmark-storage=${cache_dir}`,
     '--benchmark-disable-gc',
     `--benchmark-warmup=on`,
-    `--benchmark-histogram=${histogramPrefix}`
+    `--benchmark-histogram=${histogramPrefix}`,
+    '--benchmark-min-rounds=80'
   ])
   const hasBest = await oss.pull(
     ossHistoricalBestJSONPath,
