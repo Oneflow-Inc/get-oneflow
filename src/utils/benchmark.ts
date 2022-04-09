@@ -199,6 +199,8 @@ interface collectOutJson {
   retry: {
     iqr_outliers: number | null
     stddev_outliers: number | null
+    iqr: number | null
+    stddev: number | null
     times: number | null
   } | null
 }
@@ -233,11 +235,12 @@ const pytest = async (
       '--benchmark-disable-gc',
       `--benchmark-warmup=on`,
       `--benchmark-histogram=${histogramPrefix}`,
-      '--benchmark-min-rounds=80',
+      '--benchmark-min-rounds=40',
       pyTestScript
     ],
     {
-      ignoreReturnCode: true
+      ignoreReturnCode: true,
+      silent: true
     }
   )
 
@@ -307,6 +310,8 @@ function compareOutput(
 
   const best_data = best_benchmark[0].stats
   const cmp_data = cmp_benchmark[0].stats
+  core.info(`[compare] - best stats ${best_data}`)
+  core.info(`[compare] - cmp stats ${cmp_data}`)
   if (best_benchmark[0].name !== cmp_benchmark[0].name) return false
 
   if (config.compare?.median?.endsWith('%')) {
@@ -370,7 +375,9 @@ export async function singleBenchmark(
     histogramPrefix
   )
   if (!sucess) {
-    core.error(`[task] ${pyTestScript} is satisfied the outliers`)
+    throw new Error(`[retry] task ${pyTestScript} benchmark failed`)
+  } else {
+    core.info(`[task]  ${pyTestScript} benchmark sucess`)
   }
   for (const file of fs.readdirSync(cachePath)) {
     core.info(`[file] ${file}`)
@@ -384,7 +391,7 @@ export async function singleBenchmark(
 
   if (hasBest) {
     const res = compareOutput(jsonPath, bestInHistoryJSONPath, config)
-    if (res) {
+    if (!res) {
       throw new Error(`benchmark failed`)
     }
   }
