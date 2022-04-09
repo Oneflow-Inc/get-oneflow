@@ -674,3 +674,73 @@
     "stddev": 1.191030541726902,
     "median": 0.7052886296825059
 }
+{
+    "pyTestScript": "/home/yuhao/vision/benchmark/test_uniformer.py::test_uniformer_small_batch_size1",
+    "stddev": 1.120775220467657,
+    "median": 24.46948021132004
+}
+{
+    "pyTestScript": "/home/yuhao/vision/benchmark/test_uniformer.py::test_uniformer_small_batch_size2",
+    "stddev": 1.21793820556922,
+    "median": 0.6945346449034923
+}
+{
+    "pyTestScript": "/home/yuhao/vision/benchmark/test_uniformer.py::test_uniformer_small_batch_size4",
+    "stddev": 0.8574517852675678,
+    "median": 23.531406416885954
+}
+{
+    "pyTestScript": "/home/yuhao/vision/benchmark/test_uniformer.py::test_uniformer_small_batch_size8",
+    "stddev": 26.799215642057344,
+    "median": 1.786217840169629
+}
+{
+    "pyTestScript": "/home/yuhao/vision/benchmark/test_uniformer.py::test_uniformer_small_batch_size16",
+    "stddev": 1.9464330951841853,
+    "median": 0.0768680389505602
+}
+{
+    "pyTestScript": "/home/yuhao/vision/benchmark/test_uniformer.py::test_uniformer_small_plus_batch_size1",
+    "stddev": 11.728680454382665,
+    "median": 26.51093060551577
+}
+{
+    "pyTestScript": "/home/yuhao/vision/benchmark/test_uniformer.py::test_uniformer_small_plus_batch_size2",
+    "stddev": 10.668921301258862,
+    "median": 1.8047879449222748
+}
+{
+    "pyTestScript": "/home/yuhao/vision/benchmark/test_uniformer.py::test_uniformer_small_plus_batch_size4",
+    "stddev": 7.1672097403548465,
+    "median": 4.105616833224899
+}
+{
+    "pyTestScript": "/home/yuhao/vision/benchmark/test_uniformer.py::test_uniformer_small_plus_batch_size8",
+    "stddev": 2.2231050358171953,
+    "median": 3.8673626313313685
+}
+{
+    "pyTestScript": "/home/yuhao/vision/benchmark/test_uniformer.py::test_uniformer_small_plus_batch_size16",
+    "stddev": 0.4609074414749004,
+    "median": 1.8152665456353894
+}
+{
+    "pyTestScript": "/home/yuhao/vision/benchmark/test_vision_transformer.py::test_vit_tiny_patch16_224_batch_size1",
+    "stddev": 1.2762770050104866,
+    "median": 30.823164348801306
+}
+{
+    "pyTestScript": "/home/yuhao/vision/benchmark/test_vision_transformer.py::test_vit_tiny_patch16_224_batch_size2",
+    "stddev": 1.0555554165429282,
+    "median": 23.789246073020188
+}
+{
+    "pyTestScript": "/home/yuhao/vision/benchmark/test_vision_transformer.py::test_vit_tiny_patch16_224_batch_size4",
+    "stddev": 1.0311161448476704,
+    "median": 0.6753542652934241
+}
+{
+    "pyTestScript": "/home/yuhao/vision/benchmark/test_vision_transformer.py::test_vit_tiny_patch16_224_batch_size8",
+    "stddev": 1.0966324451510523,
+    "median": 30.938510640553922
+}
