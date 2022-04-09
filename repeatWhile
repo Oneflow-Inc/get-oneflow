@@ -744,3 +744,58 @@
     "stddev": 1.0966324451510523,
     "median": 30.938510640553922
 }
+{
+    "pyTestScript": "/home/yuhao/vision/benchmark/test_vision_transformer.py::test_vit_tiny_patch16_224_batch_size16",
+    "stddev": 0.2705098495862658,
+    "median": 0.30492553746154555
+}
+{
+    "pyTestScript": "/home/yuhao/vision/benchmark/test_vision_transformer.py::test_vit_small_patch16_224_batch_size1",
+    "stddev": 0.4572619391876424,
+    "median": 0.44419850001412803
+}
+{
+    "pyTestScript": "/home/yuhao/vision/benchmark/test_vision_transformer.py::test_vit_small_patch16_224_batch_size2",
+    "stddev": 0.8467097847277,
+    "median": 23.472141204243627
+}
+{
+    "pyTestScript": "/home/yuhao/vision/benchmark/test_vision_transformer.py::test_vit_small_patch16_224_batch_size4",
+    "stddev": 11.886305635651226,
+    "median": 11.278789877274322
+}
+{
+    "pyTestScript": "/home/yuhao/vision/benchmark/test_vision_transformer.py::test_vit_small_patch16_224_batch_size8",
+    "stddev": 11.566519838652242,
+    "median": 25.620332549659828
+}
+{
+    "pyTestScript": "/home/yuhao/vision/benchmark/test_vision_transformer.py::test_vit_small_patch16_224_batch_size16",
+    "stddev": 0.5244408717841897,
+    "median": 0.2758402738515815
+}
+{
+    "pyTestScript": "/home/yuhao/vision/benchmark/test_vision_transformer.py::test_vit_base_patch16_224_batch_size1",
+    "stddev": 2.271630517029486,
+    "median": 58.03328910332415
+}
+{
+    "pyTestScript": "/home/yuhao/vision/benchmark/test_vision_transformer.py::test_vit_base_patch16_224_batch_size2",
+    "stddev": 4.006335864800768,
+    "median": 1.1667920771951417
+}
+{
+    "pyTestScript": "/home/yuhao/vision/benchmark/test_vision_transformer.py::test_vit_base_patch16_224_batch_size4",
+    "stddev": 0.5033051273267135,
+    "median": 0.7650014906786404
+}
+{
+    "pyTestScript": "/home/yuhao/vision/benchmark/test_vision_transformer.py::test_vit_base_patch16_224_batch_size8",
+    "stddev": 0.5130777981511213,
+    "median": 0.3154753871152573
+}
+{
+    "pyTestScript": "/home/yuhao/vision/benchmark/test_vision_transformer.py::test_vit_base_patch16_224_batch_size16",
+    "stddev": 0.7903331713625014,
+    "median": 0.18729054133086817
+}
