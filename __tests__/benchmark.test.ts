@@ -23,7 +23,7 @@ test(
     }
     env.setInput('collect-path', '/home/yuhao/vision/benchmark')
     env.setInput('container-name', `test-${os.userInfo().username}`)
-    env.setInput('debug-mode', 'fakse')
+    env.setInput('debug-mode', 'true')
     await benchmarkWithPytest()
   },
   MINUTES15

@@ -243,6 +243,50 @@ const pytest = async (
     }
   )
 
+async function repeatWhile(
+  jsonPath: string,
+  pyTestScript: string,
+  containerName: string,
+  cachePath: string,
+  histogramPrefix: string
+): Promise<{pyTestScript: string; stddev: number; median: number}> {
+  let index = 1
+  const time = 5
+
+  const res: {stddev: number; median: number}[] = []
+  while (index <= time) {
+    core.info(`[exec] ${index++}:${time} ${pyTestScript}`)
+    await pytest(
+      pyTestScript,
+      containerName,
+      jsonPath,
+      cachePath,
+      histogramPrefix
+    )
+
+    const outputContent: logJSON = JSON.parse(
+      fs.readFileSync(jsonPath).toString()
+    )
+    const stats = outputContent.benchmarks[0].stats
+
+    core.info(JSON.stringify(stats))
+    res.push({stddev: stats.stddev, median: stats.median})
+  }
+  res.sort(function (
+    a: {stddev: number; median: number},
+    b: {stddev: number; median: number}
+  ): number {
+    return a.stddev - b.stddev
+  })
+
+  const stddev = res[2].stddev
+  const median = (res[0].median - res[1].median) / res[1].median
+  return {
+    pyTestScript,
+    stddev: stddev * 1000,
+    median: (median > 0 ? median : -median) * 100
+  }
+}
 async function retryWhile(
   config: collectOutJson,
   jsonPath: string,
@@ -415,15 +459,32 @@ export async function singleBenchmark(
     bestInHistoryJSONPath
   )
 
-  const sucess = await retryWhile(
-    config,
-    jsonPath,
-    pyTestScript,
-    containerName,
-    cachePath,
-    histogramPrefix
-  )
-  if (!sucess) {
+  let success: boolean
+  if (debugMode) {
+    const log = fs.readFileSync('repeatWhile').toString()
+    const match = log.match(/"pyTestScript": "(.+?)"/)
+    if (match && pyTestScript in match) return
+    fs.appendFileSync('repeatWhile', '\n')
+    success = true
+    const res = await repeatWhile(
+      jsonPath,
+      pyTestScript,
+      containerName,
+      cachePath,
+      histogramPrefix
+    )
+    fs.appendFileSync('repeatWhile', JSON.stringify(res, null, 4))
+  } else {
+    success = await retryWhile(
+      config,
+      jsonPath,
+      pyTestScript,
+      containerName,
+      cachePath,
+      histogramPrefix
+    )
+  }
+  if (!success) {
     throw new Error(`[retry] task ${pyTestScript} benchmark failed`)
   } else {
     core.info(`[task]  ${pyTestScript} benchmark sucess`)
