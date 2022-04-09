@@ -239,8 +239,7 @@ const pytest = async (
       pyTestScript
     ],
     {
-      ignoreReturnCode: true,
-      silent: true
+      ignoreReturnCode: true
     }
   )
 
