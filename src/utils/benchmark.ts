@@ -210,7 +210,8 @@ const pytest = async (
   containerName: string,
   jsonPath: string,
   cachePath: string,
-  histogramPrefix: string
+  histogramPrefix: string,
+  args: string[]
 ): Promise<number> =>
   await exec.exec(
     'docker',
@@ -235,65 +236,22 @@ const pytest = async (
       '--benchmark-disable-gc',
       `--benchmark-warmup=on`,
       `--benchmark-histogram=${histogramPrefix}`,
-      '--benchmark-min-rounds=40',
+      '--benchmark-min-rounds=10',
       pyTestScript
-    ],
+    ].concat(args),
     {
       ignoreReturnCode: true
     }
   )
 
-async function repeatWhile(
-  jsonPath: string,
-  pyTestScript: string,
-  containerName: string,
-  cachePath: string,
-  histogramPrefix: string
-): Promise<{pyTestScript: string; stddev: number; median: number}> {
-  let index = 1
-  const time = 5
-
-  const res: {stddev: number; median: number}[] = []
-  while (index <= time) {
-    core.info(`[exec] ${index++}:${time} ${pyTestScript}`)
-    await pytest(
-      pyTestScript,
-      containerName,
-      jsonPath,
-      cachePath,
-      histogramPrefix
-    )
-
-    const outputContent: logJSON = JSON.parse(
-      fs.readFileSync(jsonPath).toString()
-    )
-    const stats = outputContent.benchmarks[0].stats
-
-    core.info(JSON.stringify(stats))
-    res.push({stddev: stats.stddev, median: stats.median})
-  }
-  res.sort(function (
-    a: {stddev: number; median: number},
-    b: {stddev: number; median: number}
-  ): number {
-    return a.stddev - b.stddev
-  })
-
-  const stddev = res[2].stddev
-  const median = (res[0].median - res[1].median) / res[1].median
-  return {
-    pyTestScript,
-    stddev: stddev * 1000,
-    median: (median > 0 ? median : -median) * 100
-  }
-}
 async function retryWhile(
   config: collectOutJson,
   jsonPath: string,
   pyTestScript: string,
   containerName: string,
   cachePath: string,
-  histogramPrefix: string
+  histogramPrefix: string,
+  args: string[]
 ): Promise<boolean> {
   const time = config.retry?.times ? config.retry.times + 1 : 1
   let index = 1
@@ -304,7 +262,8 @@ async function retryWhile(
       containerName,
       jsonPath,
       cachePath,
-      histogramPrefix
+      histogramPrefix,
+      args
     )
 
     const outputContent: logJSON = JSON.parse(
@@ -439,9 +398,8 @@ export async function singleBenchmark(
   pyTestScript: string,
   benchmarkId: string,
   config: collectOutJson,
-  containerName: string,
-  debugMode: boolean
-): Promise<void> {
+  containerName: string
+): Promise<boolean | null> {
   const oss = OssStorage.getInstance()
   const cachePath = `benchmark_result/${benchmarkId}`
   const jsonPath = path.join(cachePath, 'result.json')
@@ -459,35 +417,22 @@ export async function singleBenchmark(
     bestInHistoryJSONPath
   )
 
-  let success: boolean
-  if (debugMode) {
-    const log = fs.readFileSync('repeatWhile').toString()
-    const match = log.match(/"pyTestScript": "(.+?)"/)
-    if (match && pyTestScript in match) return
-    fs.appendFileSync('repeatWhile', '\n')
-    success = true
-    const res = await repeatWhile(
-      jsonPath,
-      pyTestScript,
-      containerName,
-      cachePath,
-      histogramPrefix
-    )
-    fs.appendFileSync('repeatWhile', JSON.stringify(res, null, 4))
-  } else {
-    success = await retryWhile(
-      config,
-      jsonPath,
-      pyTestScript,
-      containerName,
-      cachePath,
-      histogramPrefix
-    )
-  }
+  const args = hasBest ? [`--benchmark-compare=${bestInHistoryJSONPath}`] : []
+  const success = await retryWhile(
+    config,
+    jsonPath,
+    pyTestScript,
+    containerName,
+    cachePath,
+    histogramPrefix,
+    args
+  )
+
   if (!success) {
-    throw new Error(`[retry] task ${pyTestScript} benchmark failed`)
+    core.info(`[task]  ${pyTestScript} benchmark is unkown`)
+    return null
   } else {
-    core.info(`[task]  ${pyTestScript} benchmark sucess`)
+    core.info(`[task]  ${pyTestScript} benchmark pass`)
   }
   for (const file of fs.readdirSync(cachePath)) {
     core.info(`[file] ${file}`)
@@ -500,39 +445,39 @@ export async function singleBenchmark(
   await oss.push(ossRunJSONPath, jsonPath)
 
   if (hasBest) {
-    if (!debugMode) {
-      const res = compareOutput(jsonPath, bestInHistoryJSONPath, config)
-      if (!res) {
-        throw new Error(`benchmark failed`)
-      }
-    }
+    const res = compareOutput(jsonPath, bestInHistoryJSONPath, config)
+    return res
   } else {
     oss.push(ossHistoricalBestJSONPath, jsonPath)
   }
+  return null
 }
 
 export async function benchmarkBatch(
   collectOutputJsons: string[],
-  containerName: string,
-  debugMode: boolean
-): Promise<void> {
+  containerName: string
+): Promise<(null | boolean)[]> {
+  const res: (null | boolean)[] = []
   for (const outputJson of collectOutputJsons) {
     const config: collectOutJson = JSON.parse(outputJson)
-    await singleBenchmark(
+    const output = await singleBenchmark(
       `${config.file_name}::${config.func_name}`,
       `1-gpu-${config.func_name}`,
       config,
-      containerName,
-      debugMode
+      containerName
     )
+    res.push(output)
+    core.info(`[output] ${config.func_name} ${output}`)
   }
+  return res
 }
 
 export async function benchmarkWithPytest(): Promise<void> {
   core.info(`[task] benchmark with pytest`)
   const collectPath = core.getInput('collect-path')
   const containerName = core.getInput('container-name')
-  const debugMode = core.getInput('debug-mode') === 'true'
+  const unkownThreshold = parseInt(core.getInput('unkown-threshold'))
+  const errorThreshold = parseInt(core.getInput('error-threshold'))
 
   core.info(`[task] collect pytest functions in ${collectPath}`)
   const output = await exec.getExecOutput(
@@ -571,5 +516,23 @@ export async function benchmarkWithPytest(): Promise<void> {
   }
 
   core.info(`[task] exec pytest functions`)
-  await benchmarkBatch(collectOutputJsons, containerName, debugMode)
+  const res = await benchmarkBatch(collectOutputJsons, containerName)
+  let unknownNum = 0
+  let errorNum = 0
+  for (const elem of res) {
+    if (elem == null) unknownNum++
+    else if (elem === false) errorNum++
+  }
+  const realUnkown = unknownNum / realFuctionCount
+  const realError = errorNum / realFuctionCount
+  core.info(`[pass] unkown/total: ${unknownNum}/${realFuctionCount}`)
+  core.info(`[pass] error/total: ${errorNum}/${realFuctionCount}`)
+  if (realUnkown > unkownThreshold)
+    throw Error(
+      `[error] unkown/total > threshold: ${realUnkown} > ${unkownThreshold}`
+    )
+  if (realError > errorThreshold)
+    throw Error(
+      `[error] error/total > threshold: ${realError} > ${errorThreshold}`
+    )
 }
