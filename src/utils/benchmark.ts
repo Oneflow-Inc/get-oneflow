@@ -281,12 +281,12 @@ async function retryWhile(
       },
       {
         threshold: config.retry?.iqr,
-        realVal: stats.iqr * 100,
+        realVal: stats.iqr * 1000,
         name: 'iqr'
       },
       {
         threshold: config.retry?.stddev,
-        realVal: stats.stddev * 100,
+        realVal: stats.stddev * 1000,
         name: 'stddev'
       }
     ]
