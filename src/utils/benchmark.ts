@@ -252,10 +252,9 @@ async function retryWhile(
   cachePath: string,
   histogramPrefix: string
 ): Promise<boolean> {
-  let sucess = false
   const time = config.retry?.times ? config.retry.times + 1 : 1
   let index = 1
-  while (!sucess && index <= time) {
+  while (index <= time) {
     core.info(`[exec] ${index++}:${time} ${pyTestScript}`)
     await pytest(
       pyTestScript,
@@ -268,30 +267,45 @@ async function retryWhile(
     const outputContent: logJSON = JSON.parse(
       fs.readFileSync(jsonPath).toString()
     )
+    const stats = outputContent.benchmarks[0].stats
 
-    sucess = true
-    if (
-      config.retry?.iqr_outliers &&
-      outputContent.benchmarks[0].stats.iqr_outliers >
-        config.retry?.iqr_outliers
-    ) {
-      core.info(
-        `[outliers] ${outputContent.benchmarks[0].stats.iqr_outliers}(iqr_outliers) > ${config.retry?.iqr_outliers}`
-      )
-      sucess = false
+    const retryList = [
+      {
+        threshold: config.retry?.iqr_outliers,
+        realVal: stats.iqr_outliers,
+        name: 'iqr_outliers'
+      },
+      {
+        threshold: config.retry?.stddev_outliers,
+        realVal: stats.stddev_outliers,
+        name: 'stddev_outliers'
+      },
+      {
+        threshold: config.retry?.iqr,
+        realVal: stats.iqr,
+        name: 'iqr'
+      },
+      {
+        threshold: config.retry?.stddev,
+        realVal: stats.stddev,
+        name: 'stddev'
+      }
+    ]
+    let success = true
+    for (const retryParam of retryList) {
+      if (retryParam.threshold) {
+        if (retryParam.realVal > retryParam.threshold) {
+          core.info(
+            `[exec] - Fail: ${retryParam.realVal}(${retryParam.name}) > ${retryParam.threshold}`
+          )
+          success = false
+          break
+        }
+      }
     }
-    if (
-      config.retry?.stddev_outliers &&
-      outputContent.benchmarks[0].stats.stddev_outliers >
-        config.retry?.stddev_outliers
-    ) {
-      core.info(
-        `[outliers] ${outputContent.benchmarks[0].stats.stddev_outliers}(stddev_outliers) > ${config.retry?.stddev_outliers}`
-      )
-      sucess = false
-    }
+    if (success) return true
   }
-  return sucess
+  return false
 }
 
 function compareOutput(
@@ -314,32 +328,58 @@ function compareOutput(
   core.info(`[compare] - cmp stats ${cmp_data}`)
   if (best_benchmark[0].name !== cmp_benchmark[0].name) return false
 
-  if (config.compare?.median?.endsWith('%')) {
-    const settings = config.compare.median
-    const percent = parseInt(settings.substring(0, settings.length - 1))
-    if (
-      (cmp_data.median - best_data.median) / best_data.median >=
-      percent / 100
-    )
-      return false
-  }
-  if (config.compare?.max?.endsWith('%')) {
-    const settings = config.compare.max
-    const percent = parseInt(settings.substring(0, settings.length - 1))
-    if ((cmp_data.max - best_data.max) / best_data.max >= percent / 100)
-      return false
-  }
-  if (config.compare?.min?.endsWith('%')) {
-    const settings = config.compare.min
-    const percent = parseInt(settings.substring(0, settings.length - 1))
-    if ((cmp_data.min - best_data.min) / best_data.min >= percent / 100)
-      return false
-  }
-  if (config.compare?.mean?.endsWith('%')) {
-    const settings = config.compare.mean
-    const percent = parseInt(settings.substring(0, settings.length - 1))
-    if ((cmp_data.mean - best_data.mean) / best_data.mean >= percent / 100)
-      return false
+  const compareList = [
+    {
+      threshold: config.compare?.median?.endsWith('%')
+        ? parseInt(
+            config.compare.median.substring(0, config.compare.median.length - 1)
+          ) / 100
+        : null,
+      best: best_data.median,
+      cmp: cmp_data.median,
+      name: 'median'
+    },
+    {
+      threshold: config.compare?.max?.endsWith('%')
+        ? parseInt(
+            config.compare.max.substring(0, config.compare.max.length - 1)
+          ) / 100
+        : null,
+      best: best_data.max,
+      cmp: cmp_data.max,
+      name: 'max'
+    },
+    {
+      threshold: config.compare?.min?.endsWith('%')
+        ? parseInt(
+            config.compare.min.substring(0, config.compare.min.length - 1)
+          ) / 100
+        : null,
+      best: best_data.min,
+      cmp: cmp_data.min,
+      name: 'min'
+    },
+    {
+      threshold: config.compare?.mean?.endsWith('%')
+        ? parseInt(
+            config.compare.mean.substring(0, config.compare.mean.length - 1)
+          ) / 100
+        : null,
+      best: best_data.mean,
+      cmp: cmp_data.mean,
+      name: 'mean'
+    }
+  ]
+  for (const compareParam of compareList) {
+    if (compareParam.threshold) {
+      const realVal = (compareParam.cmp - compareParam.best) / compareParam.best
+      if (realVal > compareParam.threshold) {
+        core.info(
+          `[compare] - failed ${realVal}(${compareParam.name}) > ${compareParam.threshold}`
+        )
+        return false
+      }
+    }
   }
   return true
 }
@@ -363,8 +403,10 @@ export async function singleBenchmark(
   await exec.exec('nvidia-smi', [])
   await exec.exec('mkdir', ['-p', cachePath])
 
-  let hasBest = await oss.pull(ossHistoricalBestJSONPath, bestInHistoryJSONPath)
-  if (debugMode) hasBest = false
+  const hasBest = await oss.pull(
+    ossHistoricalBestJSONPath,
+    bestInHistoryJSONPath
+  )
 
   const sucess = await retryWhile(
     config,
@@ -390,10 +432,14 @@ export async function singleBenchmark(
   await oss.push(ossRunJSONPath, jsonPath)
 
   if (hasBest) {
-    const res = compareOutput(jsonPath, bestInHistoryJSONPath, config)
-    if (!res) {
-      throw new Error(`benchmark failed`)
+    if (!debugMode) {
+      const res = compareOutput(jsonPath, bestInHistoryJSONPath, config)
+      if (!res) {
+        throw new Error(`benchmark failed`)
+      }
     }
+  } else {
+    oss.push(ossHistoricalBestJSONPath, jsonPath)
   }
 }
 

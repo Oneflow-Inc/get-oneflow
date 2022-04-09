@@ -17,7 +17,7 @@
     "main": "lib/main.js",
     "scripts": {
         "build": "tsc",
-        "format": "prettier --write **/*.ts",
+        "format": "prettier --write **/*.ts && prettier --write src/utils/benchmark.ts",
         "format-check": "prettier --check **/*.ts",
         "lint": "eslint src/**/*.ts",
         "package-main": "ncc build --minify -o dist src/main.ts",
