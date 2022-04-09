@@ -300,6 +300,10 @@ async function retryWhile(
           )
           success = false
           break
+        } else {
+          core.info(
+            `[exec] - done: ${retryParam.realVal}(${retryParam.name}) < ${retryParam.threshold}`
+          )
         }
       }
     }
@@ -324,8 +328,8 @@ function compareOutput(
 
   const best_data = best_benchmark[0].stats
   const cmp_data = cmp_benchmark[0].stats
-  core.info(`[compare] - best stats ${best_data}`)
-  core.info(`[compare] - cmp stats ${cmp_data}`)
+  core.info(`[compare] - best stats ${best_data.data.toString()}`)
+  core.info(`[compare] - cmp stats ${cmp_data.data.toString()}`)
   if (best_benchmark[0].name !== cmp_benchmark[0].name) return false
 
   const compareList = [
@@ -378,6 +382,10 @@ function compareOutput(
           `[compare] - failed ${realVal}(${compareParam.name}) > ${compareParam.threshold}`
         )
         return false
+      } else {
+        core.info(
+          `[compare] - done ${realVal}(${compareParam.name}) < ${compareParam.threshold}`
+        )
       }
     }
   }
