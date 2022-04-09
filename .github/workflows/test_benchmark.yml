@@ -78,7 +78,7 @@ jobs:
         with:
           repository: Oneflow-Inc/vision
           # please use a commit here
-          ref: 4990e50ea5e566a57a638a7f2cfe6c349bb2b5a5
+          ref: 705ed5bbf17c21b271f91778e096fe4ae3adeb14
           path: ${{ env.FLOW_VISION_SRC}}
       - uses: actions/checkout@v2
         with:
