@@ -282,12 +282,12 @@ async function retryWhile(
       },
       {
         threshold: config.retry?.iqr,
-        realVal: stats.iqr,
+        realVal: stats.iqr * 100,
         name: 'iqr'
       },
       {
         threshold: config.retry?.stddev,
-        realVal: stats.stddev,
+        realVal: stats.stddev * 100,
         name: 'stddev'
       }
     ]
@@ -328,8 +328,8 @@ function compareOutput(
 
   const best_data = best_benchmark[0].stats
   const cmp_data = cmp_benchmark[0].stats
-  core.info(`[compare] - best stats ${best_data.data.toString()}`)
-  core.info(`[compare] - cmp stats ${cmp_data.data.toString()}`)
+  core.info(`[compare] - best stats ${JSON.stringify(best_data)}`)
+  core.info(`[compare] - cmp stats ${JSON.stringify(cmp_data)}`)
   if (best_benchmark[0].name !== cmp_benchmark[0].name) return false
 
   const compareList = [
