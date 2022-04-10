@@ -464,7 +464,7 @@ export async function singleBenchmark(
   )
 
   if (!success) {
-    core.info(`[task]  ${pyTestScript} benchmark is unkown`)
+    core.info(`[task]  ${pyTestScript} benchmark is unknown`)
     return {status: 'UNKNOWN'}
   } else {
     core.info(`[task]  ${pyTestScript} benchmark pass`)
@@ -511,7 +511,7 @@ export async function benchmarkBatch(
     if (output.status === 'BEST_NOT_MATCH' || output.status === 'ERROR') error++
     if (output.status === 'BEST_UNKNOWN' || output.status === 'UNKNOWN')
       unknown++
-    core.info(`[pass] unkown/total: ${unknown}/${total}`)
+    core.info(`[pass] unknown/total: ${unknown}/${total}`)
     core.info(`[pass] error/total: ${error}/${total}`)
   }
   return res
@@ -521,7 +521,7 @@ export async function benchmarkWithPytest(): Promise<void> {
   core.info(`[task] benchmark with pytest`)
   const collectPath = core.getInput('collect-path')
   const containerName = core.getInput('container-name')
-  const unkownThreshold = parseInt(core.getInput('unkown-threshold')) / 100
+  const unknownThreshold = parseInt(core.getInput('unknown-threshold')) / 100
   const errorThreshold = parseInt(core.getInput('error-threshold')) / 100
 
   core.info(`[task] collect pytest functions in ${collectPath}`)
@@ -573,7 +573,7 @@ export async function benchmarkWithPytest(): Promise<void> {
         break
       case 'BEST_UNKNOWN':
         core.info(
-          `[unkown]best unknown ${collectOutputJsons[i]} stddev(in retry) > need`
+          `[unknown]best unknown ${collectOutputJsons[i]} stddev(in retry) > need`
         )
         unknownNum++
         break
@@ -600,24 +600,24 @@ export async function benchmarkWithPytest(): Promise<void> {
         core.info(`[info] - now_median(${res[i].now_median})`)
         break
       case 'UNKNOWN':
-        core.info(`[unkown] ${collectOutputJsons[i]}`)
+        core.info(`[unknown] ${collectOutputJsons[i]}`)
         unknownNum++
         break
     }
   }
-  const realUnkown = unknownNum / realFunctionCount
+  const realunknown = unknownNum / realFunctionCount
   const realError = errorNum / realFunctionCount
-  core.info(`[pass] unkown/total: ${unknownNum}/${realFunctionCount}`)
+  core.info(`[pass] unknown/total: ${unknownNum}/${realFunctionCount}`)
   core.info(`[pass] error/total: ${errorNum}/${realFunctionCount}`)
-  if (realUnkown > unkownThreshold) {
-    core.info(`the ci benchmark set unkown threshold is ${unkownThreshold}`)
-    core.info(`the ci benchmark output of unkown thresold is ${realUnkown}`)
+  if (realunknown > unknownThreshold) {
+    core.info(`the ci benchmark set unknown threshold is ${unknownThreshold}`)
+    core.info(`the ci benchmark output of unknown thresold is ${realunknown}`)
     throw Error(
-      `[error] faild to pass unkown/total > threshold: ${realUnkown} > ${unkownThreshold}`
+      `[error] faild to pass unknown/total > threshold: ${realunknown} > ${unknownThreshold}`
     )
   } else
     core.info(
-      `[sucess] unkown/total < threshold: ${realUnkown} < ${unkownThreshold}`
+      `[sucess] unknown/total < threshold: ${realunknown} < ${unknownThreshold}`
     )
   if (realError > errorThreshold) {
     core.info(`the ci benchmark set error threshold is ${errorThreshold}`)
