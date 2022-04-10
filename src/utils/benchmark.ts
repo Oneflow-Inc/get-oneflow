@@ -149,11 +149,11 @@ async function compareJson(
 }
 
 export async function findLastCommit(prID: number): Promise<string> {
-  const ossPRJSONPath = `${gh.context.repo.owner}/${gh.context.repo.repo}/pr/${prID}`
+  const ossPRJsonPath = `${gh.context.repo.owner}/${gh.context.repo.repo}/pr/${prID}`
   const oss = OssStorage.getInstance()
   let max_run_id = 0
   let max_commit_id = ''
-  for (const pathName of await oss.list(ossPRJSONPath)) {
+  for (const pathName of await oss.list(ossPRJsonPath)) {
     const res = pathName.match(/(\w+)\/run\/(\d+)/)
     if (res?.length === 3) {
       const current_run_id = parseInt(res[2])
@@ -168,13 +168,13 @@ export async function findLastCommit(prID: number): Promise<string> {
 export async function updateBenchmarkHistory(
   issueNumber = gh.context.issue.number
 ): Promise<void> {
-  const lastCommitPRID = await findLastCommit(issueNumber)
-  core.info(`[findLastCommit]: ${lastCommitPRID}`)
-  const ossPRBESTJSONDir = `${gh.context.repo.owner}/${gh.context.repo.repo}/pr/${issueNumber}/commit/${lastCommitPRID}/run`
-  core.info(`[compareWith]: ${ossPRBESTJSONDir}`)
+  const lastCommitPRId = await findLastCommit(issueNumber)
+  core.info(`[findLastCommit]: ${lastCommitPRId}`)
+  const ossPRBestJSONDir = `${gh.context.repo.owner}/${gh.context.repo.repo}/pr/${issueNumber}/commit/${lastCommitPRId}/run`
+  core.info(`[compareWith]: ${ossPRBestJSONDir}`)
 
   const oss = OssStorage.getInstance()
-  const lastCommitHistoryList = await oss.list(ossPRBESTJSONDir)
+  const lastCommitHistoryList = await oss.list(ossPRBestJSONDir)
   for (const name of lastCommitHistoryList) {
     const benchmarkId = name.split('/').pop()
     if (!benchmarkId?.match(/\.json/)) continue
@@ -487,14 +487,14 @@ export async function singleBenchmark(
 }
 
 export async function benchmarkBatch(
-  collectOutputJsons: string[],
+  collectOutputJSONs: string[],
   containerName: string
 ): Promise<resJson[]> {
   const res: resJson[] = []
   let total = 0
   let unknown = 0
   let error = 0
-  for (const outputJson of collectOutputJsons) {
+  for (const outputJson of collectOutputJSONs) {
     const config: collectOutJson = JSON.parse(outputJson)
     const output = await singleBenchmark(
       `${config.file_name}::${config.func_name}`,
@@ -543,14 +543,14 @@ export async function benchmarkWithPytest(): Promise<void> {
   const lines = output.stdout.split('\n')
   let realFunctionCount = 0
   let decoratorFunctionCount = 0
-  const collectOutputJsons = []
+  const collectOutputJSONs = []
 
   for (const line of lines) {
     const decoratorRes = line.match(/^oneflow-benchmark-function::(.*)/)
     if (line.match(/<Function test/)) realFunctionCount++
     if (decoratorRes) {
       decoratorFunctionCount++
-      collectOutputJsons.push(decoratorRes[1])
+      collectOutputJSONs.push(decoratorRes[1])
     }
   }
 
@@ -559,24 +559,24 @@ export async function benchmarkWithPytest(): Promise<void> {
   }
 
   core.info(`[task] exec pytest functions`)
-  const res = await benchmarkBatch(collectOutputJsons, containerName)
+  const res = await benchmarkBatch(collectOutputJSONs, containerName)
   let unknownNum = 0
   let errorNum = 0
 
   for (let i = 0; i < realFunctionCount; i++) {
     switch (res[i].status) {
       case 'BEST_NOT_MATCH':
-        core.info(`[error] best not match ${collectOutputJsons[i]}`)
+        core.info(`[error] best not match ${collectOutputJSONs[i]}`)
         errorNum++
         break
       case 'BEST_UNKNOWN':
         core.info(
-          `[unknown]best unknown ${collectOutputJsons[i]} stddev(in retry) > need`
+          `[unknown]best unknown ${collectOutputJSONs[i]} stddev(in retry) > need`
         )
         unknownNum++
         break
       case 'ERROR':
-        core.info(`[error] ${collectOutputJsons[i]}`)
+        core.info(`[error] ${collectOutputJSONs[i]}`)
         core.info(`[info] - best_stddev(${res[i].best_stddev})`)
         core.info(`[info] - now_stddev(${res[i].now_stddev})`)
         core.info(`[info] - best_median(${res[i].best_median})`)
@@ -584,21 +584,21 @@ export async function benchmarkWithPytest(): Promise<void> {
         errorNum++
         break
       case 'PASS':
-        core.info(`[pass] ${collectOutputJsons[i]}`)
+        core.info(`[pass] ${collectOutputJSONs[i]}`)
         core.info(`[info] - best_stddev(${res[i].best_stddev})`)
         core.info(`[info] - now_stddev(${res[i].now_stddev})`)
         core.info(`[info] - best_median(${res[i].best_median})`)
         core.info(`[info] - now_median(${res[i].now_median})`)
         break
       case 'GREATER':
-        core.info(`[greater] ${collectOutputJsons[i]}`)
+        core.info(`[greater] ${collectOutputJSONs[i]}`)
         core.info(`[info] - best_stddev(${res[i].best_stddev})`)
         core.info(`[info] - now_stddev(${res[i].now_stddev})`)
         core.info(`[info] - best_median(${res[i].best_median})`)
         core.info(`[info] - now_median(${res[i].now_median})`)
         break
       case 'UNKNOWN':
-        core.info(`[unknown] ${collectOutputJsons[i]}`)
+        core.info(`[unknown] ${collectOutputJSONs[i]}`)
         unknownNum++
         break
     }
