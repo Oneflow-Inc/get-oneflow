@@ -142,7 +142,8 @@ async function compareJson(
       best_data.min >= cmp_data.min &&
       best_data.max >= cmp_data.max &&
       best_data.mean >= cmp_data.mean &&
-      best_data.median >= cmp_data.median
+      best_data.median >= cmp_data.median &&
+      best_data.stddev >= cmp_data.stddev
     )
   })
 }
@@ -314,14 +315,13 @@ async function retryWhile(
   return false
 }
 
-enum benchmarkRes {
-  BEST_NOT_MATCH,
-  BEST_UNKNOWN,
-  UNKNOWN,
-  ERROR,
-  FIT,
-  GREATER
-}
+type benchmarkRes =
+  | 'BEST_NOT_MATCH'
+  | 'BEST_UNKNOWN'
+  | 'UNKNOWN'
+  | 'ERROR'
+  | 'PASS'
+  | 'GREATER'
 
 function compareOutput(
   jsonPath: string,
@@ -335,15 +335,13 @@ function compareOutput(
   const best_benchmark = bestJSON.benchmarks
   const cmpJSON: logJSON = JSON.parse(fs.readFileSync(jsonPath).toString())
   const cmp_benchmark = cmpJSON.benchmarks
-  if (best_benchmark.length !== cmp_benchmark.length)
-    return benchmarkRes.BEST_NOT_MATCH
+  if (best_benchmark.length !== cmp_benchmark.length) return 'BEST_NOT_MATCH'
 
   const best_data = best_benchmark[0].stats
   const cmp_data = cmp_benchmark[0].stats
   core.info(`[compare] - best stats ${JSON.stringify(best_data)}`)
   core.info(`[compare] - cmp stats ${JSON.stringify(cmp_data)}`)
-  if (best_benchmark[0].name !== cmp_benchmark[0].name)
-    return benchmarkRes.BEST_NOT_MATCH
+  if (best_benchmark[0].name !== cmp_benchmark[0].name) return 'BEST_NOT_MATCH'
 
   const compareList = [
     {
@@ -396,7 +394,7 @@ function compareOutput(
         core.info(
           `[compare] - failed ${realVal}(${compareParam.name}) > ${compareParam.threshold}`
         )
-        return benchmarkRes.ERROR
+        return 'ERROR'
       } else {
         if (realVal < 0) greater = true
         core.info(
@@ -405,7 +403,7 @@ function compareOutput(
       }
     }
   }
-  return greater ? benchmarkRes.GREATER : benchmarkRes.FIT
+  return greater && best_data.stddev > cmp_data.stddev ? 'GREATER' : 'PASS'
 }
 
 export async function singleBenchmark(
@@ -444,7 +442,7 @@ export async function singleBenchmark(
 
   if (!success) {
     core.info(`[task]  ${pyTestScript} benchmark is unkown`)
-    return benchmarkRes.UNKNOWN
+    return 'UNKNOWN'
   } else {
     core.info(`[task]  ${pyTestScript} benchmark pass`)
   }
@@ -464,7 +462,7 @@ export async function singleBenchmark(
   } else {
     oss.push(ossHistoricalBestJSONPath, jsonPath)
   }
-  return benchmarkRes.UNKNOWN
+  return 'UNKNOWN'
 }
 
 export async function benchmarkBatch(
@@ -490,8 +488,8 @@ export async function benchmarkWithPytest(): Promise<void> {
   core.info(`[task] benchmark with pytest`)
   const collectPath = core.getInput('collect-path')
   const containerName = core.getInput('container-name')
-  const unkownThreshold = parseInt(core.getInput('unkown-threshold'))
-  const errorThreshold = parseInt(core.getInput('error-threshold'))
+  const unkownThreshold = parseInt(core.getInput('unkown-threshold')) / 100
+  const errorThreshold = parseInt(core.getInput('error-threshold')) / 100
 
   core.info(`[task] collect pytest functions in ${collectPath}`)
   const output = await exec.getExecOutput(
@@ -536,24 +534,24 @@ export async function benchmarkWithPytest(): Promise<void> {
 
   for (let i = 0; i < realFuctionCount; i++) {
     switch (res[i]) {
-      case benchmarkRes.BEST_NOT_MATCH:
+      case 'BEST_NOT_MATCH':
         core.info(`[error] best not match ${collectOutputJsons[i]}`)
         errorNum++
         break
-      case benchmarkRes.BEST_UNKNOWN:
+      case 'BEST_UNKNOWN':
         core.info(`[unkown]best unknown ${collectOutputJsons[i]}`)
         unknownNum++
         break
-      case benchmarkRes.ERROR:
+      case 'ERROR':
         core.info(`[error] ${collectOutputJsons[i]}`)
         errorNum++
         break
-      case benchmarkRes.FIT:
+      case 'PASS':
         break
-      case benchmarkRes.GREATER:
+      case 'GREATER':
         core.info(`[greater] ${collectOutputJsons[i]}`)
         break
-      case benchmarkRes.UNKNOWN:
+      case 'UNKNOWN':
         core.info(`[unkown] ${collectOutputJsons[i]}`)
         unknownNum++
         break
