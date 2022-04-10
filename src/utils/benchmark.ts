@@ -347,8 +347,6 @@ function compareOutput(
 
   const best_data = best_benchmark[0].stats
   const cmp_data = cmp_benchmark[0].stats
-  core.info(`[compare] - best stats ${JSON.stringify(best_data)}`)
-  core.info(`[compare] - cmp stats ${JSON.stringify(cmp_data)}`)
   if (best_benchmark[0].name !== cmp_benchmark[0].name)
     return {status: 'BEST_NOT_MATCH'}
 
