@@ -605,28 +605,28 @@ export async function benchmarkWithPytest(): Promise<void> {
         break
     }
   }
-  const realunknown = unknownNum / realFunctionCount
+  const real_unknown = unknownNum / realFunctionCount
   const realError = errorNum / realFunctionCount
   core.info(`[pass] unknown/total: ${unknownNum}/${realFunctionCount}`)
   core.info(`[pass] error/total: ${errorNum}/${realFunctionCount}`)
-  if (realunknown > unknownThreshold) {
+  if (real_unknown > unknownThreshold) {
     core.info(`the ci benchmark set unknown threshold is ${unknownThreshold}`)
-    core.info(`the ci benchmark output of unknown thresold is ${realunknown}`)
+    core.info(`the ci benchmark output of unknown threshold is ${real_unknown}`)
     throw Error(
-      `[error] faild to pass unknown/total > threshold: ${realunknown} > ${unknownThreshold}`
+      `[error] failed to pass unknown/total > threshold: ${real_unknown} > ${unknownThreshold}`
     )
   } else
     core.info(
-      `[sucess] unknown/total < threshold: ${realunknown} < ${unknownThreshold}`
+      `[success] unknown/total < threshold: ${real_unknown} < ${unknownThreshold}`
     )
   if (realError > errorThreshold) {
     core.info(`the ci benchmark set error threshold is ${errorThreshold}`)
-    core.info(`the ci benchmark output of error thresold is ${realError}`)
+    core.info(`the ci benchmark output of error threshold is ${realError}`)
     throw Error(
       `[error] error/total > threshold: ${realError} > ${errorThreshold}`
     )
   } else
     core.info(
-      `[sucess] error/total < threshold: ${realError} < ${errorThreshold}`
+      `[success] error/total < threshold: ${realError} < ${errorThreshold}`
     )
 }
