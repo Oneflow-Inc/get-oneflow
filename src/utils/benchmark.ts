@@ -565,8 +565,16 @@ export async function benchmarkWithPytest(): Promise<void> {
     throw Error(
       `[error] unkown/total > threshold: ${realUnkown} > ${unkownThreshold}`
     )
+  else
+    core.info(
+      `[sucess] unkown/total < threshold: ${realUnkown} < ${unkownThreshold}`
+    )
   if (realError > errorThreshold)
     throw Error(
       `[error] error/total > threshold: ${realError} > ${errorThreshold}`
+    )
+  else
+    core.info(
+      `[sucess] error/total < threshold: ${realError} < ${errorThreshold}`
     )
 }
