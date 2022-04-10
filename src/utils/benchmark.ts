@@ -392,7 +392,7 @@ function compareOutput(
       const realVal = (compareParam.cmp - compareParam.best) / compareParam.best
       if (realVal > compareParam.threshold) {
         core.info(
-          `[compare] - failed ${realVal}(${compareParam.name}) > ${compareParam.threshold}`
+          `[error][compare] - failed ${realVal}(${compareParam.name}) > ${compareParam.threshold}`
         )
         return 'ERROR'
       } else {
