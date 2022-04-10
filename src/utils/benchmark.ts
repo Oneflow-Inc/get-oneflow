@@ -577,25 +577,16 @@ export async function benchmarkWithPytest(): Promise<void> {
         break
       case 'ERROR':
         core.info(`[error] ${collectOutputJSONs[i]}`)
-        core.info(`[info] - best_stddev(${res[i].best_stddev})`)
-        core.info(`[info] - now_stddev(${res[i].now_stddev})`)
-        core.info(`[info] - best_median(${res[i].best_median})`)
-        core.info(`[info] - now_median(${res[i].now_median})`)
+        core.info(JSON.stringify(res[i], null, 2))
         errorNum++
         break
       case 'PASS':
         core.info(`[pass] ${collectOutputJSONs[i]}`)
-        core.info(`[info] - best_stddev(${res[i].best_stddev})`)
-        core.info(`[info] - now_stddev(${res[i].now_stddev})`)
-        core.info(`[info] - best_median(${res[i].best_median})`)
-        core.info(`[info] - now_median(${res[i].now_median})`)
+        core.info(JSON.stringify(res[i], null, 2))
         break
       case 'GREATER':
         core.info(`[greater] ${collectOutputJSONs[i]}`)
-        core.info(`[info] - best_stddev(${res[i].best_stddev})`)
-        core.info(`[info] - now_stddev(${res[i].now_stddev})`)
-        core.info(`[info] - best_median(${res[i].best_median})`)
-        core.info(`[info] - now_median(${res[i].now_median})`)
+        core.info(JSON.stringify(res[i], null, 2))
         break
       case 'UNKNOWN':
         core.info(`[unknown] ${collectOutputJSONs[i]}`)
