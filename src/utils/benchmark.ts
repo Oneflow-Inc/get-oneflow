@@ -470,6 +470,9 @@ export async function benchmarkBatch(
   containerName: string
 ): Promise<benchmarkRes[]> {
   const res: benchmarkRes[] = []
+  let total = 0
+  let unknown = 0
+  let error = 0
   for (const outputJson of collectOutputJsons) {
     const config: collectOutJson = JSON.parse(outputJson)
     const output = await singleBenchmark(
@@ -480,6 +483,12 @@ export async function benchmarkBatch(
     )
     res.push(output)
     core.info(`[output] ${config.func_name} ${output}`)
+    total++
+
+    if (output === 'BEST_NOT_MATCH' || output === 'ERROR') error++
+    if (output === 'BEST_UNKNOWN' || output === 'UNKNOWN') unknown++
+    core.info(`[pass] unkown/total: ${unknown}/${total}`)
+    core.info(`[pass] error/total: ${error}/${total}`)
   }
   return res
 }
