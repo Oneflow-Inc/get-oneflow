@@ -323,11 +323,18 @@ type benchmarkRes =
   | 'PASS'
   | 'GREATER'
 
+interface resJson {
+  status: benchmarkRes
+  best_stddev?: number
+  best_median?: number
+  now_stddev?: number
+  now_median?: number
+}
 function compareOutput(
   jsonPath: string,
   bestInHistoryJSONPath: string,
   config: collectOutJson
-): benchmarkRes {
+): resJson {
   core.info(`[compare] ${jsonPath} with ${bestInHistoryJSONPath}`)
   const bestJSON: logJSON = JSON.parse(
     fs.readFileSync(bestInHistoryJSONPath).toString()
@@ -335,13 +342,15 @@ function compareOutput(
   const best_benchmark = bestJSON.benchmarks
   const cmpJSON: logJSON = JSON.parse(fs.readFileSync(jsonPath).toString())
   const cmp_benchmark = cmpJSON.benchmarks
-  if (best_benchmark.length !== cmp_benchmark.length) return 'BEST_NOT_MATCH'
+  if (best_benchmark.length !== cmp_benchmark.length)
+    return {status: 'BEST_NOT_MATCH'}
 
   const best_data = best_benchmark[0].stats
   const cmp_data = cmp_benchmark[0].stats
   core.info(`[compare] - best stats ${JSON.stringify(best_data)}`)
   core.info(`[compare] - cmp stats ${JSON.stringify(cmp_data)}`)
-  if (best_benchmark[0].name !== cmp_benchmark[0].name) return 'BEST_NOT_MATCH'
+  if (best_benchmark[0].name !== cmp_benchmark[0].name)
+    return {status: 'BEST_NOT_MATCH'}
 
   const compareList = [
     {
@@ -394,7 +403,13 @@ function compareOutput(
         core.info(
           `[error][compare] - failed ${realVal}(${compareParam.name}) > ${compareParam.threshold}`
         )
-        return 'ERROR'
+        return {
+          status: 'ERROR',
+          now_stddev: cmp_data.stddev,
+          best_stddev: best_data.stddev,
+          now_median: cmp_data.median,
+          best_median: best_data.median
+        }
       } else {
         if (realVal < 0) greater = true
         core.info(
@@ -403,7 +418,15 @@ function compareOutput(
       }
     }
   }
-  return greater && best_data.stddev > cmp_data.stddev ? 'GREATER' : 'PASS'
+  const status =
+    greater && best_data.stddev > cmp_data.stddev ? 'GREATER' : 'PASS'
+  return {
+    status,
+    now_stddev: cmp_data.stddev,
+    best_stddev: best_data.stddev,
+    now_median: cmp_data.median,
+    best_median: best_data.median
+  }
 }
 
 export async function singleBenchmark(
@@ -411,7 +434,7 @@ export async function singleBenchmark(
   benchmarkId: string,
   config: collectOutJson,
   containerName: string
-): Promise<benchmarkRes> {
+): Promise<resJson> {
   const oss = OssStorage.getInstance()
   const cachePath = `benchmarkResult/${benchmarkId}`
   const jsonPath = path.join(cachePath, 'result.json')
@@ -442,7 +465,7 @@ export async function singleBenchmark(
 
   if (!success) {
     core.info(`[task]  ${pyTestScript} benchmark is unkown`)
-    return 'UNKNOWN'
+    return {status: 'UNKNOWN'}
   } else {
     core.info(`[task]  ${pyTestScript} benchmark pass`)
   }
@@ -462,14 +485,14 @@ export async function singleBenchmark(
   } else {
     oss.push(ossHistoricalBestJSONPath, jsonPath)
   }
-  return 'UNKNOWN'
+  return {status: 'UNKNOWN'}
 }
 
 export async function benchmarkBatch(
   collectOutputJsons: string[],
   containerName: string
-): Promise<benchmarkRes[]> {
-  const res: benchmarkRes[] = []
+): Promise<resJson[]> {
+  const res: resJson[] = []
   let total = 0
   let unknown = 0
   let error = 0
@@ -482,11 +505,12 @@ export async function benchmarkBatch(
       containerName
     )
     res.push(output)
-    core.info(`[output] ${config.func_name} ${output}`)
+    core.info(`[output] ${config.func_name} ${output.status}`)
     total++
 
-    if (output === 'BEST_NOT_MATCH' || output === 'ERROR') error++
-    if (output === 'BEST_UNKNOWN' || output === 'UNKNOWN') unknown++
+    if (output.status === 'BEST_NOT_MATCH' || output.status === 'ERROR') error++
+    if (output.status === 'BEST_UNKNOWN' || output.status === 'UNKNOWN')
+      unknown++
     core.info(`[pass] unkown/total: ${unknown}/${total}`)
     core.info(`[pass] error/total: ${error}/${total}`)
   }
@@ -542,23 +566,38 @@ export async function benchmarkWithPytest(): Promise<void> {
   let errorNum = 0
 
   for (let i = 0; i < realFuctionCount; i++) {
-    switch (res[i]) {
+    switch (res[i].status) {
       case 'BEST_NOT_MATCH':
         core.info(`[error] best not match ${collectOutputJsons[i]}`)
         errorNum++
         break
       case 'BEST_UNKNOWN':
-        core.info(`[unkown]best unknown ${collectOutputJsons[i]}`)
+        core.info(
+          `[unkown]best unknown ${collectOutputJsons[i]} stddev(in retry) > need`
+        )
         unknownNum++
         break
       case 'ERROR':
         core.info(`[error] ${collectOutputJsons[i]}`)
+        core.info(`[info] - best_stddev(${res[i].best_stddev})`)
+        core.info(`[info] - now_stddev(${res[i].now_stddev})`)
+        core.info(`[info] - best_median(${res[i].best_median})`)
+        core.info(`[info] - now_median(${res[i].now_median})`)
         errorNum++
         break
       case 'PASS':
+        core.info(`[pass] ${collectOutputJsons[i]}`)
+        core.info(`[info] - best_stddev(${res[i].best_stddev})`)
+        core.info(`[info] - now_stddev(${res[i].now_stddev})`)
+        core.info(`[info] - best_median(${res[i].best_median})`)
+        core.info(`[info] - now_median(${res[i].now_median})`)
         break
       case 'GREATER':
         core.info(`[greater] ${collectOutputJsons[i]}`)
+        core.info(`[info] - best_stddev(${res[i].best_stddev})`)
+        core.info(`[info] - now_stddev(${res[i].now_stddev})`)
+        core.info(`[info] - best_median(${res[i].best_median})`)
+        core.info(`[info] - now_median(${res[i].now_median})`)
         break
       case 'UNKNOWN':
         core.info(`[unkown] ${collectOutputJsons[i]}`)
