@@ -78,7 +78,7 @@ jobs:
         with:
           repository: Oneflow-Inc/vision
           # please use a commit here
-          ref: 705ed5bbf17c21b271f91778e096fe4ae3adeb14
+          ref: 417cf54967db2c8ca7aa1ac46ed863e6ac63b40f
           path: ${{ env.FLOW_VISION_SRC}}
       - uses: actions/checkout@v2
         with:
@@ -151,8 +151,8 @@ jobs:
         with:
           collect-path: ${{ env.FLOW_VISION_SRC }}/benchmark
           container-name: ${{ env.TEST_CONTAINER_NAME }}
-          unkown-threshold: 100
-          error-threshold: 100
+          unkown-threshold: 5
+          error-threshold: 10
 
       - name: Remove container
         timeout-minutes: 45

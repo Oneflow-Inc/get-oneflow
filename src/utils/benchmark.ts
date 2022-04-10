@@ -314,11 +314,20 @@ async function retryWhile(
   return false
 }
 
+enum benchmarkRes {
+  BEST_NOT_MATCH,
+  BEST_UNKNOWN,
+  UNKNOWN,
+  ERROR,
+  FIT,
+  GREATER
+}
+
 function compareOutput(
   jsonPath: string,
   bestInHistoryJSONPath: string,
   config: collectOutJson
-): boolean {
+): benchmarkRes {
   core.info(`[compare] ${jsonPath} with ${bestInHistoryJSONPath}`)
   const bestJSON: logJSON = JSON.parse(
     fs.readFileSync(bestInHistoryJSONPath).toString()
@@ -326,13 +335,15 @@ function compareOutput(
   const best_benchmark = bestJSON.benchmarks
   const cmpJSON: logJSON = JSON.parse(fs.readFileSync(jsonPath).toString())
   const cmp_benchmark = cmpJSON.benchmarks
-  if (best_benchmark.length !== cmp_benchmark.length) return false
+  if (best_benchmark.length !== cmp_benchmark.length)
+    return benchmarkRes.BEST_NOT_MATCH
 
   const best_data = best_benchmark[0].stats
   const cmp_data = cmp_benchmark[0].stats
   core.info(`[compare] - best stats ${JSON.stringify(best_data)}`)
   core.info(`[compare] - cmp stats ${JSON.stringify(cmp_data)}`)
-  if (best_benchmark[0].name !== cmp_benchmark[0].name) return false
+  if (best_benchmark[0].name !== cmp_benchmark[0].name)
+    return benchmarkRes.BEST_NOT_MATCH
 
   const compareList = [
     {
@@ -376,6 +387,8 @@ function compareOutput(
       name: 'mean'
     }
   ]
+
+  let greater = false
   for (const compareParam of compareList) {
     if (compareParam.threshold) {
       const realVal = (compareParam.cmp - compareParam.best) / compareParam.best
@@ -383,15 +396,16 @@ function compareOutput(
         core.info(
           `[compare] - failed ${realVal}(${compareParam.name}) > ${compareParam.threshold}`
         )
-        return false
+        return benchmarkRes.ERROR
       } else {
+        if (realVal < 0) greater = true
         core.info(
           `[compare] - done ${realVal}(${compareParam.name}) < ${compareParam.threshold}`
         )
       }
     }
   }
-  return true
+  return greater ? benchmarkRes.GREATER : benchmarkRes.FIT
 }
 
 export async function singleBenchmark(
@@ -399,9 +413,9 @@ export async function singleBenchmark(
   benchmarkId: string,
   config: collectOutJson,
   containerName: string
-): Promise<boolean | null> {
+): Promise<benchmarkRes> {
   const oss = OssStorage.getInstance()
-  const cachePath = `benchmark_result/${benchmarkId}`
+  const cachePath = `benchmarkResult/${benchmarkId}`
   const jsonPath = path.join(cachePath, 'result.json')
   const bestInHistoryJSONPath = path.join(cachePath, 'best.json')
   const histogramPrefix = path.join(cachePath, benchmarkId)
@@ -430,7 +444,7 @@ export async function singleBenchmark(
 
   if (!success) {
     core.info(`[task]  ${pyTestScript} benchmark is unkown`)
-    return null
+    return benchmarkRes.UNKNOWN
   } else {
     core.info(`[task]  ${pyTestScript} benchmark pass`)
   }
@@ -450,14 +464,14 @@ export async function singleBenchmark(
   } else {
     oss.push(ossHistoricalBestJSONPath, jsonPath)
   }
-  return null
+  return benchmarkRes.UNKNOWN
 }
 
 export async function benchmarkBatch(
   collectOutputJsons: string[],
   containerName: string
-): Promise<(null | boolean)[]> {
-  const res: (null | boolean)[] = []
+): Promise<benchmarkRes[]> {
+  const res: benchmarkRes[] = []
   for (const outputJson of collectOutputJsons) {
     const config: collectOutJson = JSON.parse(outputJson)
     const output = await singleBenchmark(
@@ -519,9 +533,31 @@ export async function benchmarkWithPytest(): Promise<void> {
   const res = await benchmarkBatch(collectOutputJsons, containerName)
   let unknownNum = 0
   let errorNum = 0
-  for (const elem of res) {
-    if (elem == null) unknownNum++
-    else if (elem === false) errorNum++
+
+  for (let i = 0; i < realFuctionCount; i++) {
+    switch (res[i]) {
+      case benchmarkRes.BEST_NOT_MATCH:
+        core.info(`[error] best not match ${collectOutputJsons[i]}`)
+        errorNum++
+        break
+      case benchmarkRes.BEST_UNKNOWN:
+        core.info(`[unkown]best unknown ${collectOutputJsons[i]}`)
+        unknownNum++
+        break
+      case benchmarkRes.ERROR:
+        core.info(`[error] ${collectOutputJsons[i]}`)
+        errorNum++
+        break
+      case benchmarkRes.FIT:
+        break
+      case benchmarkRes.GREATER:
+        core.info(`[greater] ${collectOutputJsons[i]}`)
+        break
+      case benchmarkRes.UNKNOWN:
+        core.info(`[unkown] ${collectOutputJsons[i]}`)
+        unknownNum++
+        break
+    }
   }
   const realUnkown = unknownNum / realFuctionCount
   const realError = errorNum / realFuctionCount
