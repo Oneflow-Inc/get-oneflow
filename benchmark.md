@@ -8,4 +8,4 @@
  - 所有收集的函数都执行完成之后，判断 **false** 和 **unkown** 所占的比例是否小于 `unkown_threshold` 和 `error_threshold`，如果满足条件，则该benchmark环节成功。
 
 #### get-oneflow benchmark 更新流程
- - 在合并成功之后触发，比较所有历史结果，如果stddev满足要求，并且所有
+ - 在合并成功之后触发，比较所有历史结果，如果stddev满足要求，并且所有值都比best的记录小，则更新oss上的最佳历史记录。
