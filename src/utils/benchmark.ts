@@ -543,21 +543,21 @@ export async function benchmarkWithPytest(): Promise<void> {
   )
 
   const lines = output.stdout.split('\n')
-  let realFuctionCount = 0
+  let realFunctionCount = 0
   let decoratorFunctionCount = 0
   const collectOutputJsons = []
 
   for (const line of lines) {
     const decoratorRes = line.match(/^oneflow-benchmark-function::(.*)/)
-    if (line.match(/<Function test/)) realFuctionCount++
+    if (line.match(/<Function test/)) realFunctionCount++
     if (decoratorRes) {
       decoratorFunctionCount++
       collectOutputJsons.push(decoratorRes[1])
     }
   }
 
-  if (realFuctionCount !== decoratorFunctionCount) {
-    core.error(`[error] decorator fail to cover all test function!`)
+  if (realFunctionCount !== decoratorFunctionCount) {
+    throw new Error(`[error] decorator fail to cover all test function!`)
   }
 
   core.info(`[task] exec pytest functions`)
@@ -565,7 +565,7 @@ export async function benchmarkWithPytest(): Promise<void> {
   let unknownNum = 0
   let errorNum = 0
 
-  for (let i = 0; i < realFuctionCount; i++) {
+  for (let i = 0; i < realFunctionCount; i++) {
     switch (res[i].status) {
       case 'BEST_NOT_MATCH':
         core.info(`[error] best not match ${collectOutputJsons[i]}`)
@@ -605,10 +605,10 @@ export async function benchmarkWithPytest(): Promise<void> {
         break
     }
   }
-  const realUnkown = unknownNum / realFuctionCount
-  const realError = errorNum / realFuctionCount
-  core.info(`[pass] unkown/total: ${unknownNum}/${realFuctionCount}`)
-  core.info(`[pass] error/total: ${errorNum}/${realFuctionCount}`)
+  const realUnkown = unknownNum / realFunctionCount
+  const realError = errorNum / realFunctionCount
+  core.info(`[pass] unkown/total: ${unknownNum}/${realFunctionCount}`)
+  core.info(`[pass] error/total: ${errorNum}/${realFunctionCount}`)
   if (realUnkown > unkownThreshold) {
     core.info(`the ci benchmark set unkown threshold is ${unkownThreshold}`)
     core.info(`the ci benchmark output of unkown thresold is ${realUnkown}`)
