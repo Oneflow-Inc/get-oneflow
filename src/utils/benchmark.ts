@@ -599,6 +599,7 @@ export async function benchmarkWithPytest(): Promise<void> {
   const realError = errorNum / realFunctionCount
   core.info(`[pass] unknown/total: ${unknownNum}/${realFunctionCount}`)
   core.info(`[pass] error/total: ${errorNum}/${realFunctionCount}`)
+  // TODO: upload a summary so that it could be later retrieved and analyzed
   if (real_unknown > unknownThreshold) {
     core.info(`the ci benchmark set unknown threshold is ${unknownThreshold}`)
     core.info(`the ci benchmark output of unknown threshold is ${real_unknown}`)
