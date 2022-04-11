@@ -323,6 +323,7 @@ type benchmarkRes =
   | 'PASS'
   | 'GREATER'
 
+// TODO: extend this to differentiate micro, small, medium, large cases. For instance a size1 benchmark should be micro
 interface resJson {
   status: benchmarkRes
   best_stddev?: number
