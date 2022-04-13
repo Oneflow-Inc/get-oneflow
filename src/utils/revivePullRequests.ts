@@ -1,6 +1,5 @@
 import * as core from '@actions/core'
 import {Octokit} from '@octokit/core'
-import * as gh from '@actions/github'
 
 const token = core.getInput('token')
 const octokit = new Octokit({auth: token})
@@ -8,7 +7,6 @@ const owner = 'Oneflow-Inc'
 const repo = 'oneflow'
 
 export async function revivePRs(): Promise<void> {
-  core.info(JSON.stringify(gh.context, null, 2))
   const test_workflow_id = 'test.yml'
   // find running test workflow runs
   const numInProgress = (
