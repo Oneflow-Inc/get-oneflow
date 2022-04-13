@@ -5,6 +5,7 @@ import * as fs from 'fs'
 import OSS from 'ali-oss'
 import * as path from 'path'
 import {getOSSCredentials} from './cache'
+import {Head} from './ghSupport'
 
 class OssStorage {
   private static instance: OssStorage
@@ -34,7 +35,8 @@ class OssStorage {
   async push(remote_path: string, local_path: string): Promise<void> {
     const pull_request = gh.context.payload.pull_request
     if (pull_request) {
-      if (pull_request.head.repo.fullname !== 'Oneflow-Inc/oneflow') {
+      const head = pull_request['head'] as Head
+      if (head.repo.owner.login !== 'Oneflow-Inc') {
         core.warning(
           'Not Oneflow-Inc repo, so skipping benchmarks result uploading due to lack of secrets'
         )

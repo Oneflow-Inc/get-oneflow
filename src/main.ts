@@ -11,6 +11,7 @@ import {waitForGPURunner} from './utils/wait'
 import {checkPriorityPR} from './utils/crashUnlessPriority'
 import {revivePRs} from './utils/revivePullRequests'
 import {benchmarkWithPytest, updateBenchmarkHistory} from './utils/benchmark'
+import {Head} from './utils/ghSupport'
 type ActionType =
   | 'build-oneflow'
   | 'cache-complete'
@@ -31,10 +32,9 @@ type ActionType =
 runAndSetFailed(async () => {
   const pull_request = gh.context.payload.pull_request
   if (pull_request) {
+    const head = pull_request['head'] as Head
     core.info(JSON.stringify(pull_request, null, 2))
-    core.info(
-      `pull_request.head.repo.fullname: ${pull_request.head.repo.fullname}`
-    )
+    core.info(`head.repo.owner.login: ${head.repo.owner.login}`)
   }
   const actionType = core.getInput('action-type', {
     required: true
