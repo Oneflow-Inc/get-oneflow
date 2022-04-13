@@ -32,6 +32,9 @@ runAndSetFailed(async () => {
   const pull_request = gh.context.payload.pull_request
   if (pull_request) {
     core.info(JSON.stringify(pull_request, null, 2))
+    core.info(
+      `pull_request.head.repo.fullname: ${pull_request.head.repo.fullname}`
+    )
   }
   const actionType = core.getInput('action-type', {
     required: true

@@ -32,11 +32,14 @@ class OssStorage {
   }
 
   async push(remote_path: string, local_path: string): Promise<void> {
-    if (gh.context.repo.owner !== 'Oneflow-Inc') {
-      core.warning(
-        'Not Oneflow-Inc repo, so skipping benchmarks result uploading due to lack of secrets'
-      )
-      return
+    const pull_request = gh.context.payload.pull_request
+    if (pull_request) {
+      if (pull_request.head.repo.fullname !== 'Oneflow-Inc/oneflow') {
+        core.warning(
+          'Not Oneflow-Inc repo, so skipping benchmarks result uploading due to lack of secrets'
+        )
+        return
+      }
     }
     await this.client.put(remote_path, local_path)
     core.info(`[push] ${remote_path}`)
