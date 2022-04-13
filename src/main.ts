@@ -29,7 +29,10 @@ type ActionType =
   | 'update-benchmark-history'
 
 runAndSetFailed(async () => {
-  core.info(JSON.stringify(gh, null, 2))
+  const pull_request = gh.context.payload.pull_request
+  if (pull_request) {
+    core.info(JSON.stringify(pull_request, null, 2))
+  }
   const actionType = core.getInput('action-type', {
     required: true
   }) as ActionType
