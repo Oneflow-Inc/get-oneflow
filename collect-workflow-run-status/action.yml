@@ -1,0 +1,17 @@
+name: "Collect Workflow Run Status"
+description: ""
+inputs:
+  action-type:
+    description: ""
+    required: false
+    default: "collect-workflow-run-status"
+  token:
+    required: true
+    description: ""
+
+runs:
+  using: "node12"
+  main: "../dist/index.js"
+branding:
+  icon: "archive"
+  color: "gray-dark"

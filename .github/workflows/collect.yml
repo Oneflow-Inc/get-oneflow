@@ -1,0 +1,23 @@
+#. github/workflows/release.yml
+name: Revive PRs
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/45 * * * *"
+  push:
+    branches:
+      - "auto-collect"
+concurrency:
+  group: collect-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  revive-prs:
+    name: "Revive PRs"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./collect-workflow-run-status
+        name: Revive PRs
+        with:
+          token: ${{ secrets.CI_PERSONAL_ACCESS_TOKEN }}
