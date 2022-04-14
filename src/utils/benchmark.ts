@@ -263,7 +263,7 @@ async function retryWhile(
   let index = 1
   while (index <= time) {
     core.info(`[exec] ${index++}:${time} ${pyTestScript}`)
-    await pytest(
+    const return_code = await pytest(
       pyTestScript,
       containerName,
       jsonPath,
@@ -272,9 +272,15 @@ async function retryWhile(
       args
     )
 
-    const outputContent: logJSON = JSON.parse(
-      fs.readFileSync(jsonPath).toString()
-    )
+    let outputContent: logJSON
+    try {
+      outputContent = JSON.parse(fs.readFileSync(jsonPath).toString())
+    } catch (error) {
+      if (return_code === 0) {
+        core.warning(`[skip] ${pyTestScript}`)
+      }
+      return true
+    }
     const stats = outputContent.benchmarks[0].stats
 
     const retryList = [
