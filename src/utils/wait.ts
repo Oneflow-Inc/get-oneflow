@@ -92,7 +92,7 @@ async function num_in_progress_runs(
   nth_try: number
 ): Promise<number> {
   let is_github_bug = false
-  let min_total_cnt = 0
+  let min_total_cnt = 5
   let workflow_runs = (
     await Promise.all(
       statuses.map(async s => {
