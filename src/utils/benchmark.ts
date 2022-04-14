@@ -505,6 +505,7 @@ export async function benchmarkBatch(
   let total = 0
   let unknown = 0
   let error = 0
+  let skip = 0
   for (const outputJson of collectOutputJSONs) {
     const config: collectOutJson = JSON.parse(outputJson)
     const output = await singleBenchmark(
@@ -518,10 +519,12 @@ export async function benchmarkBatch(
     total++
 
     if (output.status === 'BEST_NOT_MATCH' || output.status === 'ERROR') error++
-    if (output.status === 'BEST_UNKNOWN' || output.status === 'UNKNOWN')
+    else if (output.status === 'BEST_UNKNOWN' || output.status === 'UNKNOWN')
       unknown++
-    core.info(`[pass] unknown/total: ${unknown}/${total}`)
-    core.info(`[pass] error/total: ${error}/${total}`)
+    else if (output.status === 'SKIP') skip++
+    core.info(`[skip] unknown/total: ${skip}/${total}`)
+    core.info(`[pass] unknown/total(minus skip): ${unknown}/${total - skip}`)
+    core.info(`[pass] error/total(minus skip): ${error}/${total - skip}`)
   }
   return res
 }
@@ -599,6 +602,7 @@ function PrintRes(
   const realFunctionCount = collectOutputJSONs.length
   let unknownNum = 0
   let errorNum = 0
+  let skipNum = 0
 
   for (let i = 0; i < realFunctionCount; i++) {
     switch (res[i].status) {
@@ -631,33 +635,37 @@ function PrintRes(
         break
       case 'SKIP':
         core.info(`[skip] ${collectOutputJSONs[i]}`)
+        skipNum++
         break
     }
   }
-  const real_unknown = unknownNum / realFunctionCount
-  const realError = errorNum / realFunctionCount
-  core.info(`[pass] unknown/total: ${unknownNum}/${realFunctionCount}`)
-  core.info(`[pass] error/total: ${errorNum}/${realFunctionCount}`)
+  const real_unknown = unknownNum / (realFunctionCount - skipNum)
+  const realError = errorNum / (realFunctionCount - skipNum)
+  core.info(
+    `[pass] unknown/total(minus skip): ${unknownNum}/${realFunctionCount}`
+  )
+  core.info(`[pass] error/total(minus skip): ${errorNum}/${realFunctionCount}`)
+
   // TODO: upload a summary so that it could be later retrieved and analyzed
   if (real_unknown > unknownThreshold) {
     core.info(`the ci benchmark set unknown threshold is ${unknownThreshold}`)
     core.info(`the ci benchmark output of unknown threshold is ${real_unknown}`)
     throw Error(
-      `[error] failed to pass unknown/total > threshold: ${real_unknown} > ${unknownThreshold}`
+      `[error] failed to pass unknown/total(minus skip) > threshold: ${real_unknown} > ${unknownThreshold}`
     )
   } else
     core.info(
-      `[success] unknown/total < threshold: ${real_unknown} < ${unknownThreshold}`
+      `[success] unknown/total(minus skip) < threshold: ${real_unknown} < ${unknownThreshold}`
     )
   if (realError > errorThreshold) {
     core.info(`the ci benchmark set error threshold is ${errorThreshold}`)
     core.info(`the ci benchmark output of error threshold is ${realError}`)
     throw Error(
-      `[error] error/total > threshold: ${realError} > ${errorThreshold}`
+      `[error] error/total(minus skip) > threshold: ${realError} > ${errorThreshold}`
     )
   } else
     core.info(
-      `[success] error/total < threshold: ${realError} < ${errorThreshold}`
+      `[success] error/total(minus skip) < threshold: ${realError} < ${errorThreshold}`
     )
 }
 
