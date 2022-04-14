@@ -32,5 +32,6 @@ jobs:
       - uses: ./collect-workflow-run-status
         name: Collect
         with:
-          token: ${{ secrets.CI_PERSONAL_ACCESS_TOKEN }}
+          # token: ${{ secrets.CI_PERSONAL_ACCESS_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           oneflow-src: ${{ env.ONEFLOW_SRC }}

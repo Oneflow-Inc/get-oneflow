@@ -10,7 +10,7 @@ export async function collectWorkflowRunStatus(): Promise<void> {
   const test_workflow_id = 'test.yml'
   process.env['GITHUB_TOKEN'] = token
   const failed_job_names: string[] = []
-  for (let page = 1; page < 20; page++) {
+  for (let page = 1; page < 5; page++) {
     const workflow_runs = await octokit.request(
       'GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs',
       {
