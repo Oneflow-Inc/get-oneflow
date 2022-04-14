@@ -87,7 +87,10 @@ async function is_occupying_gpu(
 // TODO: refactor into in_progress_runs_larger_that(1)
 type Status = Endpoints['GET /repos/{owner}/{repo}/actions/runs']['parameters']['status']
 
-async function num_in_progress_runs(statuses: Status[]): Promise<number> {
+async function num_in_progress_runs(
+  statuses: Status[],
+  nth_try: number
+): Promise<number> {
   let is_github_bug = false
   let workflow_runs = (
     await Promise.all(
@@ -105,7 +108,11 @@ async function num_in_progress_runs(statuses: Status[]): Promise<number> {
             'Github bug: total_count is not 0 but workflow_runs is empty'
           )
           core.info(JSON.stringify(r.data, null, 2))
-          is_github_bug = true
+          if (nth_try === r.data.total_count) {
+            core.info(`nth_try === r.data.total_count, continue anyway`)
+          } else {
+            is_github_bug = true
+          }
         }
         return r.data.workflow_runs
       })
@@ -166,7 +173,7 @@ export async function waitForGPURunner(): Promise<void> {
   while (i < max_try) {
     let num = 100000
     try {
-      num = await num_in_progress_runs(['in_progress', 'queued'])
+      num = await num_in_progress_runs(['in_progress', 'queued'], i)
       core.info(`try  ${i + 1}/${max_try}, timeout ${timeout_minutes} minutes`)
       core.info(`runs ${num}, max: ${max_num_parallel}`)
     } catch (error) {
