@@ -249,6 +249,7 @@ const pytest = async (
       ignoreReturnCode: true
     }
   )
+type RunResult = 'success' | 'skip' | 'fail'
 
 async function retryWhile(
   config: collectOutJson,
@@ -258,12 +259,12 @@ async function retryWhile(
   cachePath: string,
   histogramPrefix: string,
   args: string[]
-): Promise<boolean> {
+): Promise<RunResult> {
   const time = config.retry?.times ? config.retry.times + 1 : 1
   let index = 1
   while (index <= time) {
     core.info(`[exec] ${index++}:${time} ${pyTestScript}`)
-    await pytest(
+    const return_code = await pytest(
       pyTestScript,
       containerName,
       jsonPath,
@@ -272,9 +273,15 @@ async function retryWhile(
       args
     )
 
-    const outputContent: logJSON = JSON.parse(
-      fs.readFileSync(jsonPath).toString()
-    )
+    let outputContent: logJSON
+    try {
+      outputContent = JSON.parse(fs.readFileSync(jsonPath).toString())
+    } catch (error) {
+      if (return_code === 0) {
+        core.warning(`[skip] ${pyTestScript}`)
+      }
+      return 'skip'
+    }
     const stats = outputContent.benchmarks[0].stats
 
     const retryList = [
@@ -315,9 +322,9 @@ async function retryWhile(
         }
       }
     }
-    if (success) return true
+    if (success) return 'success'
   }
-  return false
+  return 'fail'
 }
 
 type benchmarkRes =
@@ -327,6 +334,7 @@ type benchmarkRes =
   | 'ERROR'
   | 'PASS'
   | 'GREATER'
+  | 'SKIP'
 
 // TODO: extend this to differentiate micro, small, medium, large cases. For instance a size1 benchmark should be micro
 interface resJson {
@@ -457,7 +465,7 @@ export async function singleBenchmark(
   )
 
   const args = hasBest ? [`--benchmark-compare=${bestInHistoryJSONPath}`] : []
-  const success = await retryWhile(
+  const runResult = await retryWhile(
     config,
     jsonPath,
     pyTestScript,
@@ -467,11 +475,8 @@ export async function singleBenchmark(
     args
   )
 
-  if (!success) {
-    core.info(`[task]  ${pyTestScript} benchmark is unknown`)
-    return {status: 'UNKNOWN'}
-  } else {
-    core.info(`[task]  ${pyTestScript} benchmark pass`)
+  if (runResult === 'skip') {
+    return {status: 'SKIP'}
   }
   for (const file of fs.readdirSync(cachePath)) {
     core.info(`[file] ${file}`)
@@ -483,7 +488,7 @@ export async function singleBenchmark(
   }
   await oss.push(ossRunJSONPath, jsonPath)
 
-  if (hasBest) {
+  if (hasBest && runResult === 'success') {
     const res = compareOutput(jsonPath, bestInHistoryJSONPath, config)
     return res
   } else {
@@ -525,7 +530,8 @@ export async function benchmarkWithPytest(): Promise<void> {
   core.info(`[task] benchmark with pytest`)
   const collectPath = core.getInput('collect-path')
   const containerName = core.getInput('container-name')
-  const unknownThreshold = parseInt(core.getInput('unknown-threshold')) / 100
+  // This is a typo, update it oneflow as well
+  const unknownThreshold = parseInt(core.getInput('unkown-threshold')) / 100
   const errorThreshold = parseInt(core.getInput('error-threshold')) / 100
 
   core.info(`[task] collect pytest functions in ${collectPath}`)

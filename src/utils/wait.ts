@@ -47,7 +47,7 @@ async function is_occupying_gpu(
   )
   core.info(table.toString())
   const gpu_jobs_in_progress = r.data.jobs.filter(
-    j => is_gpu_job(j) && j.status === 'in_progress'
+    j => is_gpu_job(j) && (j.status === 'queued' || j.status === 'in_progress')
   )
   const jobs_all_queued = r.data.jobs
     .filter(j => is_gpu_job(j))
@@ -61,7 +61,7 @@ async function is_occupying_gpu(
     jobs_all_queued &&
     test_suite_job_completed.length !== test_suite_job_all.length
 
-  // pass distributed
+  // pass scheduler
   const schedule_job = r.data.jobs.find(j => j.name === 'Wait for GPU slots')
   const has_passed_scheduler =
     schedule_job &&
@@ -87,7 +87,12 @@ async function is_occupying_gpu(
 // TODO: refactor into in_progress_runs_larger_that(1)
 type Status = Endpoints['GET /repos/{owner}/{repo}/actions/runs']['parameters']['status']
 
-async function num_in_progress_runs(statuses: Status[]): Promise<number> {
+async function num_in_progress_runs(
+  statuses: Status[],
+  nth_try: number
+): Promise<number> {
+  let is_github_bug = false
+  let min_total_cnt = 5
   let workflow_runs = (
     await Promise.all(
       statuses.map(async s => {
@@ -99,6 +104,14 @@ async function num_in_progress_runs(statuses: Status[]): Promise<number> {
             status: s
           }
         )
+        if (r.data.total_count !== 0 && r.data.workflow_runs.length === 0) {
+          core.info(
+            'Github bug: total_count is not 0 but workflow_runs is empty'
+          )
+          core.info(JSON.stringify(r.data, null, 2))
+          is_github_bug = true
+          min_total_cnt = Math.min(min_total_cnt, r.data.total_count)
+        }
         return r.data.workflow_runs
       })
     )
@@ -106,7 +119,16 @@ async function num_in_progress_runs(statuses: Status[]): Promise<number> {
     acc.push(...v)
     return acc
   }, [])
-
+  if (is_github_bug) {
+    if (nth_try >= min_total_cnt) {
+      core.warning(
+        `nth_try >= min_total_cnt (${nth_try} >= ${min_total_cnt}), continue anyway`
+      )
+      return 0
+    } else {
+      return 1
+    }
+  }
   core.info(`found ${workflow_runs.length} workflow runs for ${statuses}`)
   if (workflow_runs.length === 0) {
     core.info(`no workflow runs found for ${statuses}`)
@@ -156,7 +178,7 @@ export async function waitForGPURunner(): Promise<void> {
   while (i < max_try) {
     let num = 100000
     try {
-      num = await num_in_progress_runs(['in_progress', 'queued'])
+      num = await num_in_progress_runs(['in_progress', 'queued'], i)
       core.info(`try  ${i + 1}/${max_try}, timeout ${timeout_minutes} minutes`)
       core.info(`runs ${num}, max: ${max_num_parallel}`)
     } catch (error) {
