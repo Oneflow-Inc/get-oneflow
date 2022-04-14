@@ -24,7 +24,7 @@ export async function collectWorkflowRunStatus(): Promise<void> {
     }
   )
   process.env['GITHUB_TOKEN'] = token
-  for await (const wr of workflow_runs.data.workflow_runs) {
+  for (const wr of workflow_runs.data.workflow_runs) {
     await exec.exec('gh', ['run', 'view', `${wr.id}`, '--log-failed'], {
       cwd: oneflowSrc
     })
