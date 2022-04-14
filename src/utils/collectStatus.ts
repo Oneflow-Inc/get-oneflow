@@ -24,6 +24,7 @@ export async function collectWorkflowRunStatus(): Promise<void> {
     }
   )
   process.env['GITHUB_TOKEN'] = token
+  const failed_job_names: string[] = []
   for (const wr of workflow_runs.data.workflow_runs) {
     const jobs = (
       await octokit.request(
@@ -32,7 +33,6 @@ export async function collectWorkflowRunStatus(): Promise<void> {
       )
     ).data.jobs
     let should_collect = false
-    const failed_job_names: string[] = []
     for (const job of jobs) {
       if (job.conclusion === 'failure') {
         core.info(`${job.name}`)
@@ -43,17 +43,17 @@ export async function collectWorkflowRunStatus(): Promise<void> {
         }
       }
     }
-    const summary = Object.assign(
-      {},
-      ...Array.from(new Set(failed_job_names), key => ({
-        [key]: failed_job_names.filter((value: string) => value === key).length
-      }))
-    )
-    core.info(`summary: ${JSON.stringify(summary, null, 2)}`)
     if (should_collect) {
       await exec.exec('gh', ['run', 'view', `${wr.id}`, '--log-failed'], {
         cwd: oneflowSrc
       })
     }
   }
+  const summary = Object.assign(
+    {},
+    ...Array.from(new Set(failed_job_names), key => ({
+      [key]: failed_job_names.filter((value: string) => value === key).length
+    }))
+  )
+  core.info(`summary: ${JSON.stringify(summary, null, 2)}`)
 }
