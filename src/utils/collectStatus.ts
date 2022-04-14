@@ -19,7 +19,7 @@ export async function collectWorkflowRunStatus(): Promise<void> {
       owner,
       repo,
       workflow_id: test_workflow_id,
-      per_page: 30,
+      per_page: 100,
       status: 'failure'
     }
   )
