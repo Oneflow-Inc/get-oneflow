@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   revive-prs:
-    name: "Revive PRs"
+    name: "Collect PR Status"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
