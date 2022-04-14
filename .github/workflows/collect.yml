@@ -1,5 +1,5 @@
 #. github/workflows/release.yml
-name: Revive PRs
+name: Collect PR Status
 on:
   workflow_dispatch:
   schedule:
