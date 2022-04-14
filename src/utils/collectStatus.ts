@@ -31,13 +31,20 @@ export async function collectWorkflowRunStatus(): Promise<void> {
         {owner, repo, run_id: wr.id}
       )
     ).data.jobs
+    let should_collect = false
     for (const job of jobs) {
       if (job.conclusion === 'failure') {
+        core.info(`${job.name}`)
         core.info(`${job.html_url}`)
+        if (job.name.includes('suite') || job.name.includes('analysis')) {
+          should_collect = true
+        }
       }
     }
-    await exec.exec('gh', ['run', 'view', `${wr.id}`, '--log-failed'], {
-      cwd: oneflowSrc
-    })
+    if (should_collect) {
+      await exec.exec('gh', ['run', 'view', `${wr.id}`, '--log-failed'], {
+        cwd: oneflowSrc
+      })
+    }
   }
 }
