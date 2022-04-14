@@ -44,9 +44,14 @@ export async function collectWorkflowRunStatus(): Promise<void> {
       }
     }
     if (should_collect) {
-      await exec.exec('gh', ['run', 'view', `${wr.id}`, '--log-failed'], {
-        cwd: oneflowSrc
-      })
+      await exec.getExecOutput(
+        'gh',
+        ['run', 'view', `${wr.id}`, '--log-failed'],
+        {
+          cwd: oneflowSrc,
+          silent: true
+        }
+      )
     }
   }
   const summary = Object.assign(
