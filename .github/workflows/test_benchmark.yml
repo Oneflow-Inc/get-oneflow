@@ -14,7 +14,7 @@ env:
   FLOW_VISION_SRC: flow_vision
   TEST_WITH_TORCH_IMG_TAG: registry.cn-beijing.aliyuncs.com/oneflow/test-with-pytorch-1.9.0-cuda10.2-cudnn7-runtime:70729b0680b5a32daba6f50b56e0c169cd1636fa
   ONEFLOW_SRC: oneflow-src
-  ONEFLOW_REF: master\d
+  ONEFLOW_REF: master
 
 jobs:
   find-benchmark-cache:
@@ -78,7 +78,7 @@ jobs:
         with:
           repository: Oneflow-Inc/vision
           # please use a commit here
-          ref: 90acf53c77f69d6bbc26d805079d7765a3cb2608
+          ref: ca8ebc663b58667cf8cd1b6ef0c861522780b7bb
           path: ${{ env.FLOW_VISION_SRC}}
       - uses: actions/checkout@v2
         with:
