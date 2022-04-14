@@ -55,5 +55,5 @@ export async function collectWorkflowRunStatus(): Promise<void> {
       [key]: failed_job_names.filter((value: string) => value === key).length
     }))
   )
-  core.info(`summary: ${JSON.stringify(summary, null, 2)}`)
+  core.warning(`summary: ${JSON.stringify(summary, null, 2)}`)
 }
