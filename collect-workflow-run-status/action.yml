@@ -8,6 +8,9 @@ inputs:
   token:
     required: true
     description: ""
+  oneflow-src:
+    description: "path to OneFlow source code"
+    required: true
 
 runs:
   using: "node12"
