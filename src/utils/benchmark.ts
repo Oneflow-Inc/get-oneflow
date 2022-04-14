@@ -334,6 +334,7 @@ type benchmarkRes =
   | 'ERROR'
   | 'PASS'
   | 'GREATER'
+  | 'SKIP'
 
 // TODO: extend this to differentiate micro, small, medium, large cases. For instance a size1 benchmark should be micro
 interface resJson {
@@ -474,11 +475,8 @@ export async function singleBenchmark(
     args
   )
 
-  if (!(runResult === 'success')) {
-    core.info(`[task]  ${pyTestScript} benchmark is unknown`)
-    return {status: 'UNKNOWN'}
-  } else {
-    core.info(`[task]  ${pyTestScript} benchmark pass`)
+  if (runResult === 'skip') {
+    return {status: 'SKIP'}
   }
   for (const file of fs.readdirSync(cachePath)) {
     core.info(`[file] ${file}`)
