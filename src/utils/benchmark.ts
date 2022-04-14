@@ -249,6 +249,7 @@ const pytest = async (
       ignoreReturnCode: true
     }
   )
+type RunResult = 'success' | 'skip' | 'fail'
 
 async function retryWhile(
   config: collectOutJson,
@@ -258,7 +259,7 @@ async function retryWhile(
   cachePath: string,
   histogramPrefix: string,
   args: string[]
-): Promise<boolean> {
+): Promise<RunResult> {
   const time = config.retry?.times ? config.retry.times + 1 : 1
   let index = 1
   while (index <= time) {
@@ -279,7 +280,7 @@ async function retryWhile(
       if (return_code === 0) {
         core.warning(`[skip] ${pyTestScript}`)
       }
-      return true
+      return 'skip'
     }
     const stats = outputContent.benchmarks[0].stats
 
@@ -321,9 +322,9 @@ async function retryWhile(
         }
       }
     }
-    if (success) return true
+    if (success) return 'success'
   }
-  return false
+  return 'fail'
 }
 
 type benchmarkRes =
@@ -463,7 +464,7 @@ export async function singleBenchmark(
   )
 
   const args = hasBest ? [`--benchmark-compare=${bestInHistoryJSONPath}`] : []
-  const success = await retryWhile(
+  const runResult = await retryWhile(
     config,
     jsonPath,
     pyTestScript,
@@ -473,7 +474,7 @@ export async function singleBenchmark(
     args
   )
 
-  if (!success) {
+  if (!(runResult === 'success')) {
     core.info(`[task]  ${pyTestScript} benchmark is unknown`)
     return {status: 'UNKNOWN'}
   } else {
@@ -489,7 +490,7 @@ export async function singleBenchmark(
   }
   await oss.push(ossRunJSONPath, jsonPath)
 
-  if (hasBest) {
+  if (hasBest && runResult === 'success') {
     const res = compareOutput(jsonPath, bestInHistoryJSONPath, config)
     return res
   } else {
