@@ -19,6 +19,7 @@ export async function collectWorkflowRunStatus(): Promise<void> {
       status: 'failure'
     }
   )
+  process.env['GITHUB_TOKEN'] = token
   workflow_runs.data.workflow_runs.map(wr => {
     exec.exec('gh', ['run', 'view', `${wr.id}`, '--log-failed'])
   })
