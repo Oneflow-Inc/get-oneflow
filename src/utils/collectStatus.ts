@@ -25,6 +25,17 @@ export async function collectWorkflowRunStatus(): Promise<void> {
   )
   process.env['GITHUB_TOKEN'] = token
   for (const wr of workflow_runs.data.workflow_runs) {
+    const jobs = (
+      await octokit.request(
+        'GET /repos/{owner}/{repo}/actions/runs/{run_id}/jobs',
+        {owner, repo, run_id: wr.id}
+      )
+    ).data.jobs
+    for (const job of jobs) {
+      if (job.conclusion === 'failure') {
+        core.info(`${job.html_url}`)
+      }
+    }
     await exec.exec('gh', ['run', 'view', `${wr.id}`, '--log-failed'], {
       cwd: oneflowSrc
     })
