@@ -121,7 +121,7 @@ async function num_in_progress_runs(
   }, [])
   if (is_github_bug) {
     if (nth_try >= min_total_cnt) {
-      core.info(
+      core.warning(
         `nth_try >= min_total_cnt (${nth_try} >= ${min_total_cnt}), continue anyway`
       )
       return 0
