@@ -88,6 +88,7 @@ async function is_occupying_gpu(
 type Status = Endpoints['GET /repos/{owner}/{repo}/actions/runs']['parameters']['status']
 
 async function num_in_progress_runs(statuses: Status[]): Promise<number> {
+  let is_github_bug = false
   let workflow_runs = (
     await Promise.all(
       statuses.map(async s => {
@@ -99,6 +100,13 @@ async function num_in_progress_runs(statuses: Status[]): Promise<number> {
             status: s
           }
         )
+        if (r.data.total_count !== 0 && r.data.workflow_runs.length === 0) {
+          core.info(
+            'Github bug: total_count is not 0 but workflow_runs is empty'
+          )
+          core.info(JSON.stringify(r.data, null, 2))
+          is_github_bug = true
+        }
         return r.data.workflow_runs
       })
     )
@@ -106,7 +114,9 @@ async function num_in_progress_runs(statuses: Status[]): Promise<number> {
     acc.push(...v)
     return acc
   }, [])
-
+  if (is_github_bug) {
+    return 1
+  }
   core.info(`found ${workflow_runs.length} workflow runs for ${statuses}`)
   if (workflow_runs.length === 0) {
     core.info(`no workflow runs found for ${statuses}`)
