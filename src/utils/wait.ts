@@ -108,8 +108,8 @@ async function num_in_progress_runs(
             'Github bug: total_count is not 0 but workflow_runs is empty'
           )
           core.info(JSON.stringify(r.data, null, 2))
-          if (nth_try === r.data.total_count) {
-            core.info(`nth_try === r.data.total_count, continue anyway`)
+          if (nth_try >= r.data.total_count) {
+            core.info(`nth_try >= r.data.total_count, continue anyway`)
           } else {
             is_github_bug = true
           }
