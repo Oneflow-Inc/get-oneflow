@@ -47,7 +47,7 @@ async function is_occupying_gpu(
   )
   core.info(table.toString())
   const gpu_jobs_in_progress = r.data.jobs.filter(
-    j => is_gpu_job(j) && j.status === 'in_progress'
+    j => is_gpu_job(j) && (j.status === 'queued' || j.status === 'in_progress')
   )
   const jobs_all_queued = r.data.jobs
     .filter(j => is_gpu_job(j))
@@ -61,7 +61,7 @@ async function is_occupying_gpu(
     jobs_all_queued &&
     test_suite_job_completed.length !== test_suite_job_all.length
 
-  // pass distributed
+  // pass scheduler
   const schedule_job = r.data.jobs.find(j => j.name === 'Wait for GPU slots')
   const has_passed_scheduler =
     schedule_job &&
