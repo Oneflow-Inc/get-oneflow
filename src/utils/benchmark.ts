@@ -522,7 +522,7 @@ export async function benchmarkBatch(
     else if (output.status === 'BEST_UNKNOWN' || output.status === 'UNKNOWN')
       unknown++
     else if (output.status === 'SKIP') skip++
-    core.info(`[skip] unknown/total: ${skip}/${total}`)
+    core.info(`[skip] skip/total: ${skip}/${total}`)
     core.info(`[pass] unknown/total(minus skip): ${unknown}/${total - skip}`)
     core.info(`[pass] error/total(minus skip): ${error}/${total - skip}`)
   }
@@ -641,10 +641,15 @@ function PrintRes(
   }
   const real_unknown = unknownNum / (realFunctionCount - skipNum)
   const realError = errorNum / (realFunctionCount - skipNum)
+  core.info(`[skip] skip/total: ${skipNum}/${realFunctionCount}`)
   core.info(
-    `[pass] unknown/total(minus skip): ${unknownNum}/${realFunctionCount}`
+    `[pass] unknown/total(minus skip): ${unknownNum}/${
+      realFunctionCount - skipNum
+    }`
   )
-  core.info(`[pass] error/total(minus skip): ${errorNum}/${realFunctionCount}`)
+  core.info(
+    `[pass] error/total(minus skip): ${errorNum}/${realFunctionCount - skipNum}`
+  )
 
   // TODO: upload a summary so that it could be later retrieved and analyzed
   if (real_unknown > unknownThreshold) {
