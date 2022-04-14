@@ -32,15 +32,24 @@ export async function collectWorkflowRunStatus(): Promise<void> {
       )
     ).data.jobs
     let should_collect = false
+    const failed_job_names: string[] = []
     for (const job of jobs) {
       if (job.conclusion === 'failure') {
         core.info(`${job.name}`)
         core.info(`${job.html_url}`)
+        failed_job_names.push(job.name)
         if (job.name.includes('suite') || job.name.includes('analysis')) {
           should_collect = true
         }
       }
     }
+    const summary = Object.assign(
+      {},
+      ...Array.from(new Set(failed_job_names), key => ({
+        [key]: failed_job_names.filter((value: string) => value === key).length
+      }))
+    )
+    core.info(`summary: ${JSON.stringify(summary, null, 2)}`)
     if (should_collect) {
       await exec.exec('gh', ['run', 'view', `${wr.id}`, '--log-failed'], {
         cwd: oneflowSrc
