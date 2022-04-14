@@ -51,6 +51,7 @@ export async function cacheComplete(keys: string[]): Promise<void> {
   }
 }
 
+// NOTE: This is no a typo, exception name in oss lib is UnknowError
 interface UnknowError {
   name: 'UnknowError'
   status: Number

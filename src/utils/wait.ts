@@ -13,7 +13,8 @@ const repo = 'oneflow'
 function is_test_suite_job(j: components['schemas']['job']): Boolean {
   return (
     j.name.startsWith('Test suite') ||
-    j.name.startsWith('Distributed test suite')
+    j.name.startsWith('Distributed test suite') ||
+    j.name.startsWith('Benchmark suite')
   )
 }
 

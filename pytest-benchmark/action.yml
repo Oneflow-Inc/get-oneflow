@@ -1,0 +1,26 @@
+name: "Revive PRs"
+description: ""
+inputs:
+  action-type:
+    description: ""
+    required: false
+    default: "pytest-benchmark"
+  container-name:
+    required: true
+    description: ""
+  pytest-script:
+    required: true
+    description: ""
+  benchmark-id:
+    required: true
+    description: ""
+  pytest-args:
+    required: true
+    description: ""
+
+runs:
+  using: "node12"
+  main: "../dist/index.js"
+branding:
+  icon: "archive"
+  color: "gray-dark"

@@ -1,10 +1,10 @@
-name: 'build-test'
+name: "build-test"
 on: # rebuild any PRs and main branch changes
   pull_request:
   push:
     branches:
       - main
-      - 'releases/*'
+      - "releases/*"
 
 concurrency:
   group: test-${{ github.ref }}
@@ -18,7 +18,7 @@ env:
 
 jobs:
   build: # make sure build/ci work properly
-    name: 'Build and test this repo'
+    name: "Build and test this repo"
     runs-on: ubuntu-latest
     env:
       ONEFLOW_SRC: oneflow-src
@@ -35,7 +35,7 @@ jobs:
           npm run all
 
   test-build-oneflow:
-    name: 'Build OneFlow Conda'
+    name: "Build OneFlow Conda"
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -46,7 +46,7 @@ jobs:
           - entry: gh-hosted
             os: [ubuntu-latest]
           - entry: self-hosted
-            os: ['self-hosted', 'linux', 'provision']
+            os: ["self-hosted", "linux", "provision"]
 
     env:
       ONEFLOW_SRC: oneflow-src
@@ -107,7 +107,7 @@ jobs:
           parallel: ${{ env.ONEFLOW_CI_BUILD_PARALLEL }}
 
   find-build-cache:
-    name: 'Find build cache'
+    name: "Find build cache"
     runs-on: ubuntu-latest
     env:
       ONEFLOW_SRC: oneflow-src
@@ -137,7 +137,7 @@ jobs:
             cu102_xla
 
   test-build-manylinux:
-    name: 'Build OneFlow manylinux'
+    name: "Build OneFlow manylinux"
     runs-on: ${{ matrix.runs-on }}
     needs: [find-build-cache]
     concurrency:
@@ -145,7 +145,7 @@ jobs:
       cancel-in-progress: true
     strategy:
       fail-fast: false
-      max-parallel: 2
+      max-parallel: 1
       matrix: ${{ fromJson(needs.find-build-cache.outputs.matrix) }}
     env:
       ONEFLOW_SRC: oneflow-src
@@ -217,7 +217,7 @@ jobs:
           wheelhouse-dir: ${{ env.WHEELHOUSE_DIR }}
           clear-wheelhouse-dir: true
           self-hosted: ${{ contains(matrix.runs-on, 'self-hosted') }}
-          cuda-version: '10.2'
+          cuda-version: "10.2"
           manylinux-cache-dir: ${{ env.MANYLINUX_CACHE_DIR }}
           docker-run-use-system-http-proxy: false
           docker-run-use-lld: false
@@ -237,7 +237,7 @@ jobs:
           wheelhouse-dir: ${{ env.WHEELHOUSE_DIR }}
           clear-wheelhouse-dir: true
           self-hosted: ${{ contains(matrix.runs-on, 'self-hosted') }}
-          cuda-version: '10.2'
+          cuda-version: "10.2"
           manylinux-cache-dir: ${{ env.MANYLINUX_CACHE_DIR }}
           docker-run-use-system-http-proxy: true
           docker-run-use-lld: true
@@ -255,9 +255,9 @@ jobs:
         with:
           host: ${{ env.SSH_TANK_HOST }}
           username: ${{ env.SSH_USERNAME }}
-          source: '${{ env.WHEELHOUSE_DIR }}/*.whl'
+          source: "${{ env.WHEELHOUSE_DIR }}/*.whl"
           key_path: /github/workflow/id_rsa
-          target: '${{ env.SSH_TANK_PATH }}/digest/${{ steps.save-cache.outputs.build-digest }}/${{ matrix.entry }}/whl'
+          target: "${{ env.SSH_TANK_PATH }}/digest/${{ steps.save-cache.outputs.build-digest }}/${{ matrix.entry }}/whl"
           rm: true
           strip_components: 1
       - name: Copy CPack dir
@@ -270,20 +270,20 @@ jobs:
           host: ${{ env.SSH_TANK_HOST }}
           username: ${{ env.SSH_USERNAME }}
           key_path: /github/workflow/id_rsa
-          source: 'cpack/*.zip'
-          target: '${{ env.SSH_TANK_PATH }}/digest/${{ steps.save-cache.outputs.build-digest }}/${{ matrix.entry }}/cpack'
+          source: "cpack/*.zip"
+          target: "${{ env.SSH_TANK_PATH }}/digest/${{ steps.save-cache.outputs.build-digest }}/${{ matrix.entry }}/cpack"
           rm: true
           strip_components: 1
 
   check-build-cache:
-    name: 'Check manylinux build cache'
+    name: "Check manylinux build cache"
     runs-on: ubuntu-latest
     needs: [test-build-manylinux]
     strategy:
       fail-fast: false
       max-parallel: 5
       matrix:
-        entry: ['cu102_xla', 'cu102', 'cpu']
+        entry: ["cu102_xla", "cu102", "cpu"]
     env:
       ONEFLOW_SRC: oneflow-src
     steps:
@@ -313,7 +313,7 @@ jobs:
           exit 1
 
   find-test-cache:
-    name: 'Find test cache'
+    name: "Find test cache"
     runs-on: ubuntu-latest
     needs: [test-build-manylinux]
     env:
@@ -337,6 +337,13 @@ jobs:
             linux
             provision
           oneflow-src: ${{ env.ONEFLOW_SRC }}
+          devices: |
+            cuda
+            cpu
+          tests: |
+            module
+            misc
+            speed-test
 
   test-oneflow-doctor:
     name: Test suite
@@ -348,11 +355,11 @@ jobs:
       matrix: ${{ fromJson(needs.find-test-cache.outputs.matrix) }}
     env:
       ONEFLOW_SRC: oneflow-src
-      TEST_CONTAINER_NAME: 'pr-${{ github.event.pull_request.number }}-run-id-${{ github.run_id }}-${{ matrix.entry }}-test'
+      TEST_CONTAINER_NAME: "pr-${{ github.event.pull_request.number }}-run-id-${{ github.run_id }}-${{ matrix.entry }}-test"
       TEST_WITH_TF_IMG_TAG: registry.cn-beijing.aliyuncs.com/oneflow/test-with-tf-2.4.0:b8b5eb2bdee6928fefd61ccabf8fb2d680835aeb
       TEST_WITH_TORCH_IMG_TAG: registry.cn-beijing.aliyuncs.com/oneflow/test-with-pytorch-1.9.0:e7a497b41d8b7f1bce055b1f23d027f93b1557ae
-      PIP_INDEX_URL: 'http://192.168.1.22:8000'
-      PIP_INDEX_TRUST_ARGS: '--trusted-host 192.168.1.22'
+      PIP_INDEX_URL: "http://192.168.1.22:8000"
+      PIP_INDEX_TRUST_ARGS: "--trusted-host 192.168.1.22"
       SSH_TANK_HOST: 192.168.1.23
       SSH_TANK_PATH: /home/ci-user/tank
     steps:
@@ -428,6 +435,7 @@ jobs:
             -e ONEFLOW_WHEEL_PATH=${ONEFLOW_WHEEL_PATH} \
             -e ONEFLOW_BIN_PATH=${ONEFLOW_BIN_PATH} \
             -e ONEFLOW_CI=1 \
+            -e TERM="xterm-256color" \
             -v $PWD:$PWD \
             -w $PWD \
             --name ${{ env.TEST_CONTAINER_NAME }} \

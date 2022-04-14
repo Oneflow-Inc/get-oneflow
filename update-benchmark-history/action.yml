@@ -1,0 +1,14 @@
+name: "Update Benchmark History"
+description: ""
+inputs:
+  action-type:
+    description: ""
+    required: false
+    default: "update-benchmark-history"
+
+runs:
+  using: "node12"
+  main: "../dist/index.js"
+branding:
+  icon: "archive"
+  color: "gray-dark"

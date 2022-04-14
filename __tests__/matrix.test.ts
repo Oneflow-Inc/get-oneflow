@@ -20,6 +20,13 @@ test(
     env.setInput('oneflow-src', sourceDir)
     env.setBooleanInput('include-distributed', false)
     env.setInput('world-size', '1')
+    env.setMultilineInput('tests', [
+      'module',
+      'speed-test',
+      'misc',
+      'benchmark'
+    ])
+    env.setMultilineInput('devices', ['cpu', 'cuda'])
     env.setInput('oneflow-src', sourceDir)
     env.setMultilineInput('runner-labels', ['self-hosted', 'linux'])
     await setTestMatrix()
