@@ -92,6 +92,7 @@ async function num_in_progress_runs(
   nth_try: number
 ): Promise<number> {
   let is_github_bug = false
+  let min_total_cnt = 0
   let workflow_runs = (
     await Promise.all(
       statuses.map(async s => {
@@ -108,11 +109,8 @@ async function num_in_progress_runs(
             'Github bug: total_count is not 0 but workflow_runs is empty'
           )
           core.info(JSON.stringify(r.data, null, 2))
-          if (nth_try >= r.data.total_count) {
-            core.info(`nth_try >= r.data.total_count, continue anyway`)
-          } else {
-            is_github_bug = true
-          }
+          is_github_bug = true
+          min_total_cnt = Math.min(min_total_cnt, r.data.total_count)
         }
         return r.data.workflow_runs
       })
@@ -122,7 +120,14 @@ async function num_in_progress_runs(
     return acc
   }, [])
   if (is_github_bug) {
-    return 1
+    if (nth_try >= min_total_cnt) {
+      core.info(
+        `nth_try >= min_total_cnt (${nth_try} >= ${min_total_cnt}), continue anyway`
+      )
+      return 0
+    } else {
+      return 1
+    }
   }
   core.info(`found ${workflow_runs.length} workflow runs for ${statuses}`)
   if (workflow_runs.length === 0) {
