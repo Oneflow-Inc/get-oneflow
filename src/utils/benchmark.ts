@@ -530,7 +530,8 @@ export async function benchmarkWithPytest(): Promise<void> {
   core.info(`[task] benchmark with pytest`)
   const collectPath = core.getInput('collect-path')
   const containerName = core.getInput('container-name')
-  const unknownThreshold = parseInt(core.getInput('unknown-threshold')) / 100
+  // This is a typo, update it oneflow as well
+  const unknownThreshold = parseInt(core.getInput('unkown-threshold')) / 100
   const errorThreshold = parseInt(core.getInput('error-threshold')) / 100
 
   core.info(`[task] collect pytest functions in ${collectPath}`)
