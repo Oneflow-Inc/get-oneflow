@@ -6,6 +6,7 @@ import OSS from 'ali-oss'
 import * as path from 'path'
 import {getOSSCredentials} from './cache'
 import {Head} from './ghSupport'
+import {getPercentageInput} from './util'
 
 class OssStorage {
   private static instance: OssStorage
@@ -505,6 +506,7 @@ export async function benchmarkBatch(
   let total = 0
   let unknown = 0
   let error = 0
+  let skip = 0
   for (const outputJson of collectOutputJSONs) {
     const config: collectOutJson = JSON.parse(outputJson)
     const output = await singleBenchmark(
@@ -518,23 +520,50 @@ export async function benchmarkBatch(
     total++
 
     if (output.status === 'BEST_NOT_MATCH' || output.status === 'ERROR') error++
-    if (output.status === 'BEST_UNKNOWN' || output.status === 'UNKNOWN')
+    else if (output.status === 'BEST_UNKNOWN' || output.status === 'UNKNOWN')
       unknown++
-    core.info(`[pass] unknown/total: ${unknown}/${total}`)
-    core.info(`[pass] error/total: ${error}/${total}`)
+    else if (output.status === 'SKIP') skip++
+    core.info(`[skip] skip/total: ${skip}/${total}`)
+    core.info(`[pass] unknown/total(minus skip): ${unknown}/${total - skip}`)
+    core.info(`[pass] error/total(minus skip): ${error}/${total - skip}`)
   }
   return res
 }
 
-export async function benchmarkWithPytest(): Promise<void> {
+interface pytestArgs {
+  collectPath: string
+  containerName: string
+  unknownThreshold: number
+  errorThreshold: number
+}
+
+function getPytestArgs(): pytestArgs {
   core.info(`[task] benchmark with pytest`)
   const collectPath = core.getInput('collect-path')
   const containerName = core.getInput('container-name')
-  // This is a typo, update it oneflow as well
-  const unknownThreshold = parseInt(core.getInput('unkown-threshold')) / 100
-  const errorThreshold = parseInt(core.getInput('error-threshold')) / 100
+  // TODO: This is a typo, update it oneflow as well
+  const unknownThreshold = getPercentageInput('unkown-threshold')
+  const errorThreshold = getPercentageInput('error-threshold')
 
-  core.info(`[task] collect pytest functions in ${collectPath}`)
+  if (collectPath === '')
+    throw Error('[error] please set collect path in your action.yml')
+  if (containerName === '')
+    throw Error('[error] please set container name in your action.yml')
+  if (unknownThreshold == null)
+    throw Error(
+      '[error] please set 0 < unknown-threshold <= 100 in your action.yml'
+    )
+  if (errorThreshold == null)
+    throw Error(
+      '[error] please set 0 < error-threshold <= 100 in your action.yml'
+    )
+  return {collectPath, containerName, unknownThreshold, errorThreshold}
+}
+
+async function collectPytest(
+  collectPath: string,
+  containerName: string
+): Promise<string[]> {
   const output = await exec.getExecOutput(
     'docker',
     [
@@ -569,11 +598,19 @@ export async function benchmarkWithPytest(): Promise<void> {
   if (realFunctionCount !== decoratorFunctionCount) {
     throw new Error(`[error] decorator fail to cover all test function!`)
   }
+  return collectOutputJSONs
+}
 
-  core.info(`[task] exec pytest functions`)
-  const res = await benchmarkBatch(collectOutputJSONs, containerName)
+function PrintRes(
+  collectOutputJSONs: string[],
+  res: resJson[],
+  unknownThreshold: number,
+  errorThreshold: number
+): void {
+  const realFunctionCount = collectOutputJSONs.length
   let unknownNum = 0
   let errorNum = 0
+  let skipNum = 0
 
   for (let i = 0; i < realFunctionCount; i++) {
     switch (res[i].status) {
@@ -604,31 +641,62 @@ export async function benchmarkWithPytest(): Promise<void> {
         core.info(`[unknown] ${collectOutputJSONs[i]}`)
         unknownNum++
         break
+      case 'SKIP':
+        core.info(`[skip] ${collectOutputJSONs[i]}`)
+        skipNum++
+        break
     }
   }
-  const real_unknown = unknownNum / realFunctionCount
-  const realError = errorNum / realFunctionCount
-  core.info(`[pass] unknown/total: ${unknownNum}/${realFunctionCount}`)
-  core.info(`[pass] error/total: ${errorNum}/${realFunctionCount}`)
+  const real_unknown = unknownNum / (realFunctionCount - skipNum)
+  const realError = errorNum / (realFunctionCount - skipNum)
+  core.info(`[skip] skip/total: ${skipNum}/${realFunctionCount}`)
+  core.info(
+    `[pass] unknown/total(minus skip): ${unknownNum}/${
+      realFunctionCount - skipNum
+    }`
+  )
+  core.info(
+    `[pass] error/total(minus skip): ${errorNum}/${realFunctionCount - skipNum}`
+  )
+
   // TODO: upload a summary so that it could be later retrieved and analyzed
   if (real_unknown > unknownThreshold) {
     core.info(`the ci benchmark set unknown threshold is ${unknownThreshold}`)
     core.info(`the ci benchmark output of unknown threshold is ${real_unknown}`)
     throw Error(
-      `[error] failed to pass unknown/total > threshold: ${real_unknown} > ${unknownThreshold}`
+      `[error] failed to pass unknown/total(minus skip) > threshold: ${real_unknown} > ${unknownThreshold}`
     )
   } else
     core.info(
-      `[success] unknown/total < threshold: ${real_unknown} < ${unknownThreshold}`
+      `[success] unknown/total(minus skip) < threshold: ${real_unknown} < ${unknownThreshold}`
     )
   if (realError > errorThreshold) {
     core.info(`the ci benchmark set error threshold is ${errorThreshold}`)
     core.info(`the ci benchmark output of error threshold is ${realError}`)
     throw Error(
-      `[error] error/total > threshold: ${realError} > ${errorThreshold}`
+      `[error] error/total(minus skip) > threshold: ${realError} > ${errorThreshold}`
     )
   } else
     core.info(
-      `[success] error/total < threshold: ${realError} < ${errorThreshold}`
+      `[success] error/total(minus skip) < threshold: ${realError} < ${errorThreshold}`
     )
+}
+
+export async function benchmarkWithPytest(): Promise<void> {
+  const {
+    collectPath,
+    containerName,
+    unknownThreshold,
+    errorThreshold
+  } = getPytestArgs()
+
+  core.info(`[task] collect pytest functions in ${collectPath}`)
+  const collectOutputJSONs = await collectPytest(collectPath, containerName)
+
+  // 2. iter collections to execute each pytest function
+  core.info(`[task] exec pytest functions`)
+  const res = await benchmarkBatch(collectOutputJSONs, containerName)
+
+  // 3. print output
+  PrintRes(collectOutputJSONs, res, unknownThreshold, errorThreshold)
 }
