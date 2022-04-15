@@ -6,6 +6,7 @@ import OSS from 'ali-oss'
 import * as path from 'path'
 import {getOSSCredentials} from './cache'
 import {Head} from './ghSupport'
+import {getPercentageInput} from './util'
 
 class OssStorage {
   private static instance: OssStorage
@@ -529,27 +530,34 @@ export async function benchmarkBatch(
   return res
 }
 
-function getPytestArgs(): [string, string, number, number] {
+interface pytestArgs {
+  collectPath: string
+  containerName: string
+  unknownThreshold: number
+  errorThreshold: number
+}
+
+function getPytestArgs(): pytestArgs {
   core.info(`[task] benchmark with pytest`)
   const collectPath = core.getInput('collect-path')
   const containerName = core.getInput('container-name')
   // TODO: This is a typo, update it oneflow as well
-  const unknownThreshold = parseInt(core.getInput('unkown-threshold')) / 100
-  const errorThreshold = parseInt(core.getInput('error-threshold')) / 100
+  const unknownThreshold = getPercentageInput('unkown-threshold')
+  const errorThreshold = getPercentageInput('error-threshold')
 
   if (collectPath === '')
     throw Error('[error] please set collect path in your action.yml')
   if (containerName === '')
     throw Error('[error] please set container name in your action.yml')
-  if (!(unknownThreshold > 0 && unknownThreshold <= 1))
+  if (unknownThreshold == null)
     throw Error(
       '[error] please set 0 < unknown-threshold <= 100 in your action.yml'
     )
-  if (!(errorThreshold > 0 && errorThreshold <= 1))
+  if (errorThreshold == null)
     throw Error(
       '[error] please set 0 < error-threshold <= 100 in your action.yml'
     )
-  return [collectPath, containerName, unknownThreshold, errorThreshold]
+  return {collectPath, containerName, unknownThreshold, errorThreshold}
 }
 
 async function collectPytest(
@@ -675,12 +683,12 @@ function PrintRes(
 }
 
 export async function benchmarkWithPytest(): Promise<void> {
-  const [
+  const {
     collectPath,
     containerName,
     unknownThreshold,
     errorThreshold
-  ] = getPytestArgs()
+  } = getPytestArgs()
 
   core.info(`[task] collect pytest functions in ${collectPath}`)
   const collectOutputJSONs = await collectPytest(collectPath, containerName)
