@@ -15,6 +15,13 @@ export function getPathInput(name: string, options?: InputOptions): string {
   return val
 }
 
+export function getPercentageInput(
+  name: string,
+  options?: InputOptions
+): number | null {
+  const val = parseInt(core.getInput(name, options)) / 100
+  return val >= 0 && val <= 1 ? val : null
+}
 export function getParallel(): string {
   const parallel: string = core.getInput('parallel', {required: false})
   let ONEFLOW_CI_BUILD_PARALLEL = os.cpus().length.toString()
