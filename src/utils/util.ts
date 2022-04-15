@@ -19,7 +19,7 @@ export function getPercentageInput(
   name: string,
   options?: InputOptions
 ): number | null {
-  const val = parseInt(core.getInput('name', options)) / 100
+  const val = parseInt(core.getInput(name, options)) / 100
   return val >= 0 && val <= 1 ? val : null
 }
 export function getParallel(): string {
