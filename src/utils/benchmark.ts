@@ -542,7 +542,7 @@ function getPytestArgs(): pytestArgs {
   const collectPath = core.getInput('collect-path')
   const containerName = core.getInput('container-name')
   // TODO: This is a typo, update it oneflow as well
-  const unknownThreshold = getPercentageInput('unkown-threshold')
+  const unknownThreshold = getPercentageInput('unknown-threshold')
   const errorThreshold = getPercentageInput('error-threshold')
 
   if (collectPath === '')
