@@ -20,7 +20,7 @@ export async function revivePRs(): Promise<void> {
         status: 'in_progress'
       }
     )
-  ).data.workflow_runs.length
+  ).data.total_count
   core.warning(`numInProgress: ${numInProgress}`)
   // if there are no running test workflow runs, add ci-bot as reviewer for 3 PRs
   if (numInProgress === 0) {
