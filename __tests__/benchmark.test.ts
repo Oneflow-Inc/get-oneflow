@@ -23,7 +23,7 @@ test(
     }
     env.setInput('collect-path', '/home/yuhao/vision/benchmark')
     env.setInput('container-name', `test-${os.userInfo().username}`)
-    env.setInput('unkown-threshold', '100')
+    env.setInput('unknown-threshold', '100')
     env.setInput('error-threshold', '100')
     await benchmarkWithPytest()
   },
