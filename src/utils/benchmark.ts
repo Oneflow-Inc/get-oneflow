@@ -662,7 +662,7 @@ function PrintRes(
   // TODO: upload a summary so that it could be later retrieved and analyzed
   if (real_unknown > unknownThreshold) {
     core.info(`the ci benchmark set unknown threshold is ${unknownThreshold}`)
-    core.info(`the ci benchmark output of unknown threshold is ${real_unknown}`)
+    core.info(`the ci benchmark output of unknown rate is ${real_unknown}`)
     throw Error(
       `[error] failed to pass unknown/total(minus skip) > threshold: ${real_unknown} > ${unknownThreshold}`
     )
@@ -672,7 +672,7 @@ function PrintRes(
     )
   if (realError > errorThreshold) {
     core.info(`the ci benchmark set error threshold is ${errorThreshold}`)
-    core.info(`the ci benchmark output of error threshold is ${realError}`)
+    core.info(`the ci benchmark output of error rate is ${realError}`)
     throw Error(
       `[error] error/total(minus skip) > threshold: ${realError} > ${errorThreshold}`
     )
