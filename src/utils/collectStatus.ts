@@ -38,7 +38,7 @@ export async function collectWorkflowRunStatus(): Promise<void> {
         if (job.conclusion === 'failure') {
           core.info(`[job][${job.name}] ${job.html_url}`)
           failed_job_names.push(job.name)
-          if (job.name.includes('suite') || job.name.includes('analysis')) {
+          if (job.name.includes('suite')) {
             should_collect = true
           }
         }
