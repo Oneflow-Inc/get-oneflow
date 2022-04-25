@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
 import {Octokit} from '@octokit/core'
 import * as fs from 'fs'
-import tc from '@actions/tool-cache'
+import * as tc from '@actions/tool-cache'
 import path from 'path'
 const token = core.getInput('token')
 const octokit = new Octokit({auth: token})
