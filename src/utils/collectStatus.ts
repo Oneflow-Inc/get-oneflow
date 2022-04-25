@@ -13,20 +13,25 @@ const repo = 'oneflow'
 export async function collectWorkflowRunStatus(): Promise<void> {
   const test_workflow_id = 'test.yml'
   process.env['GITHUB_TOKEN'] = token
+  let cnt = 0
+  let TOTAL_PAGE = 5
+  let PER_PAGE = 100
   const failed_job_names: string[] = []
-  for (let page = 1; page < 5; page++) {
+  for (let page = 1; page < TOTAL_PAGE; page++) {
     const workflow_runs = await octokit.request(
       'GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs',
       {
         owner,
         repo,
         workflow_id: test_workflow_id,
-        per_page: 100,
+        per_page: PER_PAGE,
         page,
         status: 'failure'
       }
     )
     for (const wr of workflow_runs.data.workflow_runs) {
+      cnt += 1
+      core.info(`[count] ${cnt}/${TOTAL_PAGE * PER_PAGE}`)
       const jobs = (
         await octokit.request(
           'GET /repos/{owner}/{repo}/actions/runs/{run_id}/jobs',
