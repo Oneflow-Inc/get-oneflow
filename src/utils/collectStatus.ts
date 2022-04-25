@@ -14,8 +14,8 @@ export async function collectWorkflowRunStatus(): Promise<void> {
   const test_workflow_id = 'test.yml'
   process.env['GITHUB_TOKEN'] = token
   let cnt = 0
-  let TOTAL_PAGE = 5
-  let PER_PAGE = 100
+  const TOTAL_PAGE = 5
+  const PER_PAGE = 100
   const failed_job_names: string[] = []
   for (let page = 1; page < TOTAL_PAGE; page++) {
     const workflow_runs = await octokit.request(
