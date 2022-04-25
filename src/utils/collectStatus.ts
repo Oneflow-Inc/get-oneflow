@@ -36,8 +36,7 @@ export async function collectWorkflowRunStatus(): Promise<void> {
       let should_collect = false
       for (const job of jobs) {
         if (job.conclusion === 'failure') {
-          core.info(`${job.name}`)
-          core.info(`${job.html_url}`)
+          core.info(`[job] ${job.name} ${job.html_url}`)
           failed_job_names.push(job.name)
           if (job.name.includes('suite') || job.name.includes('analysis')) {
             should_collect = true
