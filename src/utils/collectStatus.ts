@@ -10,11 +10,16 @@ const octokit = new Octokit({auth: token})
 const owner = 'Oneflow-Inc'
 const repo = 'oneflow'
 
-export async function parseLine(line: string): Promise<string> {
-  const splits = line.split(' ')
-  const last = splits[splits.length - 1]
-  core.info(`last: ${last}`)
-  return last
+export async function parseLine(line: string): Promise<string | null> {
+  const isInOneFlowTest = line.includes('python/oneflow/test')
+  if (isInOneFlowTest) {
+    const splits = line.split(' ')
+    const last = splits[splits.length - 1]
+    core.info(`last: ${last}`)
+    return last
+  } else {
+    return null
+  }
 }
 
 export async function collectWorkflowRunStatus(): Promise<void> {
@@ -24,6 +29,7 @@ export async function collectWorkflowRunStatus(): Promise<void> {
   const TOTAL_PAGE = 5
   const PER_PAGE = 100
   const failed_job_names: string[] = []
+  const caseNames: string[] = []
   for (let page = 1; page <= TOTAL_PAGE; page++) {
     const workflow_runs = await octokit.request(
       'GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs',
@@ -87,6 +93,10 @@ export async function collectWorkflowRunStatus(): Promise<void> {
               line.includes('FAILED (errors=1)')
             if (isFailure && !isNoise) {
               core.info(`[failure] ${line}`)
+              const parsed = await parseLine(line)
+              if (parsed) {
+                caseNames.push(parsed)
+              }
             }
           }
         }
@@ -100,5 +110,12 @@ export async function collectWorkflowRunStatus(): Promise<void> {
       [key]: failed_job_names.filter((value: string) => value === key).length
     }))
   )
-  core.warning(`summary: ${JSON.stringify(summary, null, 2)}`)
+  const caseSummary = Object.assign(
+    {},
+    ...Array.from(new Set(caseNames), key => ({
+      [key]: caseNames.filter((value: string) => value === key).length
+    }))
+  )
+  core.warning(`[cases] ${JSON.stringify(caseSummary, null, 2)}`)
+  core.warning(`[summary] ${JSON.stringify(summary, null, 2)}`)
 }

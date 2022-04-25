@@ -25,9 +25,8 @@ test(
     })
     const caseNames: string[] = []
     for await (const line of rl) {
-      const isInOneFlowTest = line.includes('python/oneflow/test')
-      if (isInOneFlowTest) {
-        const parsed = await parseLine(line)
+      const parsed = await parseLine(line)
+      if (parsed) {
         caseNames.push(parsed)
       }
     }
