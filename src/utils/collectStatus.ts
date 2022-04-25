@@ -44,7 +44,6 @@ export async function collectWorkflowRunStatus(): Promise<void> {
         }
       }
       if (should_collect) {
-        core.info(`[downloading] ${wr.html_url}`)
         const dlResponse = await octokit.request(
           'GET /repos/{owner}/{repo}/actions/runs/{run_id}/logs',
           {
@@ -53,6 +52,7 @@ export async function collectWorkflowRunStatus(): Promise<void> {
             run_id: wr.id
           }
         )
+        core.info(`[downloading] ${dlResponse.url}`)
         const downloadedPath = await tc.downloadTool(`${dlResponse.url}`)
         const extractedFolder = await tc.extractZip(downloadedPath)
         const globber = await glob.create(
