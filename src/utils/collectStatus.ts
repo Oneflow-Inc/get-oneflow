@@ -54,7 +54,7 @@ export async function collectWorkflowRunStatus(): Promise<void> {
         )
         const downloadedPath = await tc.downloadTool(`${dlResponse.url}`)
         const extractTarget = path.join('/tmp/logs/runs', `${wr.id}`)
-        const node12ExtractedFolder = await tc.extractXar(
+        const node12ExtractedFolder = await tc.extractZip(
           downloadedPath,
           extractTarget
         )
