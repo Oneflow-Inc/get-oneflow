@@ -10,6 +10,13 @@ const octokit = new Octokit({auth: token})
 const owner = 'Oneflow-Inc'
 const repo = 'oneflow'
 
+export async function parseLine(line: string): Promise<string> {
+  const splits = line.split(' ')
+  const last = splits[splits.length - 1]
+  core.info(`last: ${last}`)
+  return last
+}
+
 export async function collectWorkflowRunStatus(): Promise<void> {
   const test_workflow_id = 'test.yml'
   process.env['GITHUB_TOKEN'] = token
@@ -71,14 +78,14 @@ export async function collectWorkflowRunStatus(): Promise<void> {
             crlfDelay: Infinity
           })
           for await (const line of rl) {
-            const is_failure =
+            const isFailure =
               line.includes('FAILURE') ||
               line.includes('FAILED') ||
               line.includes('ERROR: ')
-            const is_noise =
+            const isNoise =
               line.includes('= FAILURES =') ||
               line.includes('FAILED (errors=1)')
-            if (is_failure && !is_noise) {
+            if (isFailure && !isNoise) {
               core.info(`[failure] ${line}`)
             }
           }
