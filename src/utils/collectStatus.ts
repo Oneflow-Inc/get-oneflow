@@ -1,4 +1,6 @@
+import * as glob from '@actions/glob'
 import * as core from '@actions/core'
+import * as readline from 'readline'
 import {Octokit} from '@octokit/core'
 import * as fs from 'fs'
 import * as tc from '@actions/tool-cache'
@@ -53,14 +55,24 @@ export async function collectWorkflowRunStatus(): Promise<void> {
           }
         )
         const downloadedPath = await tc.downloadTool(`${dlResponse.url}`)
-        const extractTarget = path.join('/tmp/logs/runs', `${wr.id}`)
-        const node12ExtractedFolder = await tc.extractZip(
-          downloadedPath,
-          extractTarget
+        const extractedFolder = await tc.extractZip(downloadedPath)
+        const globber = await glob.create(
+          path.join(extractedFolder, '**/*.txt'),
+          {followSymbolicLinks: true}
         )
-        fs.readdirSync(node12ExtractedFolder, {withFileTypes: true})
-          .filter(item => !item.isDirectory())
-          .map(item => core.info(`[log][file] ${item.name}`))
+        for await (const file of globber.globGenerator()) {
+          core.info(`[read] ${file}`)
+          const fileStream = fs.createReadStream(file)
+          const rl = readline.createInterface({
+            input: fileStream,
+            crlfDelay: Infinity
+          })
+          for await (const line of rl) {
+            if (line.includes('FAILURE')) {
+              core.info(`[failure] ${line}`)
+            }
+          }
+        }
       }
     }
   }
