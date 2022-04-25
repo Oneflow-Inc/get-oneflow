@@ -17,7 +17,7 @@ export async function collectWorkflowRunStatus(): Promise<void> {
   const TOTAL_PAGE = 5
   const PER_PAGE = 100
   const failed_job_names: string[] = []
-  for (let page = 1; page < TOTAL_PAGE; page++) {
+  for (let page = 1; page <= TOTAL_PAGE; page++) {
     const workflow_runs = await octokit.request(
       'GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs',
       {
