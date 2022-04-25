@@ -70,10 +70,10 @@ export async function collectWorkflowRunStatus(): Promise<void> {
               line.includes('FAILURE') ||
               line.includes('FAILED') ||
               line.includes('ERROR: ')
-            const is_not_failure =
+            const is_noise =
               line.includes('= FAILURES =') ||
               line.includes('FAILED (errors=1)')
-            if (is_failure && !is_not_failure) {
+            if (is_failure && !is_noise) {
               core.info(`[failure] ${line}`)
             }
           }
