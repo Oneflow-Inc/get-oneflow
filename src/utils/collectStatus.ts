@@ -41,7 +41,7 @@ export async function collectWorkflowRunStatus(): Promise<void> {
         }
       }
       if (should_collect) {
-        //  TODO: download
+        core.info(`[downloading] ${wr.html_url}`)
         await octokit.request(
           'GET /repos/{owner}/{repo}/actions/runs/{run_id}/logs',
           {
