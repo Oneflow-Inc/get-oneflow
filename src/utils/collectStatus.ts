@@ -1,6 +1,8 @@
 import * as core from '@actions/core'
 import {Octokit} from '@octokit/core'
-
+import * as fs from 'fs'
+import tc from '@actions/tool-cache'
+import path from 'path'
 const token = core.getInput('token')
 const octokit = new Octokit({auth: token})
 const owner = 'Oneflow-Inc'
@@ -50,7 +52,15 @@ export async function collectWorkflowRunStatus(): Promise<void> {
             run_id: wr.id
           }
         )
-        core.info(`[log][url] ${JSON.stringify(dlResponse, null, 2)}`)
+        const downloadedPath = await tc.downloadTool(`${dlResponse.url}`)
+        const extractTarget = path.join('/tmp/logs/runs', `${wr.id}`)
+        const node12ExtractedFolder = await tc.extractXar(
+          downloadedPath,
+          extractTarget
+        )
+        fs.readdirSync(node12ExtractedFolder, {withFileTypes: true})
+          .filter(item => !item.isDirectory())
+          .map(item => core.info(`[log][file] ${item.name}`))
       }
     }
   }
