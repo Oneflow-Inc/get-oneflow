@@ -42,7 +42,7 @@ export async function collectWorkflowRunStatus(): Promise<void> {
       }
       if (should_collect) {
         core.info(`[downloading] ${wr.html_url}`)
-        await octokit.request(
+        const dlResponse = await octokit.request(
           'GET /repos/{owner}/{repo}/actions/runs/{run_id}/logs',
           {
             owner,
@@ -50,6 +50,7 @@ export async function collectWorkflowRunStatus(): Promise<void> {
             run_id: wr.id
           }
         )
+        core.info(`[log][url] ${dlResponse.headers.location}`)
       }
     }
   }
