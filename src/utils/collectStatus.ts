@@ -66,7 +66,9 @@ export async function collectWorkflowRunStatus(): Promise<void> {
             crlfDelay: Infinity
           })
           for await (const line of rl) {
-            if (line.includes('FAILURE') && !line.includes('= FAILURES =')) {
+            const is_failure =
+              line.includes('FAILURE') || line.includes('FAILED')
+            if (is_failure && !line.includes('= FAILURES =')) {
               core.info(`[failure] ${line}`)
             }
           }
