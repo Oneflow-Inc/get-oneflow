@@ -61,14 +61,13 @@ export async function collectWorkflowRunStatus(): Promise<void> {
           {followSymbolicLinks: true}
         )
         for await (const file of globber.globGenerator()) {
-          core.info(`[read] ${file}`)
           const fileStream = fs.createReadStream(file)
           const rl = readline.createInterface({
             input: fileStream,
             crlfDelay: Infinity
           })
           for await (const line of rl) {
-            if (line.includes('FAILURE')) {
+            if (line.includes('FAILURE') && !line.includes('= FAILURES =')) {
               core.info(`[failure] ${line}`)
             }
           }
