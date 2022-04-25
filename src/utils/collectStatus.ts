@@ -42,6 +42,14 @@ export async function collectWorkflowRunStatus(): Promise<void> {
       }
       if (should_collect) {
         //  TODO: download
+        await octokit.request(
+          'GET /repos/{owner}/{repo}/actions/runs/{run_id}/logs',
+          {
+            owner,
+            repo,
+            run_id: wr.id
+          }
+        )
       }
     }
   }
