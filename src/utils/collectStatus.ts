@@ -50,7 +50,7 @@ export async function collectWorkflowRunStatus(): Promise<void> {
             run_id: wr.id
           }
         )
-        core.info(`[log][url] ${JSON.stringify(dlResponse.headers, null, 2)}`)
+        core.info(`[log][url] ${JSON.stringify(dlResponse, null, 2)}`)
       }
     }
   }
