@@ -3,10 +3,11 @@ name: Collect PR Status
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/45 * * * *"
+    - cron: "0 */2 * * *"
   push:
     branches:
       - "auto-collect"
+      - "parse-log"
 concurrency:
   group: collect-${{ github.ref }}
   cancel-in-progress: true
@@ -33,5 +34,6 @@ jobs:
         name: Collect
         with:
           # token: ${{ secrets.CI_PERSONAL_ACCESS_TOKEN }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.DEBUG_PERSONAL_ACCESS_TOKEN }}
+          # token: ${{ secrets.GITHUB_TOKEN }}
           oneflow-src: ${{ env.ONEFLOW_SRC }}
