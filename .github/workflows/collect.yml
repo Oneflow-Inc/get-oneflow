@@ -3,7 +3,7 @@ name: Collect PR Status
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/45 * * * *"
+    - cron: "0 */2 * * *"
   push:
     branches:
       - "auto-collect"
