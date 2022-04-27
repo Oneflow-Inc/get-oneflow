@@ -32,11 +32,7 @@ export function isXla(device: Device): Boolean {
 
 type RunnerLabel = 'cpu' | 'gpu' | 'provision' | 'speed-test' | 'cluster-1'
 
-function getRunsOn(
-  test: Test,
-  deviceLabel: RunnerLabel,
-  isDistributed: Boolean
-): string[] {
+function getRunsOn(test: Test, deviceLabel: RunnerLabel): string[] {
   // TODO: throttle on runnerLabels
   let runnerLabels: RunnerLabel[] = core.getMultilineInput('runner-labels', {
     required: true
@@ -47,11 +43,8 @@ function getRunsOn(
   const isSpeedTest = test === 'speed-test' || test === 'benchmark'
   if (isSpeedTest) {
     runnerLabels = runnerLabels.concat(['speed-test'])
-  }
-  if (deviceLabel !== 'cpu') {
-    if (isDistributed || !isSpeedTest) {
-      runnerLabels = runnerLabels.concat(['cluster-1'])
-    }
+  } else if (deviceLabel !== 'cpu') {
+    runnerLabels = runnerLabels.concat(['cluster-1'])
   }
   return runnerLabels.concat([deviceLabel])
 }
@@ -116,7 +109,7 @@ async function getTests(): Promise<EntryInclude[]> {
           'cache-hit': cacheHit,
           'runs-on': cacheHit
             ? 'ubuntu-latest'
-            : getRunsOn(test, getRunnerLabel(device), isDistributed),
+            : getRunsOn(test, getRunnerLabel(device)),
           'is-distributed': isDistributed,
           'test-type': test,
           'is-xla': false,
