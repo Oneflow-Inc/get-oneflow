@@ -44,6 +44,8 @@ function getRunsOn(test: Test, deviceLabel: RunnerLabel): string[] {
   if (isSpeedTest) {
     runnerLabels = runnerLabels.concat(['speed-test'])
   } else if (deviceLabel !== 'cpu') {
+    // by using different runner labels for speed test and non speed test, we can have more parallel runs.
+    // cpu runners should not be enabled on speed test machines for accurate performance metrics.
     runnerLabels = runnerLabels.concat(['cluster-1'])
   }
   return runnerLabels.concat([deviceLabel])
