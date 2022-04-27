@@ -44,7 +44,7 @@ function getRunsOn(
   if (runnerLabels.includes('provision')) {
     return runnerLabels
   }
-  const isSpeedTest = test === 'speed-test'
+  const isSpeedTest = test === 'speed-test' || test === 'benchmark'
   if (isSpeedTest) {
     runnerLabels = runnerLabels.concat(['speed-test'])
   }
