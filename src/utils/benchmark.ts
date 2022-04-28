@@ -60,12 +60,8 @@ class OssStorage {
   }
 
   async pull2Json(remote_path: string): Promise<string> {
-    try {
-      const buffer = await this.client.get(remote_path)
-      return buffer.content.toString()
-    } catch (e) {
-      return ''
-    }
+    const res = await this.pull(remote_path, 'tmp_download')
+    return res ? fs.readFileSync('tmp_download').toString() : ''
   }
 
   async copy(dst_path: string, src_path: string): Promise<void> {
