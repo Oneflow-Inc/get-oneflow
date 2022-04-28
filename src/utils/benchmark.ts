@@ -230,10 +230,11 @@ const pytest = async (
       'no:randomly',
       '-p',
       'no:cacheprovider',
+      '-p',
+      'no:warnings',
       '--max-worker-restart=0',
       '-x',
       '--capture=sys',
-      '-v',
       `--benchmark-json=${jsonPath}`,
       `--benchmark-storage=${cachePath}`,
       '--benchmark-disable-gc',
@@ -456,7 +457,6 @@ export async function singleBenchmark(
   await exec.exec('nvidia-smi', [])
   await exec.exec('mkdir', ['-p', cachePath])
 
-  core.info(`[pull] ${ossHistoricalBestJSONPath}`)
   const hasBest = await oss.pull(
     ossHistoricalBestJSONPath,
     bestInHistoryJSONPath
@@ -477,7 +477,6 @@ export async function singleBenchmark(
     return {status: 'SKIP'}
   }
   for (const file of fs.readdirSync(cachePath)) {
-    core.info(`[file] ${file}`)
     if (file.endsWith('.svg')) {
       const histogramPath = `${cachePath}/${file}`
       const ossRunHistogramPath = `${ossRunPath}/${file}`
@@ -520,9 +519,10 @@ export async function benchmarkBatch(
     else if (output.status === 'BEST_UNKNOWN' || output.status === 'UNKNOWN')
       unknown++
     else if (output.status === 'SKIP') skip++
-    core.info(`[skip] skip/total: ${skip}/${total}`)
-    core.info(`[pass] unknown/total(minus skip): ${unknown}/${total - skip}`)
-    core.info(`[pass] error/total(minus skip): ${error}/${total - skip}`)
+    core.info(` - [skip] skip/total: ${skip}/${total}`)
+    core.info(` - [pass] unknown/total(minus skip): ${unknown}/${total - skip}`)
+    core.info(` - [pass] error/total(minus skip): ${error}/${total - skip}`)
+    core.info(' ----------------next-----------------')
   }
   return res
 }
