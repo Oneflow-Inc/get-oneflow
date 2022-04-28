@@ -68,8 +68,9 @@ class OssStorage {
     if (downloaded) {
       const data = fs.readFileSync(downloaded).toString()
       return JSON.parse(data)
+    } else {
+      throw new Error(`Can't download ${remote_path}`)
     }
-    return ''
   }
 
   async copy(dst_path: string, src_path: string): Promise<void> {

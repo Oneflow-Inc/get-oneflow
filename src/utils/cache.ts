@@ -61,7 +61,7 @@ interface DownloadError {
   httpStatusCode: Number
 }
 
-// null means don't exists
+// returning null means don't exists
 export async function pullWithoutSecret(
   oss: OSS,
   bucket: string,
