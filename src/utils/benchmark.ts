@@ -618,48 +618,55 @@ function PrintRes(
   for (let i = 0; i < realFunctionCount; i++) {
     switch (res[i].status) {
       case 'BEST_NOT_MATCH':
-        core.info(`[error] best not match ${collectOutputJSONs[i]}`)
+        core.info(`[error] best not match: `)
+        core.info(JSON.stringify(collectOutputJSONs[i], null, 2))
         errorNum++
         break
       case 'BEST_UNKNOWN':
-        core.info(
-          `[unknown]best unknown ${collectOutputJSONs[i]} stddev(in retry) > need`
-        )
+        core.info(`[unknown]: best unknown stddev(in retry) > need`)
+        core.info(JSON.stringify(collectOutputJSONs[i], null, 2))
         unknownNum++
         break
       case 'ERROR':
-        core.info(`[error] ${collectOutputJSONs[i]}`)
+        core.info(`[error]: `)
+        core.info(JSON.stringify(collectOutputJSONs[i], null, 2))
         core.info(JSON.stringify(res[i], null, 2))
         errorNum++
         break
       case 'PASS':
-        core.info(`[pass] ${collectOutputJSONs[i]}`)
+        core.info(`[pass]: `)
+        core.info(JSON.stringify(collectOutputJSONs[i], null, 2))
         core.info(JSON.stringify(res[i], null, 2))
         break
       case 'GREATER':
-        core.info(`[greater] ${collectOutputJSONs[i]}`)
+        core.info(`[greater]: `)
+        core.info(JSON.stringify(collectOutputJSONs[i], null, 2))
         core.info(JSON.stringify(res[i], null, 2))
         break
       case 'UNKNOWN':
-        core.info(`[unknown] ${collectOutputJSONs[i]}`)
+        core.info(`[unknown]: `)
+        core.info(JSON.stringify(collectOutputJSONs[i], null, 2))
         unknownNum++
         break
       case 'SKIP':
-        core.info(`[skip] ${collectOutputJSONs[i]}`)
+        core.info(`[skip]: `)
+        core.info(JSON.stringify(collectOutputJSONs[i], null, 2))
         skipNum++
         break
     }
   }
   const real_unknown = unknownNum / (realFunctionCount - skipNum)
   const realError = errorNum / (realFunctionCount - skipNum)
-  core.info(`[skip] skip/total: ${skipNum}/${realFunctionCount}`)
+  core.info(` - [skip] skip/total: ${skipNum}/${realFunctionCount}`)
   core.info(
-    `[pass] unknown/total(minus skip): ${unknownNum}/${
+    ` - [pass] unknown/total(minus skip): ${unknownNum}/${
       realFunctionCount - skipNum
     }`
   )
   core.info(
-    `[pass] error/total(minus skip): ${errorNum}/${realFunctionCount - skipNum}`
+    ` - [pass] error/total(minus skip): ${errorNum}/${
+      realFunctionCount - skipNum
+    }`
   )
 
   // TODO: upload a summary so that it could be later retrieved and analyzed
