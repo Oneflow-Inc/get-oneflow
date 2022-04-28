@@ -462,8 +462,6 @@ export async function singleBenchmark(
   const ossHistoricalBestJSONPath = `${gh.context.repo.owner}/${gh.context.repo.repo}/best/${benchmarkId}.json`
   const ossRunPath = `${gh.context.repo.owner}/${gh.context.repo.repo}/pr/${gh.context.issue.number}/commit/${gh.context.sha}/run/${gh.context.runId}`
   const ossRunJSONPath = `${ossRunPath}/${benchmarkId}.json`
-
-  await exec.exec('nvidia-smi', [])
   await exec.exec('mkdir', ['-p', cachePath])
 
   const hasBest = await oss.pull(
