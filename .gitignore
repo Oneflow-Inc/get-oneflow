@@ -119,4 +119,5 @@ template
 # benchmark
 .benchmarks
 benchmark_result
+benchmarkResult
 .benchmark-collect

@@ -61,6 +61,58 @@ interface DownloadError {
   httpStatusCode: Number
 }
 
+export async function pullWithoutSecret(
+  oss: OSS,
+  bucket: string,
+  src: string,
+  dst?: string
+): Promise<boolean> {
+  try {
+    await oss.get(src, dst)
+    core.info(`[found] ${src}`)
+    return true
+  } catch (error) {
+    if ((error as Error).name === 'NoSuchKeyError') {
+      core.info(`[absent] ${src}`)
+    } else if (
+      (error as UnknowError).name === 'UnknowError' &&
+      (error as UnknowError).status === 403
+    ) {
+      const url = `https://${bucket}.oss-cn-beijing.aliyuncs.com/${src}`
+      try {
+        await tc.downloadTool(url, dst)
+        core.info(`[download] ${src}`)
+        return true
+      } catch (downloadError) {
+        core.info(JSON.stringify(downloadError, null, 2))
+        core.info(
+          `${
+            (downloadError as DownloadError).httpStatusCode === 404
+              ? '[absent]'
+              : '[download error]'
+          } ${url}`
+        )
+        return false
+      }
+    } else {
+      core.info(`[unknown error] ${src}`)
+      return false
+    }
+    return false
+  }
+}
+
+// export async function checkComplete(keys: string[]): Promise<string | null> {
+//   const store = ciCacheBucketStore()
+//   for await (const key of keys) {
+//     const objectKey = getCompleteKey(key)
+//     const res = await pullWithoutSecret(store, 'oneflow-ci-cache', objectKey)
+//     if (res) return objectKey
+//     else throw Error
+//   }
+//   return null
+// }
+
 export async function checkComplete(keys: string[]): Promise<string | null> {
   const store = ciCacheBucketStore()
   for await (const key of keys) {
