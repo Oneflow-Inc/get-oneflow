@@ -1,4 +1,3 @@
-
 import * as process from 'process'
 import {test} from '@jest/globals'
 import os from 'os'
