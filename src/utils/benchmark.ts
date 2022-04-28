@@ -59,7 +59,7 @@ class OssStorage {
     ))
   }
 
-  async pull2Json(remote_path: string): Promise<Object> {
+  async pull2Json(remote_path: string): Promise<Object | null> {
     const downloaded = await pullWithoutSecret(
       this.client,
       'oneflow-benchmark',
@@ -69,7 +69,7 @@ class OssStorage {
       const data = fs.readFileSync(downloaded).toString()
       return JSON.parse(data)
     } else {
-      throw new Error(`Can't download ${remote_path}`)
+      return null
     }
   }
 
@@ -140,9 +140,12 @@ async function compareJson(
 ): Promise<boolean> {
   const oss = OssStorage.getInstance()
 
-  const bestJSON = (await oss.pull2Json(bestJsonPath)) as logJSON
+  const bestJSON = (await oss.pull2Json(bestJsonPath)) as logJSON | null
+  const cmpJSON = (await oss.pull2Json(cmpJsonPath)) as logJSON | null
+  if (!bestJSON || !cmpJSON) {
+    return false
+  }
   const best_data_list = bestJSON.benchmarks
-  const cmpJSON = (await oss.pull2Json(cmpJsonPath)) as logJSON
   const cmp_data_list = cmpJSON.benchmarks
   if (best_data_list.length !== cmp_data_list.length) return false
   return best_data_list.every(function (elem, index): boolean {
@@ -192,11 +195,12 @@ export async function updateBenchmarkHistory(
     core.info(`[compare]: - ${benchmarkId}`)
 
     const ossHistoricalBestJSONPath = `${gh.context.repo.owner}/${gh.context.repo.repo}/best/${benchmarkId}`
-    if (await compareJson(ossHistoricalBestJSONPath, name))
+    if (await compareJson(ossHistoricalBestJSONPath, name)) {
       core.info(
         `[compareJson]: ${name} is better than ${ossHistoricalBestJSONPath}`
       )
-    await oss.copy(ossHistoricalBestJSONPath, name)
+      await oss.copy(ossHistoricalBestJSONPath, name)
+    }
   }
 }
 interface collectOutJson {
