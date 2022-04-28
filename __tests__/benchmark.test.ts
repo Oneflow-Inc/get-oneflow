@@ -21,7 +21,7 @@ test(
     if (!process.env['BENCHMARK']) {
       return
     }
-    env.setInput('collect-path', '/home/yuhao/vision/benchmark')
+    env.setInput('collect-path', `/home/${os.userInfo().username}/vision/benchmark`)
     env.setInput('container-name', `test-${os.userInfo().username}`)
     env.setInput('unknown-threshold', '100')
     env.setInput('error-threshold', '100')

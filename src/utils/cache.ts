@@ -63,6 +63,7 @@ interface DownloadError {
 
 export async function pullWithoutSecret(
   oss: OSS,
+  bucket: string,
   src: string,
   dst?: string
 ): Promise<boolean> {
@@ -77,9 +78,10 @@ export async function pullWithoutSecret(
       (error as UnknowError).name === 'UnknowError' &&
       (error as UnknowError).status === 403
     ) {
-      const url = `https://oneflow-ci-cache.oss-cn-beijing.aliyuncs.com/${src}`
+      const url = `https://${bucket}.oss-cn-beijing.aliyuncs.com/${src}`
       try {
         await tc.downloadTool(url, dst)
+        core.info(`[download] ${src}`)
         return true
       } catch (downloadError) {
         core.info(JSON.stringify(downloadError, null, 2))
@@ -100,12 +102,48 @@ export async function pullWithoutSecret(
   }
 }
 
+// export async function checkComplete(keys: string[]): Promise<string | null> {
+//   const store = ciCacheBucketStore()
+//   for await (const key of keys) {
+//     const objectKey = getCompleteKey(key)
+//     const res = await pullWithoutSecret(store, 'oneflow-ci-cache', objectKey)
+//     if (res) return objectKey
+//     else throw Error
+//   }
+//   return null
+// }
+
 export async function checkComplete(keys: string[]): Promise<string | null> {
   const store = ciCacheBucketStore()
   for await (const key of keys) {
     const objectKey = getCompleteKey(key)
-    const res = await pullWithoutSecret(store, objectKey)
-    if (res) return objectKey
+    try {
+      await store.head(objectKey)
+      core.info(`[found] ${objectKey}`)
+      return objectKey
+    } catch (error) {
+      if ((error as Error).name === 'NoSuchKeyError') {
+        core.info(`[absent] ${objectKey}`)
+      } else if (
+        (error as UnknowError).name === 'UnknowError' &&
+        (error as UnknowError).status === 403
+      ) {
+        const url = `https://oneflow-ci-cache.oss-cn-beijing.aliyuncs.com/${objectKey}`
+        try {
+          await tc.downloadTool(url)
+          return objectKey
+        } catch (downloadError) {
+          core.info(JSON.stringify(downloadError, null, 2))
+          if ((downloadError as DownloadError).httpStatusCode === 404) {
+            core.info(`[absent] ${objectKey}`)
+          } else {
+            throw downloadError
+          }
+        }
+      } else {
+        throw error
+      }
+    }
   }
   return null
 }

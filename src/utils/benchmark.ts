@@ -51,7 +51,12 @@ class OssStorage {
   }
 
   async pull(remote_path: string, local_path: string): Promise<boolean> {
-    return await pullWithoutSecret(this.client, remote_path, local_path)
+    return await pullWithoutSecret(
+      this.client,
+      'oneflow-benchmark',
+      remote_path,
+      local_path
+    )
   }
 
   async pull2Json(remote_path: string): Promise<string> {
@@ -455,6 +460,7 @@ export async function singleBenchmark(
   await exec.exec('nvidia-smi', [])
   await exec.exec('mkdir', ['-p', cachePath])
 
+  core.info(`[pull] ${ossHistoricalBestJSONPath}`)
   const hasBest = await oss.pull(
     ossHistoricalBestJSONPath,
     bestInHistoryJSONPath

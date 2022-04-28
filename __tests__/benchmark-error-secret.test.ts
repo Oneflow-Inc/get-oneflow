@@ -13,7 +13,7 @@ process.env['RUNNER_TOOL_CACHE'] = '~/runner_tool_cache'.replace(
 process.env['RUNNER_TEMP'] = '~/runner_temp'.replace('~', os.homedir)
 process.env['GITHUB_REPOSITORY'] = 'jest-test/jest-test'
 
-process.env['OSS_ACCESS_KEY_SECRET='] = 'hahaha'
+process.env['OSS_ACCESS_KEY_SECRET'] = 'hahaha'
 const MINUTES15 = 1000 * 60 * 15
 // shows how the runner will run a javascript action with env / stdout protocol
 
@@ -23,7 +23,7 @@ test(
     if (!process.env['BENCHMARK']) {
       return
     }
-    env.setInput('collect-path', '/home/yuhao/vision/benchmark')
+    env.setInput('collect-path', `/home/${os.userInfo().username}/vision/benchmark`)
     env.setInput('container-name', `test-${os.userInfo().username}`)
     env.setInput('unknown-threshold', '100')
     env.setInput('error-threshold', '100')
