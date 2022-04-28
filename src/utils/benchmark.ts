@@ -4,7 +4,7 @@ import * as core from '@actions/core'
 import * as fs from 'fs'
 import OSS from 'ali-oss'
 import * as path from 'path'
-import {getOSSCredentials} from './cache'
+import {getOSSCredentials, pullWithoutSecret} from './cache'
 import {Head} from './ghSupport'
 import {getPercentageInput} from './util'
 
@@ -51,12 +51,7 @@ class OssStorage {
   }
 
   async pull(remote_path: string, local_path: string): Promise<boolean> {
-    try {
-      await this.client.get(remote_path, local_path)
-      return true
-    } catch (e) {
-      return false
-    }
+    return await pullWithoutSecret(this.client, remote_path, local_path)
   }
 
   async pull2Json(remote_path: string): Promise<string> {
