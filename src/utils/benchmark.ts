@@ -4,7 +4,7 @@ import * as core from '@actions/core'
 import * as fs from 'fs'
 import OSS from 'ali-oss'
 import * as path from 'path'
-import {getOSSCredentials} from './cache'
+import {getOSSCredentials, pullWithoutSecret} from './cache'
 import {Head} from './ghSupport'
 import {getPercentageInput} from './util'
 
@@ -51,21 +51,23 @@ class OssStorage {
   }
 
   async pull(remote_path: string, local_path: string): Promise<boolean> {
-    try {
-      await this.client.get(remote_path, local_path)
-      return true
-    } catch (e) {
-      return false
-    }
+    return await pullWithoutSecret(
+      this.client,
+      'oneflow-benchmark',
+      remote_path,
+      local_path
+    )
   }
 
   async pull2Json(remote_path: string): Promise<string> {
-    try {
-      const buffer = await this.client.get(remote_path)
-      return buffer.content.toString()
-    } catch (e) {
-      return ''
+    const tmp_path = 'tmp-donwload'
+    const res = await this.pull(remote_path, tmp_path)
+    if (res) {
+      const data = fs.readFileSync(tmp_path).toString()
+      fs.rmSync(tmp_path)
+      return data
     }
+    return ''
   }
 
   async copy(dst_path: string, src_path: string): Promise<void> {
@@ -234,10 +236,11 @@ const pytest = async (
       'no:randomly',
       '-p',
       'no:cacheprovider',
+      '-p',
+      'no:warnings',
       '--max-worker-restart=0',
       '-x',
       '--capture=sys',
-      '-v',
       `--benchmark-json=${jsonPath}`,
       `--benchmark-storage=${cachePath}`,
       '--benchmark-disable-gc',
@@ -480,7 +483,6 @@ export async function singleBenchmark(
     return {status: 'SKIP'}
   }
   for (const file of fs.readdirSync(cachePath)) {
-    core.info(`[file] ${file}`)
     if (file.endsWith('.svg')) {
       const histogramPath = `${cachePath}/${file}`
       const ossRunHistogramPath = `${ossRunPath}/${file}`
@@ -523,9 +525,10 @@ export async function benchmarkBatch(
     else if (output.status === 'BEST_UNKNOWN' || output.status === 'UNKNOWN')
       unknown++
     else if (output.status === 'SKIP') skip++
-    core.info(`[skip] skip/total: ${skip}/${total}`)
-    core.info(`[pass] unknown/total(minus skip): ${unknown}/${total - skip}`)
-    core.info(`[pass] error/total(minus skip): ${error}/${total - skip}`)
+    core.info(` - [skip] skip/total: ${skip}/${total}`)
+    core.info(` - [pass] unknown/total(minus skip): ${unknown}/${total - skip}`)
+    core.info(` - [pass] error/total(minus skip): ${error}/${total - skip}`)
+    core.info(' ----------------next-----------------')
   }
   return res
 }
@@ -613,50 +616,55 @@ function PrintRes(
   let skipNum = 0
 
   for (let i = 0; i < realFunctionCount; i++) {
+    core.info(
+      `[task] ${core.info(
+        JSON.stringify(JSON.parse(collectOutputJSONs[i]), null, 2)
+      )}`
+    )
     switch (res[i].status) {
       case 'BEST_NOT_MATCH':
-        core.info(`[error] best not match ${collectOutputJSONs[i]}`)
+        core.info(`[error]: best not match `)
         errorNum++
         break
       case 'BEST_UNKNOWN':
-        core.info(
-          `[unknown]best unknown ${collectOutputJSONs[i]} stddev(in retry) > need`
-        )
+        core.info(`[unknown]: best unknown stddev(in retry) > need`)
         unknownNum++
         break
       case 'ERROR':
-        core.info(`[error] ${collectOutputJSONs[i]}`)
+        core.info(`[error]: compare failed`)
         core.info(JSON.stringify(res[i], null, 2))
         errorNum++
         break
       case 'PASS':
-        core.info(`[pass] ${collectOutputJSONs[i]}`)
+        core.info(`[pass]: fit`)
         core.info(JSON.stringify(res[i], null, 2))
         break
       case 'GREATER':
-        core.info(`[greater] ${collectOutputJSONs[i]}`)
+        core.info(`[greater]: with best`)
         core.info(JSON.stringify(res[i], null, 2))
         break
       case 'UNKNOWN':
-        core.info(`[unknown] ${collectOutputJSONs[i]}`)
+        core.info(`[unknown]: retry failed`)
         unknownNum++
         break
       case 'SKIP':
-        core.info(`[skip] ${collectOutputJSONs[i]}`)
+        core.info(`[skip]`)
         skipNum++
         break
     }
   }
   const real_unknown = unknownNum / (realFunctionCount - skipNum)
   const realError = errorNum / (realFunctionCount - skipNum)
-  core.info(`[skip] skip/total: ${skipNum}/${realFunctionCount}`)
+  core.info(` - [skip] skip/total: ${skipNum}/${realFunctionCount}`)
   core.info(
-    `[pass] unknown/total(minus skip): ${unknownNum}/${
+    ` - [pass] unknown/total(minus skip): ${unknownNum}/${
       realFunctionCount - skipNum
     }`
   )
   core.info(
-    `[pass] error/total(minus skip): ${errorNum}/${realFunctionCount - skipNum}`
+    ` - [pass] error/total(minus skip): ${errorNum}/${
+      realFunctionCount - skipNum
+    }`
   )
 
   // TODO: upload a summary so that it could be later retrieved and analyzed
