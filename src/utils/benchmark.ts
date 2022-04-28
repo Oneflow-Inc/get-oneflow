@@ -527,10 +527,18 @@ export async function benchmarkBatch(
     else if (output.status === 'BEST_UNKNOWN' || output.status === 'UNKNOWN')
       unknown++
     else if (output.status === 'SKIP') skip++
-    core.info(` - [skip] skip/total: ${skip}/${total}`)
-    core.info(` - [pass] unknown/total(minus skip): ${unknown}/${total - skip}`)
-    core.info(` - [pass] error/total(minus skip): ${error}/${total - skip}`)
-    core.info(' ----------------next-----------------')
+    core.info(
+      `[summary] ${JSON.stringify(
+        {
+          total,
+          error,
+          unknown,
+          skip
+        },
+        null,
+        2
+      )}`
+    )
   }
   return res
 }
