@@ -152,7 +152,7 @@ jobs:
           collect-path: ${{ env.FLOW_VISION_SRC }}/benchmark
           container-name: ${{ env.TEST_CONTAINER_NAME }}
           unknown-threshold: 10
-          error-threshold: 20
+          error-threshold: 40
 
       - name: Remove container
         timeout-minutes: 45

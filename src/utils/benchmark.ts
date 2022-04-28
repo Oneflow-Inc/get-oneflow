@@ -616,41 +616,39 @@ function PrintRes(
   let skipNum = 0
 
   for (let i = 0; i < realFunctionCount; i++) {
+    core.info(
+      `[task] ${core.info(
+        JSON.stringify(JSON.parse(collectOutputJSONs[i]), null, 2)
+      )}`
+    )
     switch (res[i].status) {
       case 'BEST_NOT_MATCH':
-        core.info(`[error] best not match: `)
-        core.info(JSON.stringify(collectOutputJSONs[i], null, 2))
+        core.info(`[error]: best not match `)
         errorNum++
         break
       case 'BEST_UNKNOWN':
         core.info(`[unknown]: best unknown stddev(in retry) > need`)
-        core.info(JSON.stringify(collectOutputJSONs[i], null, 2))
         unknownNum++
         break
       case 'ERROR':
-        core.info(`[error]: `)
-        core.info(JSON.stringify(collectOutputJSONs[i], null, 2))
+        core.info(`[error]: compare failed`)
         core.info(JSON.stringify(res[i], null, 2))
         errorNum++
         break
       case 'PASS':
-        core.info(`[pass]: `)
-        core.info(JSON.stringify(collectOutputJSONs[i], null, 2))
+        core.info(`[pass]: fit`)
         core.info(JSON.stringify(res[i], null, 2))
         break
       case 'GREATER':
-        core.info(`[greater]: `)
-        core.info(JSON.stringify(collectOutputJSONs[i], null, 2))
+        core.info(`[greater]: with best`)
         core.info(JSON.stringify(res[i], null, 2))
         break
       case 'UNKNOWN':
-        core.info(`[unknown]: `)
-        core.info(JSON.stringify(collectOutputJSONs[i], null, 2))
+        core.info(`[unknown]: retry failed`)
         unknownNum++
         break
       case 'SKIP':
-        core.info(`[skip]: `)
-        core.info(JSON.stringify(collectOutputJSONs[i], null, 2))
+        core.info(`[skip]`)
         skipNum++
         break
     }
