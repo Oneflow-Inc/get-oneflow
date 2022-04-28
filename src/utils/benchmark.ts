@@ -520,7 +520,7 @@ export async function benchmarkBatch(
       containerName
     )
     res.push(output)
-    core.info(`[output] ${config.func_name} ${output.status}`)
+    core.info(`[status][${config.func_name}] ${output.status}`)
     total++
 
     if (output.status === 'BEST_NOT_MATCH' || output.status === 'ERROR') error++
