@@ -61,57 +61,46 @@ interface DownloadError {
   httpStatusCode: Number
 }
 
+// returning null if this file doesn't exists
 export async function pullWithoutSecret(
   oss: OSS,
   bucket: string,
   src: string,
   dst?: string
-): Promise<boolean> {
+): Promise<string | null> {
   try {
-    await oss.get(src, dst)
-    core.info(`[found] ${src}`)
-    return true
+    await oss.head(src)
   } catch (error) {
     if ((error as Error).name === 'NoSuchKeyError') {
-      core.info(`[absent] ${src}`)
+      return null
     } else if (
       (error as UnknowError).name === 'UnknowError' &&
       (error as UnknowError).status === 403
     ) {
-      const url = `https://${bucket}.oss-cn-beijing.aliyuncs.com/${src}`
-      try {
-        await tc.downloadTool(url, dst)
-        core.info(`[download] ${src}`)
-        return true
-      } catch (downloadError) {
-        core.info(JSON.stringify(downloadError, null, 2))
-        core.info(
-          `${
-            (downloadError as DownloadError).httpStatusCode === 404
-              ? '[absent]'
-              : '[download error]'
-          } ${url}`
-        )
-        return false
-      }
+      // authentication failed, try download with HTTP anyway
     } else {
-      core.info(`[unknown error] ${src}`)
-      return false
+      throw error
     }
-    return false
+  }
+  try {
+    return await downloadFromOss(bucket, src, dst)
+  } catch (downloadError) {
+    if ((downloadError as DownloadError).httpStatusCode === 404) {
+      return null
+    } else {
+      throw new Error(`${JSON.stringify(downloadError, null, 2)}`)
+    }
   }
 }
 
-// export async function checkComplete(keys: string[]): Promise<string | null> {
-//   const store = ciCacheBucketStore()
-//   for await (const key of keys) {
-//     const objectKey = getCompleteKey(key)
-//     const res = await pullWithoutSecret(store, 'oneflow-ci-cache', objectKey)
-//     if (res) return objectKey
-//     else throw Error
-//   }
-//   return null
-// }
+async function downloadFromOss(
+  bucket: string,
+  src: string,
+  dst?: string
+): Promise<string> {
+  const url = `https://${bucket}.oss-cn-beijing.aliyuncs.com/${src}`
+  return await tc.downloadTool(url, dst)
+}
 
 export async function checkComplete(keys: string[]): Promise<string | null> {
   const store = ciCacheBucketStore()
