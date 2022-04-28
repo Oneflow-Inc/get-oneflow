@@ -17,6 +17,15 @@ inputs:
   pytest-args:
     required: true
     description: ""
+  collect-path:
+    required: true
+    description: ""
+  unknown-threshold:
+    required: true
+    description: ""
+  error-threshold:
+    required: true
+    description: ""
 
 runs:
   using: "node12"
