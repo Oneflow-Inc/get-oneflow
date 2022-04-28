@@ -50,22 +50,24 @@ class OssStorage {
     core.info(`[url] ${base_url}/${remote_path}`)
   }
 
-  async pull(remote_path: string, local_path: string): Promise<boolean> {
-    return await pullWithoutSecret(
+  async pull(remote_path: string, local_path?: string): Promise<boolean> {
+    return !!(await pullWithoutSecret(
       this.client,
       'oneflow-benchmark',
       remote_path,
       local_path
-    )
+    ))
   }
 
-  async pull2Json(remote_path: string): Promise<string> {
-    const tmp_path = 'tmp-donwload'
-    const res = await this.pull(remote_path, tmp_path)
-    if (res) {
-      const data = fs.readFileSync(tmp_path).toString()
-      fs.rmSync(tmp_path)
-      return data
+  async pull2Json(remote_path: string): Promise<Object> {
+    const downloaded = await pullWithoutSecret(
+      this.client,
+      'oneflow-benchmark',
+      remote_path
+    )
+    if (downloaded) {
+      const data = fs.readFileSync(downloaded).toString()
+      return JSON.parse(data)
     }
     return ''
   }
@@ -137,9 +139,9 @@ async function compareJson(
 ): Promise<boolean> {
   const oss = OssStorage.getInstance()
 
-  const bestJSON: logJSON = JSON.parse(await oss.pull2Json(bestJsonPath))
+  const bestJSON = (await oss.pull2Json(bestJsonPath)) as logJSON
   const best_data_list = bestJSON.benchmarks
-  const cmpJSON: logJSON = JSON.parse(await oss.pull2Json(cmpJsonPath))
+  const cmpJSON = (await oss.pull2Json(cmpJsonPath)) as logJSON
   const cmp_data_list = cmpJSON.benchmarks
   if (best_data_list.length !== cmp_data_list.length) return false
   return best_data_list.every(function (elem, index): boolean {
