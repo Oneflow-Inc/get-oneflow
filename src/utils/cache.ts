@@ -77,7 +77,7 @@ export async function pullWithoutSecret(
       (error as UnknowError).name === 'UnknowError' &&
       (error as UnknowError).status === 403
     ) {
-      // try download
+      // authentication failed, try download with HTTP anyway
     } else {
       throw error
     }
