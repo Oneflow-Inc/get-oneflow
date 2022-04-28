@@ -50,24 +50,27 @@ class OssStorage {
     core.info(`[url] ${base_url}/${remote_path}`)
   }
 
-  async pull(remote_path: string, local_path: string): Promise<boolean> {
-    return await pullWithoutSecret(
+  async pull(remote_path: string, local_path?: string): Promise<boolean> {
+    return !!(await pullWithoutSecret(
       this.client,
       'oneflow-benchmark',
       remote_path,
       local_path
-    )
+    ))
   }
 
-  async pull2Json(remote_path: string): Promise<string> {
-    const tmp_path = 'tmp-donwload'
-    const res = await this.pull(remote_path, tmp_path)
-    if (res) {
-      const data = fs.readFileSync(tmp_path).toString()
-      fs.rmSync(tmp_path)
-      return data
+  async pull2Json(remote_path: string): Promise<Object> {
+    const downloaded = await pullWithoutSecret(
+      this.client,
+      'oneflow-benchmark',
+      remote_path
+    )
+    if (downloaded) {
+      const data = fs.readFileSync(downloaded).toString()
+      return JSON.parse(data)
+    } else {
+      throw new Error(`Can't download ${remote_path}`)
     }
-    return ''
   }
 
   async copy(dst_path: string, src_path: string): Promise<void> {
@@ -137,9 +140,9 @@ async function compareJson(
 ): Promise<boolean> {
   const oss = OssStorage.getInstance()
 
-  const bestJSON: logJSON = JSON.parse(await oss.pull2Json(bestJsonPath))
+  const bestJSON = (await oss.pull2Json(bestJsonPath)) as logJSON
   const best_data_list = bestJSON.benchmarks
-  const cmpJSON: logJSON = JSON.parse(await oss.pull2Json(cmpJsonPath))
+  const cmpJSON = (await oss.pull2Json(cmpJsonPath)) as logJSON
   const cmp_data_list = cmpJSON.benchmarks
   if (best_data_list.length !== cmp_data_list.length) return false
   return best_data_list.every(function (elem, index): boolean {
@@ -459,8 +462,6 @@ export async function singleBenchmark(
   const ossHistoricalBestJSONPath = `${gh.context.repo.owner}/${gh.context.repo.repo}/best/${benchmarkId}.json`
   const ossRunPath = `${gh.context.repo.owner}/${gh.context.repo.repo}/pr/${gh.context.issue.number}/commit/${gh.context.sha}/run/${gh.context.runId}`
   const ossRunJSONPath = `${ossRunPath}/${benchmarkId}.json`
-
-  await exec.exec('nvidia-smi', [])
   await exec.exec('mkdir', ['-p', cachePath])
 
   const hasBest = await oss.pull(
@@ -504,6 +505,7 @@ export async function benchmarkBatch(
   collectOutputJSONs: string[],
   containerName: string
 ): Promise<resJson[]> {
+  await exec.exec('nvidia-smi', [])
   const res: resJson[] = []
   let total = 0
   let unknown = 0
@@ -518,17 +520,25 @@ export async function benchmarkBatch(
       containerName
     )
     res.push(output)
-    core.info(`[output] ${config.func_name} ${output.status}`)
+    core.info(`[status][${config.func_name}] ${output.status}`)
     total++
 
     if (output.status === 'BEST_NOT_MATCH' || output.status === 'ERROR') error++
     else if (output.status === 'BEST_UNKNOWN' || output.status === 'UNKNOWN')
       unknown++
     else if (output.status === 'SKIP') skip++
-    core.info(` - [skip] skip/total: ${skip}/${total}`)
-    core.info(` - [pass] unknown/total(minus skip): ${unknown}/${total - skip}`)
-    core.info(` - [pass] error/total(minus skip): ${error}/${total - skip}`)
-    core.info(' ----------------next-----------------')
+    core.info(
+      `[summary] ${JSON.stringify(
+        {
+          total,
+          error,
+          unknown,
+          skip
+        },
+        null,
+        2
+      )}`
+    )
   }
   return res
 }
