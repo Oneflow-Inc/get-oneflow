@@ -1,3 +1,4 @@
+import {components} from '@octokit/openapi-types/types'
 import * as core from '@actions/core'
 import {Octokit} from '@octokit/core'
 
@@ -9,21 +10,12 @@ const repo = 'oneflow'
 export async function revivePRs(): Promise<void> {
   const test_workflow_id = 'test.yml'
   // find running test workflow runs
-  const numInProgress = (
-    await octokit.request(
-      'GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs',
-      {
-        owner,
-        repo,
-        workflow_id: test_workflow_id,
-        per_page: 30,
-        status: 'in_progress'
-      }
-    )
-  ).data.total_count
-  core.warning(`numInProgress: ${numInProgress}`)
+  const numInProgress = await getNumByStatus(test_workflow_id, 'in_progress')
+  const numQueued = await getNumByStatus(test_workflow_id, 'queued')
+  const numActive = numInProgress + numQueued
+  core.warning(`numActive: ${numActive}`)
   // if there are no running test workflow runs, add ci-bot as reviewer for 3 PRs
-  if (numInProgress === 0) {
+  if (numActive === 0) {
     const Bot = 'oneflow-ci-bot'
     const q = `label:automerge state:open review:approved review-requested:${Bot} repo:${owner}/${repo}`
     core.warning(`q: ${q}`)
@@ -57,4 +49,21 @@ export async function revivePRs(): Promise<void> {
       })
     await Promise.all(eligiblePRs)
   }
+}
+async function getNumByStatus(
+  test_workflow_id: string,
+  status: components['parameters']['workflow-run-status']
+): Promise<number> {
+  return (
+    await octokit.request(
+      'GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs',
+      {
+        owner,
+        repo,
+        workflow_id: test_workflow_id,
+        per_page: 30,
+        status
+      }
+    )
+  ).data.total_count
 }

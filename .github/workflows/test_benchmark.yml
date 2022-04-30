@@ -164,6 +164,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [benchmark]
     steps:
-      - uses: Oneflow-Inc/get-oneflow/update-benchmark-history@support-auto-benchmark
+      - uses: actions/checkout@v2
+      - uses: ./update-benchmark-history
         name: Update benchmark history
         timeout-minutes: 5
