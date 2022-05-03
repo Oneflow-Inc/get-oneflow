@@ -35,7 +35,6 @@ runAndSetFailed(async () => {
   const pull_request = gh.context.payload.pull_request
   if (pull_request) {
     const head = pull_request['head'] as Head
-    core.info(JSON.stringify(pull_request, null, 2))
     core.info(`head.repo.owner.login: ${head.repo.owner.login}`)
   }
   const actionType = core.getInput('action-type', {
