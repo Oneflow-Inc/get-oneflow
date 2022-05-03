@@ -1,6 +1,7 @@
 import * as gh from '@actions/github'
 import * as exec from '@actions/exec'
 import * as core from '@actions/core'
+import * as io from '@actions/io'
 import * as fs from 'fs'
 import OSS from 'ali-oss'
 import * as path from 'path'
@@ -466,7 +467,7 @@ export async function singleBenchmark(
   const ossHistoricalBestJSONPath = `${gh.context.repo.owner}/${gh.context.repo.repo}/best/${benchmarkId}.json`
   const ossRunPath = `${gh.context.repo.owner}/${gh.context.repo.repo}/pr/${gh.context.issue.number}/commit/${gh.context.sha}/run/${gh.context.runId}`
   const ossRunJSONPath = `${ossRunPath}/${benchmarkId}.json`
-  await exec.exec('mkdir', ['-p', cachePath])
+  await io.mkdirP(cachePath)
 
   const hasBest = await oss.pull(
     ossHistoricalBestJSONPath,
