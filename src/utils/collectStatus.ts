@@ -132,7 +132,7 @@ type RunInfo = {
 }
 
 export async function collectWorkflowRunTime(): Promise<void> {
-  const TOTAL_PAGE = 3
+  const TOTAL_PAGE = 2
   let commits: components['schemas']['commit'][] = []
   for (let page = 1; page <= TOTAL_PAGE; page++) {
     const commits_ = await octokit.request(
