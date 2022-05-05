@@ -7,6 +7,7 @@ import {Octokit} from '@octokit/core'
 import * as fs from 'fs'
 import * as tc from '@actions/tool-cache'
 import path from 'path'
+import {components} from '@octokit/openapi-types/types'
 
 const token = core.getInput('token')
 const octokit = new Octokit({auth: token})
@@ -131,15 +132,26 @@ type RunInfo = {
 }
 
 export async function collectWorkflowRunTime(): Promise<void> {
-  const commits = (
-    await octokit.request('GET /repos/{owner}/{repo}/commits', {
-      owner,
-      repo,
-      per_page: 100
-    })
-  ).data
+  const TOTAL_PAGE = 3
+  let commits: components['schemas']['commit'][] = []
+  for (let page = 1; page <= TOTAL_PAGE; page++) {
+    const commits_ = await octokit.request(
+      'GET /repos/{owner}/{repo}/commits',
+      {
+        owner,
+        repo,
+        page,
+        per_page: 100
+      }
+    )
+    commits = commits.concat(commits_.data)
+  }
+
   const summary: RunInfo[] = []
+  let cnt = 0
   for await (const commit of commits) {
+    cnt += 0
+    core.info(`[count] ${cnt}/${commits.length}`)
     const prs = (
       await octokit.request(
         'GET /repos/{owner}/{repo}/commits/{commit_sha}/pulls',
