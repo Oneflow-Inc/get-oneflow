@@ -160,7 +160,7 @@ export async function collectWorkflowRunTime(): Promise<void> {
             owner,
             repo,
             pull_number: pr.number,
-            per_page: 20
+            per_page: 25
           }
         )
       ).data
