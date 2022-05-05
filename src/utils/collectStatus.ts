@@ -141,6 +141,7 @@ export async function collectWorkflowRunTime(): Promise<void> {
     ).data
     for (const pr of prs) {
       core.info(`#${pr.number} ${pr.html_url}`)
+      core.info(`[title] #${pr.title}`)
       let commits_of_pr = (
         await octokit.request(
           'GET /repos/{owner}/{repo}/pulls/{pull_number}/commits',
