@@ -141,18 +141,30 @@ export async function collectWorkflowRunTime(): Promise<void> {
     ).data
     for (const pr of prs) {
       core.info(`#${pr.number} ${pr.html_url}`)
-      const checks = (
+      const commits_of_pr = (
         await octokit.request(
-          'GET /repos/{owner}/{repo}/commits/{ref}/check-runs',
+          'GET /repos/{owner}/{repo}/pulls/{pull_number}/commits',
           {
             owner,
             repo,
-            ref: commit.sha
+            pull_number: pr.number
           }
         )
-      ).data.check_runs
-      for await (const check of checks) {
-        core.info(`${check.html_url}`)
+      ).data.slice(-1, -1)
+      for await (const commit_of_pr of commits_of_pr) {
+        const checks = (
+          await octokit.request(
+            'GET /repos/{owner}/{repo}/commits/{ref}/check-runs',
+            {
+              owner,
+              repo,
+              ref: commit_of_pr.sha
+            }
+          )
+        ).data.check_runs
+        for await (const check of checks) {
+          core.info(`${check.html_url}`)
+        }
       }
     }
   }
