@@ -215,7 +215,7 @@ export async function collectWorkflowRunTime(): Promise<void> {
       summary.push({
         title: pr.title,
         pr_number: pr.number,
-        pr_url: pr.url,
+        pr_url: pr.html_url,
         durationMinutes: max_in_pr
       })
     }
