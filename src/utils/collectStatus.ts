@@ -135,7 +135,7 @@ export async function collectWorkflowRunTime(): Promise<void> {
     await octokit.request('GET /repos/{owner}/{repo}/commits', {
       owner,
       repo,
-      per_page: 20
+      per_page: 100
     })
   ).data
   const summary: RunInfo[] = []
