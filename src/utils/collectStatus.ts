@@ -1,5 +1,6 @@
 import * as glob from '@actions/glob'
 import * as core from '@actions/core'
+import * as io from '@actions/io'
 import * as artifact from '@actions/artifact'
 import * as readline from 'readline'
 import {Octokit} from '@octokit/core'
@@ -205,15 +206,19 @@ export async function collectWorkflowRunTime(): Promise<void> {
     // save
     const jsonSummaryText = JSON.stringify(summary, null, 2)
     const outputFile = 'time-summary.json'
-    fs.writeFileSync(outputFile, jsonSummaryText)
 
     // upload
     const artifactClient = artifact.create()
-    const artifactName = 'workflow-run-time-summary'
+    const rootDirectory = '/tmp/artifact-upload'
+    const artifactName = path.join(
+      rootDirectory,
+      'workflow-run-time-summary.json'
+    )
     const files = [artifactName]
-    const rootDirectory = '/home/user/files/plz-upload'
+    await io.mkdirP(rootDirectory)
+    fs.writeFileSync(path.join(rootDirectory, outputFile), jsonSummaryText)
     const options = {
-      continueOnError: true
+      continueOnError: false
     }
 
     await artifactClient.uploadArtifact(
