@@ -159,7 +159,8 @@ export async function collectWorkflowRunTime(): Promise<void> {
           {
             owner,
             repo,
-            pull_number: pr.number
+            pull_number: pr.number,
+            per_page: 100
           }
         )
       ).data
@@ -172,7 +173,8 @@ export async function collectWorkflowRunTime(): Promise<void> {
             {
               owner,
               repo,
-              ref: commit_of_pr.sha
+              ref: commit_of_pr.sha,
+              per_page: 100
             }
           )
         ).data.check_runs
