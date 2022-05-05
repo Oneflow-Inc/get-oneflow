@@ -142,7 +142,7 @@ export async function collectWorkflowRunTime(): Promise<void> {
     for (const pr of prs) {
       core.info(`\n#${pr.number} ${pr.html_url}`)
       core.info(`[title] #${pr.title}`)
-      let commits_of_pr = (
+      const commits_of_pr = (
         await octokit.request(
           'GET /repos/{owner}/{repo}/pulls/{pull_number}/commits',
           {
@@ -153,7 +153,7 @@ export async function collectWorkflowRunTime(): Promise<void> {
         )
       ).data
       let max_in_pr = 0
-      commits_of_pr = commits_of_pr.slice(-5, commits_of_pr.length)
+      // commits_of_pr = commits_of_pr.slice(-5, commits_of_pr.length)
       for await (const commit_of_pr of commits_of_pr) {
         const checks = (
           await octokit.request(
@@ -184,8 +184,6 @@ export async function collectWorkflowRunTime(): Promise<void> {
       }
       if (max_in_pr > 25) {
         core.warning(`[duration] ${max_in_pr}`)
-      } else {
-        core.info(`[duration] ${max_in_pr}`)
       }
     }
   }
