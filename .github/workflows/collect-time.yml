@@ -37,6 +37,6 @@ jobs:
         with:
           # token: ${{ secrets.CI_PERSONAL_ACCESS_TOKEN }}
           # token: ${{ secrets.DEBUG_PERSONAL_ACCESS_TOKEN }}
-          # token: ${{ secrets.D_PERSONAL_ACCESS_TOKEN }}
+          token: ${{ secrets.D_PERSONAL_ACCESS_TOKEN }}
           # token: ${{ secrets.GITHUB_TOKEN }}
           oneflow-src: ${{ env.ONEFLOW_SRC }}
