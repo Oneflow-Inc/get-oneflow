@@ -152,7 +152,8 @@ export async function collectWorkflowRunTime(): Promise<void> {
           }
         )
       ).data
-      commits_of_pr = commits_of_pr.slice(-1, commits_of_pr.length)
+      let max_in_pr = 0
+      commits_of_pr = commits_of_pr.slice(-5, commits_of_pr.length)
       for await (const commit_of_pr of commits_of_pr) {
         const checks = (
           await octokit.request(
@@ -174,14 +175,17 @@ export async function collectWorkflowRunTime(): Promise<void> {
               const started_at = Date.parse(check.started_at)
               const completed_at = Date.parse(check.completed_at)
               const duration = (completed_at - started_at) / 1000 / 60
-              if (duration > 25) {
-                core.warning(`[duration] ${duration}`)
-              } else {
-                core.info(`[duration] ${duration}`)
+              if (duration > max_in_pr) {
+                max_in_pr = duration
               }
             }
           }
         }
+      }
+      if (max_in_pr > 25) {
+        core.warning(`[duration] ${max_in_pr}`)
+      } else {
+        core.info(`[duration] ${max_in_pr}`)
       }
     }
   }
