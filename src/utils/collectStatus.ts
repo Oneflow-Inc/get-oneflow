@@ -203,25 +203,25 @@ export async function collectWorkflowRunTime(): Promise<void> {
         durationMinutes: max_in_pr
       })
     }
-    // save
-    const jsonSummaryText = JSON.stringify(summary, null, 2)
-    // upload
-    const artifactClient = artifact.create()
-    const rootDirectory = '/tmp/artifact-upload'
-    const outputFile = path.join(rootDirectory, 'time-summary.json')
-    const files = [outputFile]
-    await io.mkdirP(rootDirectory)
-    fs.writeFileSync(path.join(rootDirectory, outputFile), jsonSummaryText)
-    const options = {
-      continueOnError: false
-    }
-
-    const artifactName = 'workflow-run-time-summary'
-    await artifactClient.uploadArtifact(
-      artifactName,
-      files,
-      rootDirectory,
-      options
-    )
   }
+  // save
+  const jsonSummaryText = JSON.stringify(summary, null, 2)
+  // upload
+  const artifactClient = artifact.create()
+  const rootDirectory = '/tmp/artifact-upload'
+  const outputFile = path.join(rootDirectory, 'time-summary.json')
+  const files = [outputFile]
+  await io.mkdirP(rootDirectory)
+  fs.writeFileSync(outputFile, jsonSummaryText)
+  const options = {
+    continueOnError: false
+  }
+
+  const artifactName = 'workflow-run-time-summary'
+  await artifactClient.uploadArtifact(
+    artifactName,
+    files,
+    rootDirectory,
+    options
+  )
 }
