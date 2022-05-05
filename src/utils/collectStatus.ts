@@ -141,7 +141,7 @@ export async function collectWorkflowRunTime(): Promise<void> {
     ).data
     for (const pr of prs) {
       core.info(`#${pr.number} ${pr.html_url}`)
-      const commits_of_pr = (
+      let commits_of_pr = (
         await octokit.request(
           'GET /repos/{owner}/{repo}/pulls/{pull_number}/commits',
           {
@@ -150,7 +150,8 @@ export async function collectWorkflowRunTime(): Promise<void> {
             pull_number: pr.number
           }
         )
-      ).data.slice(-1, -1)
+      ).data
+      commits_of_pr = commits_of_pr.slice(-1, commits_of_pr.length)
       for await (const commit_of_pr of commits_of_pr) {
         const checks = (
           await octokit.request(
