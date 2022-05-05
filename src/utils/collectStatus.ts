@@ -208,15 +208,15 @@ export async function collectWorkflowRunTime(): Promise<void> {
     // upload
     const artifactClient = artifact.create()
     const rootDirectory = '/tmp/artifact-upload'
-    const artifactName = 'workflow-run-time-summary'
     const outputFile = path.join(rootDirectory, 'time-summary.json')
-    const files = [artifactName]
+    const files = [outputFile]
     await io.mkdirP(rootDirectory)
     fs.writeFileSync(path.join(rootDirectory, outputFile), jsonSummaryText)
     const options = {
       continueOnError: false
     }
 
+    const artifactName = 'workflow-run-time-summary'
     await artifactClient.uploadArtifact(
       artifactName,
       files,
