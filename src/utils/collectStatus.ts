@@ -170,8 +170,8 @@ export async function collectWorkflowRunTime(): Promise<void> {
             if (check.started_at && check.completed_at) {
               const started_at = Date.parse(check.started_at)
               const completed_at = Date.parse(check.completed_at)
-              const duration = (completed_at - started_at) / 1000
-              if (duration > 1500) {
+              const duration = (completed_at - started_at) / 1000 / 60
+              if (duration > 20) {
                 core.warning(`[duration] ${duration}`)
               } else {
                 core.info(`[duration] ${duration}`)
