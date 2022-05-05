@@ -150,7 +150,7 @@ export async function collectWorkflowRunTime(): Promise<void> {
   const summary: RunInfo[] = []
   let cnt = 0
   for await (const commit of commits) {
-    cnt += 0
+    cnt += 1
     core.info(`[count] ${cnt}/${commits.length}`)
     const prs = (
       await octokit.request(
