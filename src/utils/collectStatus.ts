@@ -195,7 +195,7 @@ export async function collectWorkflowRunTime(): Promise<void> {
             core.info(
               `[check][${check.name}][${check.status}]${check.html_url}`
             )
-            if (cnt === 0) {
+            if (cnt === 1) {
               core.info(`${JSON.stringify(check, null, 2)}`)
             }
             if (check.started_at && check.completed_at) {
