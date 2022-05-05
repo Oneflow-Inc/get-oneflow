@@ -140,7 +140,7 @@ export async function collectWorkflowRunTime(): Promise<void> {
       )
     ).data
     for (const pr of prs) {
-      core.info(`#${pr.number} ${pr.html_url}`)
+      core.info(`\n#${pr.number} ${pr.html_url}`)
       core.info(`[title] #${pr.title}`)
       let commits_of_pr = (
         await octokit.request(
@@ -174,7 +174,7 @@ export async function collectWorkflowRunTime(): Promise<void> {
               const started_at = Date.parse(check.started_at)
               const completed_at = Date.parse(check.completed_at)
               const duration = (completed_at - started_at) / 1000 / 60
-              if (duration > 20) {
+              if (duration > 25) {
                 core.warning(`[duration] ${duration}`)
               } else {
                 core.info(`[duration] ${duration}`)
