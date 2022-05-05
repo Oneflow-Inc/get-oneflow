@@ -119,3 +119,26 @@ export async function collectWorkflowRunStatus(): Promise<void> {
   core.warning(`[cases] ${JSON.stringify(caseSummary, null, 2)}`)
   core.warning(`[summary] ${JSON.stringify(summary, null, 2)}`)
 }
+
+export async function collectWorkflowRunTime(): Promise<void> {
+  const commits = (
+    await octokit.request('GET /repos/{owner}/{repo}/commits', {
+      owner,
+      repo,
+      per_page: 100
+    })
+  ).data
+  for await (const commit of commits) {
+    const pr = (
+      await octokit.request(
+        'GET /repos/{owner}/{repo}/commits/{commit_sha}/pulls',
+        {
+          owner,
+          repo,
+          commit_sha: commit.sha
+        }
+      )
+    ).data
+    core.info(`[pr] ${JSON.stringify(pr, null, 2)}`)
+  }
+}
