@@ -1,10 +1,12 @@
 import * as glob from '@actions/glob'
 import * as core from '@actions/core'
+import * as artifact from '@actions/artifact'
 import * as readline from 'readline'
 import {Octokit} from '@octokit/core'
 import * as fs from 'fs'
 import * as tc from '@actions/tool-cache'
 import path from 'path'
+
 const token = core.getInput('token')
 const octokit = new Octokit({auth: token})
 const owner = 'Oneflow-Inc'
@@ -120,6 +122,13 @@ export async function collectWorkflowRunStatus(): Promise<void> {
   core.warning(`[summary] ${JSON.stringify(summary, null, 2)}`)
 }
 
+type RunInfo = {
+  title: string
+  pr_number: number
+  pr_url: string
+  durationMinutes: number
+}
+
 export async function collectWorkflowRunTime(): Promise<void> {
   const commits = (
     await octokit.request('GET /repos/{owner}/{repo}/commits', {
@@ -128,6 +137,7 @@ export async function collectWorkflowRunTime(): Promise<void> {
       per_page: 100
     })
   ).data
+  const summary: RunInfo[] = []
   for await (const commit of commits) {
     const prs = (
       await octokit.request(
@@ -185,6 +195,32 @@ export async function collectWorkflowRunTime(): Promise<void> {
       if (max_in_pr > 25) {
         core.warning(`[duration] ${max_in_pr}`)
       }
+      summary.push({
+        title: pr.title,
+        pr_number: pr.number,
+        pr_url: pr.url,
+        durationMinutes: max_in_pr
+      })
     }
+    // save
+    const jsonSummaryText = JSON.stringify(summary, null, 2)
+    const outputFile = 'time-summary.json'
+    fs.writeFileSync(outputFile, jsonSummaryText)
+
+    // upload
+    const artifactClient = artifact.create()
+    const artifactName = 'workflow-run-time-summary'
+    const files = [artifactName]
+    const rootDirectory = '/home/user/files/plz-upload'
+    const options = {
+      continueOnError: true
+    }
+
+    await artifactClient.uploadArtifact(
+      artifactName,
+      files,
+      rootDirectory,
+      options
+    )
   }
 }
