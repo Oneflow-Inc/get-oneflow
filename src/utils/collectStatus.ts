@@ -164,7 +164,8 @@ export async function collectWorkflowRunTime(): Promise<void> {
           )
         ).data.check_runs
         for await (const check of checks) {
-          core.info(`${check.html_url}`)
+          core.info(`[check][${check.name}]${check.html_url}`)
+          core.info(`${JSON.stringify(check, null, 2)}`)
         }
       }
     }
