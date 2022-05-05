@@ -166,7 +166,9 @@ export async function collectWorkflowRunTime(): Promise<void> {
         ).data.check_runs
         for await (const check of checks) {
           if (check.name === 'Test suite (cuda-module)') {
-            core.info(`[check][${check.name}]${check.html_url}`)
+            core.info(
+              `[check][${check.name}][${check.status}]${check.html_url}`
+            )
             // core.info(`${JSON.stringify(check, null, 2)}`)
             if (check.started_at && check.completed_at) {
               const started_at = Date.parse(check.started_at)
