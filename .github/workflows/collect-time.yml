@@ -11,7 +11,7 @@ on:
       - "auto-ci-run-time-collect"
 
 concurrency:
-  group: collect-${{ github.ref }}
+  group: collect-time-${{ github.ref }}
   cancel-in-progress: true
 
 env:
