@@ -1,10 +1,14 @@
 import * as glob from '@actions/glob'
 import * as core from '@actions/core'
+import * as io from '@actions/io'
+import * as artifact from '@actions/artifact'
 import * as readline from 'readline'
 import {Octokit} from '@octokit/core'
 import * as fs from 'fs'
 import * as tc from '@actions/tool-cache'
 import path from 'path'
+import {components} from '@octokit/openapi-types/types'
+
 const token = core.getInput('token')
 const octokit = new Octokit({auth: token})
 const owner = 'Oneflow-Inc'
@@ -118,4 +122,122 @@ export async function collectWorkflowRunStatus(): Promise<void> {
   )
   core.warning(`[cases] ${JSON.stringify(caseSummary, null, 2)}`)
   core.warning(`[summary] ${JSON.stringify(summary, null, 2)}`)
+}
+
+type RunInfo = {
+  title: string
+  pr_number: number
+  pr_url: string
+  durationMinutes: number
+}
+
+export async function collectWorkflowRunTime(): Promise<void> {
+  const TOTAL_PAGE = 2
+  let commits: components['schemas']['commit'][] = []
+  for (let page = 1; page <= TOTAL_PAGE; page++) {
+    const commits_ = await octokit.request(
+      'GET /repos/{owner}/{repo}/commits',
+      {
+        owner,
+        repo,
+        page,
+        per_page: 100
+      }
+    )
+    commits = commits.concat(commits_.data)
+  }
+
+  const summary: RunInfo[] = []
+  let cnt = 0
+  for await (const commit of commits) {
+    cnt += 1
+    core.info(`[count] ${cnt}/${commits.length}`)
+    const prs = (
+      await octokit.request(
+        'GET /repos/{owner}/{repo}/commits/{commit_sha}/pulls',
+        {
+          owner,
+          repo,
+          commit_sha: commit.sha
+        }
+      )
+    ).data
+    for (const pr of prs) {
+      core.info(`\n#${pr.number} ${pr.html_url}`)
+      core.info(`[title] #${pr.title}`)
+      const commits_of_pr = (
+        await octokit.request(
+          'GET /repos/{owner}/{repo}/pulls/{pull_number}/commits',
+          {
+            owner,
+            repo,
+            pull_number: pr.number,
+            per_page: 25
+          }
+        )
+      ).data
+      let max_in_pr = 0
+      // commits_of_pr = commits_of_pr.slice(-5, commits_of_pr.length)
+      for await (const commit_of_pr of commits_of_pr) {
+        const checks = (
+          await octokit.request(
+            'GET /repos/{owner}/{repo}/commits/{ref}/check-runs',
+            {
+              owner,
+              repo,
+              ref: commit_of_pr.sha,
+              per_page: 100
+            }
+          )
+        ).data.check_runs
+        for await (const check of checks) {
+          if (check.name === 'Test suite (cuda-module)') {
+            core.info(
+              `[check][${check.name}][${check.status}]${check.html_url}`
+            )
+            if (cnt === 1) {
+              core.info(`${JSON.stringify(check, null, 2)}`)
+            }
+            if (check.started_at && check.completed_at) {
+              const started_at = Date.parse(check.started_at)
+              const completed_at = Date.parse(check.completed_at)
+              const duration = (completed_at - started_at) / 1000 / 60
+              if (duration > max_in_pr) {
+                max_in_pr = duration
+              }
+            }
+          }
+        }
+      }
+      if (max_in_pr > 25) {
+        core.warning(`[duration] ${max_in_pr}`)
+      }
+      summary.push({
+        title: pr.title,
+        pr_number: pr.number,
+        pr_url: pr.html_url,
+        durationMinutes: max_in_pr
+      })
+    }
+  }
+  // save
+  const jsonSummaryText = JSON.stringify(summary, null, 2)
+  // upload
+  const artifactClient = artifact.create()
+  const rootDirectory = '/tmp/artifact-upload'
+  const outputFile = path.join(rootDirectory, 'time-summary.json')
+  const files = [outputFile]
+  await io.mkdirP(rootDirectory)
+  fs.writeFileSync(outputFile, jsonSummaryText)
+  const options = {
+    continueOnError: false
+  }
+
+  const artifactName = 'workflow-run-time-summary'
+  await artifactClient.uploadArtifact(
+    artifactName,
+    files,
+    rootDirectory,
+    options
+  )
 }

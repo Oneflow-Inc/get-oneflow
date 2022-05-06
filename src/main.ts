@@ -12,7 +12,10 @@ import {checkPriorityPR} from './utils/crashUnlessPriority'
 import {revivePRs} from './utils/revivePullRequests'
 import {benchmarkWithPytest, updateBenchmarkHistory} from './utils/benchmark'
 import {Head} from './utils/ghSupport'
-import {collectWorkflowRunStatus} from './utils/collectStatus'
+import {
+  collectWorkflowRunStatus,
+  collectWorkflowRunTime
+} from './utils/collectStatus'
 type ActionType =
   | 'build-oneflow'
   | 'cache-complete'
@@ -30,6 +33,7 @@ type ActionType =
   | 'pytest-benchmark'
   | 'update-benchmark-history'
   | 'collect-workflow-run-status'
+  | 'collect-workflow-run-time'
 
 runAndSetFailed(async () => {
   const pull_request = gh.context.payload.pull_request
@@ -65,5 +69,7 @@ runAndSetFailed(async () => {
     await updateBenchmarkHistory()
   else if (actionType === 'collect-workflow-run-status')
     await collectWorkflowRunStatus()
+  else if (actionType === 'collect-workflow-run-time')
+    await collectWorkflowRunTime()
   else throw new Error(`Action type not implemented ${actionType}`)
 })
