@@ -425,7 +425,7 @@ function compareOutput(
       const realVal = (compareParam.cmp - compareParam.best) / compareParam.best
       if (realVal > compareParam.threshold) {
         core.info(
-          `[error][compare] - failed ${realVal}(${compareParam.name}) > ${compareParam.threshold}`
+          `[compare] - failed ${realVal}(${compareParam.name}) > ${compareParam.threshold}`
         )
         return {
           status: 'ERROR',
@@ -564,17 +564,13 @@ function getPytestArgs(): pytestArgs {
   const errorThreshold = getPercentageInput('error-threshold')
 
   if (collectPath === '')
-    throw Error('[error] please set collect path in your action.yml')
+    throw Error('please set collect path in your action.yml')
   if (containerName === '')
-    throw Error('[error] please set container name in your action.yml')
+    throw Error('please set container name in your action.yml')
   if (unknownThreshold == null)
-    throw Error(
-      '[error] please set 0 < unknown-threshold <= 100 in your action.yml'
-    )
+    throw Error('please set 0 < unknown-threshold <= 100 in your action.yml')
   if (errorThreshold == null)
-    throw Error(
-      '[error] please set 0 < error-threshold <= 100 in your action.yml'
-    )
+    throw Error('please set 0 < error-threshold <= 100 in your action.yml')
   return {collectPath, containerName, unknownThreshold, errorThreshold}
 }
 
@@ -614,7 +610,7 @@ async function collectPytest(
   }
 
   if (realFunctionCount !== decoratorFunctionCount) {
-    throw new Error(`[error] decorator fail to cover all test function!`)
+    throw new Error(`decorator fail to cover all test function!`)
   }
   return collectOutputJSONs
 }
@@ -636,7 +632,7 @@ function PrintRes(
     )
     switch (res[i].status) {
       case 'BEST_NOT_MATCH':
-        core.info(`[error]: best not match `)
+        core.info(`[status] best not match `)
         errorNum++
         break
       case 'BEST_UNKNOWN':
@@ -644,7 +640,7 @@ function PrintRes(
         unknownNum++
         break
       case 'ERROR':
-        core.info(`[error]: compare failed`)
+        core.info(`[status] compare failed`)
         core.info(JSON.stringify(res[i], null, 2))
         errorNum++
         break
@@ -685,7 +681,7 @@ function PrintRes(
     core.info(`the ci benchmark set unknown threshold is ${unknownThreshold}`)
     core.info(`the ci benchmark output of unknown threshold is ${real_unknown}`)
     throw Error(
-      `[error] failed to pass unknown/total(minus skip) > threshold: ${real_unknown} > ${unknownThreshold}`
+      `failed to pass unknown/total(minus skip) > threshold: ${real_unknown} > ${unknownThreshold}`
     )
   } else
     core.info(
@@ -695,7 +691,7 @@ function PrintRes(
     core.info(`the ci benchmark set error threshold is ${errorThreshold}`)
     core.info(`the ci benchmark output of error threshold is ${realError}`)
     throw Error(
-      `[error] error/total(minus skip) > threshold: ${realError} > ${errorThreshold}`
+      `error/total(minus skip) > threshold: ${realError} > ${errorThreshold}`
     )
   } else
     core.info(
