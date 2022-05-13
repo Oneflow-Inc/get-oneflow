@@ -632,9 +632,7 @@ function PrintRes(
 
   for (let i = 0; i < realFunctionCount; i++) {
     core.info(
-      `[task] ${core.info(
-        JSON.stringify(JSON.parse(collectOutputJSONs[i]), null, 2)
-      )}`
+      `[task] ${JSON.stringify(JSON.parse(collectOutputJSONs[i]), null, 2)}`
     )
     switch (res[i].status) {
       case 'BEST_NOT_MATCH':
