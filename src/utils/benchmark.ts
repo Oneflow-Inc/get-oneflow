@@ -512,7 +512,8 @@ export async function benchmarkBatch(
   collectOutputJSONs: string[],
   containerName: string
 ): Promise<resJson[]> {
-  await exec.exec('nvidia-smi', [])
+  const nvidia_smi = await io.which('nvidia-smi')
+  await exec.exec(nvidia_smi, [])
   const res: resJson[] = []
   let total = 0
   let unknown = 0
