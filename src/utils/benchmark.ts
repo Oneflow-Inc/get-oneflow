@@ -229,9 +229,10 @@ const pytest = async (
   cachePath: string,
   histogramPrefix: string,
   args: string[]
-): Promise<number> =>
-  await exec.exec(
-    'docker',
+): Promise<number> => {
+  const docker = await io.which('docker', true)
+  return await exec.exec(
+    docker,
     [
       'exec',
       '-w',
@@ -261,6 +262,7 @@ const pytest = async (
       ignoreReturnCode: true
     }
   )
+}
 type RunResult = 'success' | 'skip' | 'fail'
 
 async function retryWhile(
@@ -510,7 +512,8 @@ export async function benchmarkBatch(
   collectOutputJSONs: string[],
   containerName: string
 ): Promise<resJson[]> {
-  await exec.exec('nvidia-smi', [])
+  const nvidia_smi = await io.which('nvidia-smi')
+  await exec.exec(nvidia_smi, [])
   const res: resJson[] = []
   let total = 0
   let unknown = 0
@@ -578,8 +581,9 @@ async function collectPytest(
   collectPath: string,
   containerName: string
 ): Promise<string[]> {
+  const docker = await io.which('docker', true)
   const output = await exec.getExecOutput(
-    'docker',
+    docker,
     [
       'exec',
       '-w',
