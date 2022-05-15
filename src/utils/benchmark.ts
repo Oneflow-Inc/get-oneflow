@@ -229,9 +229,10 @@ const pytest = async (
   cachePath: string,
   histogramPrefix: string,
   args: string[]
-): Promise<number> =>
-  await exec.exec(
-    'docker',
+): Promise<number> => {
+  const docker = await io.which('docker', true)
+  return await exec.exec(
+    docker,
     [
       'exec',
       '-w',
@@ -261,6 +262,7 @@ const pytest = async (
       ignoreReturnCode: true
     }
   )
+}
 type RunResult = 'success' | 'skip' | 'fail'
 
 async function retryWhile(
@@ -578,8 +580,9 @@ async function collectPytest(
   collectPath: string,
   containerName: string
 ): Promise<string[]> {
+  const docker = await io.which('docker', true)
   const output = await exec.getExecOutput(
-    'docker',
+    docker,
     [
       'exec',
       '-w',
