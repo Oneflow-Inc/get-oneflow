@@ -8,6 +8,7 @@ on:
     branches:
       - "auto-collect"
       - "parse-log"
+      - "collect-misaligned"
 concurrency:
   group: collect-${{ github.ref }}
   cancel-in-progress: true
