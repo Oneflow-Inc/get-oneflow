@@ -96,6 +96,9 @@ async function getTests(): Promise<EntryInclude[]> {
       for (const test of tests) {
         if (test === 'benchmark') {
           digestType = 'build'
+          if (device !== 'cuda') {
+            continue
+          }
         }
         const digest = await cache.getDigestByType(digestType)
         let entry = `${device}-${test}${isDistributed ? '-distributed' : ''}`
