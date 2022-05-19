@@ -89,7 +89,7 @@ export async function collectWorkflowRunStatus(): Promise<void> {
           })
           for await (const line of rl) {
             if (line.includes('misaligned address')) {
-              core.warning(`[misaligned] ${wr.html_url}`)
+              core.warning(`[misaligned][${file}] ${wr.html_url}`)
             }
             const isFailure =
               line.includes('FAILURE') ||
