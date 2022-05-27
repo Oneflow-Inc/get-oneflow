@@ -88,12 +88,12 @@ async function getTests(): Promise<EntryInclude[]> {
   const includes: EntryInclude[] = []
   const devices: Device[] = core.getMultilineInput('devices') as Device[]
   const tests: Test[] = core.getMultilineInput('tests') as Test[]
-  let digestType: cache.DigestType = 'test'
   const isDistributed = core.getBooleanInput('include-distributed')
   const worldSize = parseInt(core.getInput('world-size'))
   for (let rank = 0; rank < worldSize; rank++) {
     for (const device of devices) {
       for (const test of tests) {
+        let digestType: cache.DigestType = 'test'
         if (test === 'benchmark') {
           digestType = 'build'
           if (device !== 'cuda') {
