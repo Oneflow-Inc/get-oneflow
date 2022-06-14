@@ -216,7 +216,9 @@ export async function buildOneFlow(tag: string): Promise<void> {
   const mounts: MountSettings[] = []
   const buildDir = path.join(manylinuxCacheDir, `build`)
   const nightlyEnv = isNightly ? ['ONEFLOW_RELEASE_NIGHTLY=1'] : []
-  const runLit = core.getBooleanInput('run-lit') ? ['ONEFLOW_CI_BUILD_RUN_LIT=1'] : []
+  const runLit = core.getBooleanInput('run-lit')
+    ? ['ONEFLOW_CI_BUILD_RUN_LIT=1']
+    : []
   const createOptions: ContainerCreateOptions = {
     Cmd: ['sleep', '7200'],
     Image: tag,
