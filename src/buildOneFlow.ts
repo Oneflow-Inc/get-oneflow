@@ -143,6 +143,7 @@ type ComputePlatform =
   | 'cu113'
   | 'cu114'
   | 'cu115'
+  | 'cu116'
   | ''
 
 function getCUDAVersionByComputePlatform(
@@ -163,6 +164,8 @@ function getCUDAVersionByComputePlatform(
       return '11.4'
     case 'cu115':
       return '11.5'
+    case 'cu116':
+      return '11.6'
     default:
       throw new Error(`computePlatform not supported: ${computePlatform}`)
   }
