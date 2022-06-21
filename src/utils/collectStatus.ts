@@ -135,7 +135,7 @@ type RunInfo = {
 }
 
 export async function collectWorkflowRunTime(): Promise<void> {
-  const TOTAL_PAGE = 2
+  const TOTAL_PAGE = 1
   let commits: components['schemas']['commit'][] = []
   for (let page = 1; page <= TOTAL_PAGE; page++) {
     const commits_ = await octokit.request(
@@ -201,12 +201,28 @@ export async function collectWorkflowRunTime(): Promise<void> {
             if (cnt === 1) {
               core.info(`${JSON.stringify(check, null, 2)}`)
             }
-            if (check.started_at && check.completed_at) {
-              const started_at = Date.parse(check.started_at)
-              const completed_at = Date.parse(check.completed_at)
-              const duration = (completed_at - started_at) / 1000 / 60
-              if (duration > max_in_pr) {
-                max_in_pr = duration
+            const steps = (
+              await octokit.request(
+                'GET /repos/{owner}/{repo}/actions/jobs/{job_id}',
+                {
+                  owner,
+                  repo,
+                  job_id: check.id
+                }
+              )
+            ).data.steps
+            if (steps) {
+              for (const step of steps) {
+                if (step.name === 'Module API test') {
+                  if (step.started_at && step.completed_at) {
+                    const started_at = Date.parse(step.started_at)
+                    const completed_at = Date.parse(step.completed_at)
+                    const duration = (completed_at - started_at) / 1000 / 60
+                    if (duration > max_in_pr) {
+                      max_in_pr = duration
+                    }
+                  }
+                }
               }
             }
           }
