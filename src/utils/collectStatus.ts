@@ -92,7 +92,7 @@ export async function collectWorkflowRunStatus(): Promise<void> {
               line.includes('CPU_COMPUTE') &&
               line.includes('stream_index_generator')
             ) {
-              core.warning(`[misaligned][${file}] ${wr.html_url}`)
+              core.warning(`[CPU_COMPUTE][${file}] ${wr.html_url}`)
             }
             const isFailure =
               line.includes('FAILURE') ||
