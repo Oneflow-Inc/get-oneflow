@@ -88,7 +88,10 @@ export async function collectWorkflowRunStatus(): Promise<void> {
             crlfDelay: Infinity
           })
           for await (const line of rl) {
-            if (line.includes('misaligned address')) {
+            if (
+              line.includes('CPU_COMPUTE') &&
+              line.includes('stream_index_generator')
+            ) {
               core.warning(`[misaligned][${file}] ${wr.html_url}`)
             }
             const isFailure =
