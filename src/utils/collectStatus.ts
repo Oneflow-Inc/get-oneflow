@@ -88,10 +88,7 @@ export async function collectWorkflowRunStatus(): Promise<void> {
             crlfDelay: Infinity
           })
           for await (const line of rl) {
-            if (
-              line.includes('CPU_COMPUTE') &&
-              line.includes('stream_index_generator')
-            ) {
+            if (line.includes('CPU_COMPUTE')) {
               core.warning(`[CPU_COMPUTE][${file}] ${wr.html_url}`)
             }
             const isFailure =
