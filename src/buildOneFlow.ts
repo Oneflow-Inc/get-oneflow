@@ -89,12 +89,12 @@ async function buildWithConda(): Promise<void> {
   }
 }
 
-const ProductionCommit = '4fd9cc268bbe59c6245ca3941b8264fd256a8670'
+const ProductionCommit = '190c92408855fe17ae664f2de1a9d6f484b2da2b'
 const CUDA_116_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.6:4a90cc5d561a1f167b0ea87530b3c425fd1085af`
 const CUDA_115_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.5:6aa1da7b70bb3383cb0aa07c613e0bc783fc7418`
 const CUDA_114_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.4:${ProductionCommit}`
 const CUDA_113_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.3:${ProductionCommit}`
-const CUDA_112_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.2:6aa1da7b70bb3383cb0aa07c613e0bc783fc7418`
+const CUDA_112_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.2:${ProductionCommit}`
 const CUDA_110_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.0:78e5485bc983684cf6b1234d4d0175d361c8f66a`
 const CUDA_102_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda10.2:${ProductionCommit}`
 const CUDA_CPU_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cpu:${ProductionCommit}`
