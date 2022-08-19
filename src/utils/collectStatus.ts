@@ -88,8 +88,8 @@ export async function collectWorkflowRunStatus(): Promise<void> {
             crlfDelay: Infinity
           })
           for await (const line of rl) {
-            if (line.includes('Killed')) {
-              core.warning(`[Killed][${file}] ${wr.html_url}`)
+            if (line.includes('synced_launched_comm_net')) {
+              core.warning(`[synced_launched_comm_net][${file}] ${wr.html_url}`)
             }
             const isFailure =
               line.includes('FAILURE') ||
