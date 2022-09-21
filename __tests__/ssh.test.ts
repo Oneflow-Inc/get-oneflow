@@ -33,6 +33,7 @@ test(
     env.setInput('digest-cache-dir', '~/digest-cache'.replace('~', os.homedir))
     // TODO: start a python simple http server for testing and shut it down later
     env.setInput('ssh-tank-base-url', 'http://127.0.0.1:8000')
+    env.setInput('pr_sym_link', '666')
     env.setMultilineInput('cache-key-prefixes', [
       'pr/test-commit/test-build-type',
       'Digest/test-hash/test-build-type'
