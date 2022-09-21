@@ -16,8 +16,13 @@ function getPrEntryDir(
   sshTankPath: string,
   entry: string
 ): string | null {
-  if (isNaN(Number(prSymLink))) return null
+  if (prSymLink === '') return null
   return path.join(sshTankPath, 'oneflow', 'pr', prSymLink, entry)
+}
+
+async function echoAndRunCmd(cmd: string, ssh: NodeSSH): Promise<void> {
+  core.info(`[exec] ${cmd}`)
+  await ssh.execCommand(cmd)
 }
 
 export async function uploadByDigest(): Promise<void> {
@@ -27,7 +32,7 @@ export async function uploadByDigest(): Promise<void> {
   const dstDir = core.getInput('dst-dir', {required: true})
   const sshTankHost = core.getInput('ssh-tank-host', {required: true})
   const sshTankPath = core.getInput('ssh-tank-path', {required: true})
-  const prSymLink = core.getInput('pr_sym_link')
+  const prSymLink = core.getInput('pr-sym-link')
   const prEntryDir = getPrEntryDir(prSymLink, sshTankPath, entry)
   const ssh = new NodeSSH()
   try {
@@ -64,15 +69,12 @@ export async function uploadByDigest(): Promise<void> {
     }
     if (prEntryDir != null) {
       const mkPrEntryCommand = `mkdir -p ${prEntryDir}`
-      core.info(`[exec] ${mkPrEntryCommand}`)
-      await ssh.execCommand(mkPrEntryCommand)
+      await echoAndRunCmd(mkPrEntryCommand, ssh)
       const prDst = path.join(prEntryDir, dstDir)
       const rmPrDstCommand = `rf -f ${prDst}`
-      core.info(`[exec] ${rmPrDstCommand}`)
-      await ssh.execCommand(rmPrDstCommand)
+      await echoAndRunCmd(rmPrDstCommand, ssh)
       const lnCommand = `ln -s ${tankDst} ${rmPrDstCommand}`
-      core.info(`[exec] ${lnCommand}`)
-      await ssh.execCommand(lnCommand)
+      await echoAndRunCmd(lnCommand, ssh)
     }
   } finally {
     ssh.dispose()
