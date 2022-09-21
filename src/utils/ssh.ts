@@ -22,7 +22,10 @@ function getPrEntryDir(
 
 async function echoAndRunCmd(cmd: string, ssh: NodeSSH): Promise<void> {
   core.info(`[exec] ${cmd}`)
-  await ssh.execCommand(cmd)
+  const res = await ssh.execCommand(cmd)
+  core.info(`  - return code: ${res.code}`)
+  core.info(`  - stdout: ${res.stdout}`)
+  core.info(`  - stderr: ${res.stderr}`)
 }
 
 export async function uploadByDigest(): Promise<void> {
@@ -46,8 +49,7 @@ export async function uploadByDigest(): Promise<void> {
     const successful: string[] = []
     const tankDst = path.join(getEntryDir(sshTankPath, digest, entry), dstDir)
     const rmCommand = `rm -rf ${tankDst}`
-    core.info(`[cmd] ${rmCommand}`)
-    await ssh.execCommand(rmCommand)
+    await echoAndRunCmd(rmCommand, ssh)
     const isSuccessful = await ssh.putDirectory(srcDir, tankDst, {
       recursive: true,
       concurrency: 10,
