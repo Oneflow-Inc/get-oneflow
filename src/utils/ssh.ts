@@ -10,6 +10,17 @@ import * as exec from '@actions/exec'
 function getEntryDir(tankDir: string, digest: string, entry: string): string {
   return path.join(tankDir, 'digest', digest, entry)
 }
+
+function getPrDir(
+  prSymLink: string,
+  sshTankPath: string,
+  entry: string,
+  dstDir: string
+): string | null {
+  if (isNaN(Number(prSymLink))) return null
+  return path.join(sshTankPath, 'oneflow', 'pr', prSymLink, entry, dstDir)
+}
+
 export async function uploadByDigest(): Promise<void> {
   const digest = core.getInput('digest', {required: true})
   const entry = core.getInput('entry', {required: true})
@@ -17,6 +28,8 @@ export async function uploadByDigest(): Promise<void> {
   const dstDir = core.getInput('dst-dir', {required: true})
   const sshTankHost = core.getInput('ssh-tank-host', {required: true})
   const sshTankPath = core.getInput('ssh-tank-path', {required: true})
+  const prSymLink = core.getInput('pr_sym_link')
+  const prDir = getPrDir(prSymLink, sshTankPath, entry, dstDir)
   const ssh = new NodeSSH()
   try {
     await ssh.connect({
@@ -49,6 +62,11 @@ export async function uploadByDigest(): Promise<void> {
     if (!isSuccessful) {
       throw new Error(`failed to upload to: ${tankDst}`)
       // TODO: remove the directory
+    }
+    if (prDir != null) {
+      const lnCommand = `ln -s ${tankDst} ${prDir}`
+      core.info(`[exec] lnCommand`)
+      await ssh.execCommand(lnCommand)
     }
   } finally {
     ssh.dispose()
