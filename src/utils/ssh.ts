@@ -71,7 +71,7 @@ export async function uploadByDigest(): Promise<void> {
       core.info(`[exec] ${rmPrDstCommand}`)
       await ssh.execCommand(rmPrDstCommand)
       const lnCommand = `ln -s ${tankDst} ${rmPrDstCommand}`
-      core.info(`[exec] lnCommand`)
+      core.info(`[exec] ${lnCommand}`)
       await ssh.execCommand(lnCommand)
     }
   } finally {
