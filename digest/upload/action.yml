@@ -24,7 +24,7 @@ inputs:
     description: ''
     required: false
     default: '/tank'
-  pr_sym_link:
+  pr-sym-link:
     description: 'create symbol link after updload'
     required: false
 
