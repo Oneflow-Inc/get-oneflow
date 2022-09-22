@@ -6,18 +6,25 @@ import * as core from '@actions/core'
 import * as fs from 'fs'
 import Client from 'ssh2-sftp-client'
 import * as exec from '@actions/exec'
+import * as gh from '@actions/github'
 
 function getEntryDir(tankDir: string, digest: string, entry: string): string {
   return path.join(tankDir, 'digest', digest, entry)
 }
 
 function getPrEntryDir(
-  prSymLink: string,
+  prNumber: number,
   sshTankPath: string,
   entry: string
-): string | null {
-  if (prSymLink === '') return null
-  return path.join(sshTankPath, 'oneflow', 'pr', prSymLink, entry)
+): string {
+  return path.join(
+    sshTankPath,
+    'digest',
+    'oneflow',
+    'pr',
+    prNumber.toString(),
+    entry
+  )
 }
 
 async function echoAndRunCmd(cmd: string, ssh: NodeSSH): Promise<void> {
@@ -28,15 +35,17 @@ async function echoAndRunCmd(cmd: string, ssh: NodeSSH): Promise<void> {
   core.info(`  - stderr: ${res.stderr}`)
 }
 
-export async function uploadByDigest(): Promise<void> {
+export async function uploadByDigest(
+  prNumber: number = gh.context.issue.number
+): Promise<void> {
   const digest = core.getInput('digest', {required: true})
   const entry = core.getInput('entry', {required: true})
   const srcDir = util.getPathInput('src-dir')
   const dstDir = core.getInput('dst-dir', {required: true})
   const sshTankHost = core.getInput('ssh-tank-host', {required: true})
   const sshTankPath = core.getInput('ssh-tank-path', {required: true})
-  const prSymLink = core.getInput('pr-sym-link')
-  const prEntryDir = getPrEntryDir(prSymLink, sshTankPath, entry)
+  const prSymLink = core.getInput('pr-sym-link', {required: true})
+  const prEntryDir = getPrEntryDir(prNumber, sshTankPath, entry)
   const ssh = new NodeSSH()
   try {
     await ssh.connect({
@@ -69,7 +78,7 @@ export async function uploadByDigest(): Promise<void> {
       throw new Error(`failed to upload to: ${tankDst}`)
       // TODO: remove the directory
     }
-    if (prEntryDir != null) {
+    if (prSymLink === 'true') {
       const mkPrEntryCommand = `mkdir -p ${prEntryDir}`
       await echoAndRunCmd(mkPrEntryCommand, ssh)
       const prDst = path.join(prEntryDir, dstDir)

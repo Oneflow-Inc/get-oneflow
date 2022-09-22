@@ -43,7 +43,7 @@ test(
     env.setInput('digest-cache-dir', '~/digest-cache'.replace('~', os.homedir))
     // TODO: start a python simple http server for testing and shut it down later
     env.setInput('ssh-tank-base-url', 'http://127.0.0.1:8000')
-    env.setInput('pr-sym-link', prNumber)
+    env.setInput('pr-sym-link', 'true')
     env.setMultilineInput('cache-key-prefixes', [
       'pr/test-commit/test-build-type',
       'Digest/test-hash/test-build-type'
@@ -53,9 +53,9 @@ test(
     // test with occupied directory
     const prDir = path.join(tankPath, 'oneflow', 'pr', prNumber, entry, dstDir)
     mkdirSync(prDir, {recursive: true})
-    await ssh.uploadByDigest()
+    await ssh.uploadByDigest(666)
     // test with dirty directory
-    await ssh.uploadByDigest()
+    await ssh.uploadByDigest(666)
     await ssh.downloadByDigest()
   },
   MINUTES15

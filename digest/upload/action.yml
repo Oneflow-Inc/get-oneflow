@@ -27,6 +27,7 @@ inputs:
   pr-sym-link:
     description: 'create symbol link after updload'
     required: false
+    default: 'false'
 
 runs:
   using: 'node12'
