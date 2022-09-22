@@ -4,7 +4,7 @@ import os from 'os'
 import * as env from '../src/utils/env'
 import * as ssh from '../src/utils/ssh'
 import {isOnPremise} from '../src/utils/util'
-import { fstat, mkdir, mkdirSync } from 'fs'
+import {fstat, mkdir, mkdirSync} from 'fs'
 import path from 'path'
 
 process.env['RUNNER_TOOL_CACHE'] = '~/runner_tool_cache'.replace(
@@ -49,7 +49,7 @@ test(
 
     // test with occupied directory
     const prDir = path.join(tankPath, 'oneflow', 'pr', prNumber, entry, dstDir)
-    mkdirSync(prDir, {recursive : true})
+    mkdirSync(prDir, {recursive: true})
     await ssh.uploadByDigest()
     // test with dirty directory
     await ssh.uploadByDigest()
