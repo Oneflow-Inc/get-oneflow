@@ -73,10 +73,12 @@ export async function uploadByDigest(): Promise<void> {
       const mkPrEntryCommand = `mkdir -p ${prEntryDir}`
       await echoAndRunCmd(mkPrEntryCommand, ssh)
       const prDst = path.join(prEntryDir, dstDir)
-      const rmPrDstCommand = `rf -f ${prDst}`
+      const rmPrDstCommand = `rm -f ${prDst}`
       await echoAndRunCmd(rmPrDstCommand, ssh)
       const lnCommand = `ln -s ${tankDst} ${prDst}`
       await echoAndRunCmd(lnCommand, ssh)
+      const lsCommand = `ls ${prDst}`
+      await echoAndRunCmd(lsCommand, ssh)
     }
   } finally {
     ssh.dispose()
