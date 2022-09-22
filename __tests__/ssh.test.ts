@@ -14,6 +14,9 @@ process.env['RUNNER_TOOL_CACHE'] = '~/runner_tool_cache'.replace(
 process.env['RUNNER_TEMP'] = '~/runner_temp'.replace('~', os.homedir)
 const MINUTES15 = 1000 * 60 * 15
 
+// to test this script, you need:
+//  - run `ssh localhost` successfully
+//  - run `python3 -mhttp.server 8000` in ~/tank before test
 test(
   'ssh tank',
   async () => {
