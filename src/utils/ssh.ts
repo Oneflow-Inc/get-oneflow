@@ -81,12 +81,12 @@ export async function uploadByDigest(
     if (prSymLink === 'true') {
       const mkPrEntryCommand = `mkdir -p ${prEntryDir}`
       await echoAndRunCmd(mkPrEntryCommand, ssh)
-      const prDst = path.join(prEntryDir, dstDir)
+      const prDst = path.join(prEntryDir, 'oneflow.whl')
       const rmPrDstCommand = `rm -f ${prDst}`
       await echoAndRunCmd(rmPrDstCommand, ssh)
-      const lnCommand = `ln -s ${tankDst} ${prDst}`
+      const lnCommand = `ln -s ${tankDst}/*.whl ${prDst}`
       await echoAndRunCmd(lnCommand, ssh)
-      const lsCommand = `ls ${prDst}`
+      const lsCommand = `ls ${prEntryDir}`
       await echoAndRunCmd(lsCommand, ssh)
     }
   } finally {
