@@ -90,6 +90,7 @@ async function buildWithConda(): Promise<void> {
 }
 
 const ProductionCommit = '190c92408855fe17ae664f2de1a9d6f484b2da2b'
+const CUDA_118_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.8:bf3c074be80c0b03c0cc90c0c23a955d5fd2e894`
 const CUDA_116_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.6:4a90cc5d561a1f167b0ea87530b3c425fd1085af`
 const CUDA_115_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.5:6aa1da7b70bb3383cb0aa07c613e0bc783fc7418`
 const CUDA_114_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.4:${ProductionCommit}`
@@ -107,6 +108,7 @@ type CudaVersion =
   | '11.4'
   | '11.5'
   | '11.6'
+  | '11.8'
   | 'none'
   | ''
 
@@ -130,6 +132,8 @@ function getCUDAImageByVersion(cudaVersion: CudaVersion): string {
       return CUDA_115_IMG_TAG
     case '11.6':
       return CUDA_116_IMG_TAG
+    case '11.8':
+      return CUDA_118_IMG_TAG
     default:
       throw new Error(`cudaVersion not supported: ${cudaVersion}`)
   }
@@ -144,6 +148,7 @@ type ComputePlatform =
   | 'cu114'
   | 'cu115'
   | 'cu116'
+  | 'cu118'
   | ''
 
 function getCUDAVersionByComputePlatform(
@@ -166,6 +171,8 @@ function getCUDAVersionByComputePlatform(
       return '11.5'
     case 'cu116':
       return '11.6'
+    case 'cu118':
+      return '11.8'
     default:
       throw new Error(`computePlatform not supported: ${computePlatform}`)
   }
