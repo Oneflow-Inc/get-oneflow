@@ -197,6 +197,7 @@ export function getPatterns(
     'oneflow/ir/**/*.h',
     'oneflow/ir/**/*.cpp',
     'oneflow/ir/**/*.td',
+    'oneflow/ir/**/*.pdll',
     'oneflow/core/**/*.h',
     'oneflow/core/**/*.hpp',
     'oneflow/core/**/*.cpp',
