@@ -10,8 +10,8 @@ import {ensureConda} from './utils/conda'
 import {BuildEnv, buildOneFlow} from './utils/docker'
 import {getParallel, isSelfHosted} from './utils/util'
 
-const LLVM13DevContainerTag =
-  'registry.cn-beijing.aliyuncs.com/oneflow/llvm13_cuda10.1:6df2a5216c9bd6312cd08bc5e29a233b09c0d78a'
+const LLVM15DevContainerTag =
+  'registry.cn-beijing.aliyuncs.com/oneflow/llvm15_cuda11.2:deab2a2cfcad44955e50b1e2ec2d1e3e1b71c4b9'
 const openVINOContainerTag =
   'registry.cn-beijing.aliyuncs.com/oneflow/openvino_ubuntu20_dev_no_samples_2021.4.2:9997f67975c7f8780f09ef2222da8f2546c12f46'
 async function condaRun(
@@ -209,7 +209,7 @@ export async function buildWithCondaOrManyLinux(): Promise<void> {
       break
     case 'llvm':
       if (isSelfHosted()) {
-        const tag = LLVM13DevContainerTag
+        const tag = LLVM15DevContainerTag
         await exec.exec('docker', ['pull', tag])
         await buildOneFlow(tag)
       } else {
