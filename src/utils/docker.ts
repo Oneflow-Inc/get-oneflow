@@ -165,12 +165,33 @@ async function buildAndMakeWheel(
   }
   // TODO: copy from dist
   let postProcessCmds = [runCPack(container, buildDir)]
+  const nvLibs: string[] = [
+    'libcudnn_cnn_infer.so.8',
+    'libcudnn_cnn_train.so.8',
+    'libcudnn_ops_infer.so.8',
+    'libcudnn_ops_train.so.8',
+    'libcublas.so.11',
+    'libcublasLt.so.11'
+  ]
+  const nvLibsExcludes = Array.prototype.concat.apply(
+    [],
+    nvLibs.map((nvLib: string) => ['--exclude', nvLib])
+  )
   if (shouldAuditWheel) {
     postProcessCmds = postProcessCmds.concat(
       whlFiles.map(async (whl: string) =>
         runExec(
           container,
-          ['auditwheel', 'repair', whl, '--wheel-dir', wheelhouseDir],
+          [
+            getPythonExe(pythonVersions[0]),
+            '-m',
+            'auditwheel',
+            '--verbose',
+            'repair',
+            whl,
+            '--wheel-dir',
+            wheelhouseDir
+          ].concat(nvLibsExcludes),
           {cwd: distDir}
         )
       )

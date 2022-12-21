@@ -73,7 +73,7 @@ test(
   async () => {
     const sourceDir = process.env.ONEFLOW_SRC || '~/oneflow'
     env.setInput('oneflow-src', sourceDir)
-    env.setMultilineInput('entries', ['cpu', 'cuda', 'cuda-xla'])
+    env.setMultilineInput('entries', ['cpu', 'cuda'])
     env.setBooleanInput('delete-cache', true)
     env.setMultilineInput('runner-labels', [
       'self-hosted',
