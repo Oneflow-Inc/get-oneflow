@@ -45,6 +45,9 @@ export async function runExec(
     WorkingDir: options?.cwd,
     Env: options?.env
   })
+  if (options?.env) {
+    core.info(options?.env.join(' '))
+  }
   core.info(cmd.join(' '))
   const stream = await exec_.start({Tty: false, Detach: false})
   await container.modem.demuxStream(stream, process.stdout, process.stderr)
