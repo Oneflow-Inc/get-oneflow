@@ -185,9 +185,16 @@ async function buildAndMakeWheel(
       whlFiles.map(async (whl: string) =>
         runExec(
           container,
-          ['auditwheel', 'repair', whl, '--wheel-dir', wheelhouseDir].concat(
-            nvLibsExcludes
-          ),
+          [
+            getPythonExe(pythonVersions[0]),
+            '-m',
+            'auditwheel',
+            '--verbose',
+            'repair',
+            whl,
+            '--wheel-dir',
+            wheelhouseDir
+          ].concat(nvLibsExcludes),
           {cwd: distDir}
         )
       )
