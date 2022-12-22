@@ -117,6 +117,7 @@ async function buildAndMakeWheel(
   opts: BuildAndMakeWheelOptions
 ): Promise<void> {
   const shouldSymbolicLinkLld = core.getBooleanInput('docker-run-use-lld')
+  const useNVWheels = core.getBooleanInput('use-nvidia-wheels')
   if (shouldSymbolicLinkLld) {
     core.warning('docker-run-use-lld not supported for now')
   }
@@ -168,14 +169,17 @@ async function buildAndMakeWheel(
   }
   // TODO: copy from dist
   let postProcessCmds = [runCPack(container, buildDir)]
-  const nvLibs: string[] = [
-    'libcudnn_cnn_infer.so.8',
-    'libcudnn_cnn_train.so.8',
-    'libcudnn_ops_infer.so.8',
-    'libcudnn_ops_train.so.8',
-    'libcublas.so.11',
-    'libcublasLt.so.11'
-  ]
+  let nvLibs: string[] = []
+  if (useNVWheels) {
+    nvLibs = [
+      'libcudnn_cnn_infer.so.8',
+      'libcudnn_cnn_train.so.8',
+      'libcudnn_ops_infer.so.8',
+      'libcudnn_ops_train.so.8',
+      'libcublas.so.11',
+      'libcublasLt.so.11'
+    ]
+  }
   const nvLibsExcludes = Array.prototype.concat.apply(
     [],
     nvLibs.map((nvLib: string) => ['--exclude', nvLib])
