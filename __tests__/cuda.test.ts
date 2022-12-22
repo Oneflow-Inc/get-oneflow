@@ -41,7 +41,8 @@ test(
     env.setInput('cmake-init-cache', path.join(sourceDir, CUDAReleaseInitCache))
     env.setInput('oneflow-build-env', 'manylinux')
     env.setBooleanInput('run-lit', false)
-    const cudaVersion = '11.6'
+    env.setBooleanInput('use-nvidia-wheels', true)
+    const cudaVersion = '11.7'
     env.setInput(
       'manylinux-cache-dir',
       '~/manylinux-cache-dirs/unittest-'.concat(cudaVersion)
