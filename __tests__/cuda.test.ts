@@ -40,7 +40,9 @@ test(
     env.setBooleanInput('docker-run-use-system-http-proxy', false)
     env.setInput('cmake-init-cache', path.join(sourceDir, CUDAReleaseInitCache))
     env.setInput('oneflow-build-env', 'manylinux')
-    const cudaVersion = '11.2'
+    env.setBooleanInput('run-lit', false)
+    env.setBooleanInput('use-nvidia-wheels', true)
+    const cudaVersion = '11.7'
     env.setInput(
       'manylinux-cache-dir',
       '~/manylinux-cache-dirs/unittest-'.concat(cudaVersion)
@@ -58,7 +60,7 @@ test(
 
     env.setInput('oneflow-src', sourceDir)
     env.setInput('cuda-version', cudaVersion)
-    env.setMultilineInput('python-versions', ['3.7'])
+    env.setMultilineInput('python-versions', ['3.8'])
     env.setBooleanInput('wheel-audit', true)
     env.setInput('self-hosted', 'true')
     env.setBooleanInput('docker-run-use-lld', false)

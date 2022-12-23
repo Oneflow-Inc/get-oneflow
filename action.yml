@@ -102,6 +102,10 @@ inputs:
     description: 'build ninja c1'
     required: false
     default: "false"
+  use-nvidia-wheels:
+    description: 'use nvidia for wheels cudnn, cublas'
+    required: false
+    default: "true"
 
 outputs:
   pip-index-url:
