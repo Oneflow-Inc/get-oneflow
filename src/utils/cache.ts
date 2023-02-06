@@ -215,7 +215,8 @@ export function getPatterns(
     'ci/**/*.sh',
     'ci/**/*.txt',
     'ci/**/*.py',
-    'CMakeLists.txt'
+    'CMakeLists.txt',
+    '.github/workflows/test.yml'
   ]
 
   let excludePatterns = [
