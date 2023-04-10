@@ -100,6 +100,7 @@ const CUDA_112_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014
 const CUDA_110_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.0:${ProductionCommit}`
 const CUDA_102_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda10.2:${ProductionCommit}`
 const CUDA_CPU_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cpu:${ProductionCommit}`
+const CUDA_MLU_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/cambricon-cnrt4.20-devel-centos`
 
 type CudaVersion =
   | '10.2'
@@ -144,6 +145,7 @@ function getCUDAImageByVersion(cudaVersion: CudaVersion): string {
 }
 type ComputePlatform =
   | 'cpu'
+  | 'mlu'
   | 'cu101'
   | 'cu102'
   | 'cu110'
@@ -161,6 +163,8 @@ function getCUDAVersionByComputePlatform(
 ): CudaVersion {
   switch (computePlatform) {
     case 'cpu':
+      return 'none'
+    case 'mlu':
       return 'none'
     case 'cu102':
       return '10.2'
@@ -207,7 +211,12 @@ export async function buildWithCondaOrManyLinux(): Promise<void> {
       break
     case 'manylinux':
       if (isSelfHosted()) {
-        const tag = getCUDAImageByVersion(cudaVersion)
+        let tag = ''
+        if (computePlatform === 'mlu') {
+          tag = CUDA_MLU_IMG_TAG
+        } else {
+          tag = getCUDAImageByVersion(cudaVersion)
+        }
         await exec.exec('docker', ['pull', tag])
         await buildOneFlow(tag)
       } else {
