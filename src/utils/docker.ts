@@ -184,6 +184,17 @@ async function buildAndMakeWheel(
     [],
     nvLibs.map((nvLib: string) => ['--exclude', nvLib])
   )
+  const mluLibs: string[] = [
+    'libcncl.so.1',
+    'libcndev.so',
+    'libcndrv.so',
+    'libcnnl.so.1',
+    'libcnrt.so'
+  ]
+  const mluLibsExcludes = Array.prototype.concat.apply(
+    [],
+    mluLibs.map((nvLib: string) => ['--exclude', nvLib])
+  )
   if (shouldAuditWheel) {
     postProcessCmds = postProcessCmds.concat(
       whlFiles.map(async (whl: string) =>
@@ -198,7 +209,9 @@ async function buildAndMakeWheel(
             whl,
             '--wheel-dir',
             wheelhouseDir
-          ].concat(nvLibsExcludes),
+          ]
+            .concat(nvLibsExcludes)
+            .concat(mluLibsExcludes),
           {cwd: distDir}
         )
       )
