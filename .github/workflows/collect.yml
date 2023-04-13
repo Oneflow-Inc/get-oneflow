@@ -9,6 +9,7 @@ on:
       - "auto-collect"
       - "parse-log"
       - "collect-misaligned"
+      - "collect_malloc_consolidate"
 concurrency:
   group: collect-${{ github.ref }}
   cancel-in-progress: true

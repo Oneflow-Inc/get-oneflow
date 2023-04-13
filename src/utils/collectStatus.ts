@@ -88,8 +88,11 @@ export async function collectWorkflowRunStatus(): Promise<void> {
             crlfDelay: Infinity
           })
           for await (const line of rl) {
-            if (line.includes('misaligned address')) {
-              core.warning(`[misaligned][${file}] ${wr.html_url}`)
+            if (
+              line.includes('malloc_consolidate') ||
+              line.includes('prev_size')
+            ) {
+              core.warning(`[invalid chunk size][${file}] ${wr.html_url}`)
             }
             const isFailure =
               line.includes('FAILURE') ||
