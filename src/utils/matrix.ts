@@ -2,7 +2,7 @@ import * as core from '@actions/core'
 import {ok} from 'assert'
 import * as cache from './cache'
 
-type Device = 'cuda' | 'cpu' | 'cuda-xla' | 'cpu-xla'
+type Device = 'cuda' | 'cpu'
 type Test =
   | 'legacy-benchmark'
   | 'legacy-op'
@@ -26,29 +26,30 @@ interface EntryInclude {
   'digest-type': cache.DigestType
   rank: number
 }
-export function isXla(device: Device): Boolean {
-  return device === 'cuda-xla' || device === 'cpu-xla'
-}
 
 type RunnerLabel = 'cpu' | 'gpu' | 'provision' | 'speed-test' | 'cluster-1'
 
-function getRunsOn(test: Test, deviceLabel: RunnerLabel): string[] {
+function getRunsOn(test: Test, deviceLabel: Device): string[] {
   // TODO: throttle on runnerLabels
-  let runnerLabels: RunnerLabel[] = core.getMultilineInput('runner-labels', {
+  const runnerLabels: string[] = core.getMultilineInput('runner-labels', {
     required: true
   }) as RunnerLabel[]
-  if (runnerLabels.includes('provision')) {
-    return runnerLabels
+  let suffix = 'a'
+  switch (test) {
+    case 'module':
+      suffix = 'a'
+      break
+    case 'misc':
+      suffix = 'b'
+      break
+    case 'speed-test':
+      suffix = 'c'
+      break
+    default:
+      suffix = 'a'
+      break
   }
-  const isSpeedTest = test === 'speed-test' || test === 'benchmark'
-  if (isSpeedTest) {
-    runnerLabels = runnerLabels.concat(['speed-test'])
-  } else if (deviceLabel !== 'cpu') {
-    // by using different runner labels for speed test and non speed test, we can have more parallel runs.
-    // cpu runners should not be enabled on speed test machines for accurate performance metrics.
-    runnerLabels = runnerLabels.concat(['cluster-1'])
-  }
-  return runnerLabels.concat([deviceLabel])
+  return runnerLabels.concat([`${deviceLabel}-${suffix}`])
 }
 
 export type ComputePlatform = 'cpu' | 'cu116' | 'cu110_xla' | 'cu101_xla'
@@ -58,22 +59,6 @@ function getComputePlatform(device: Device): ComputePlatform {
       return 'cpu'
     case 'cuda':
       return 'cu116'
-    case 'cuda-xla':
-      return 'cu101_xla'
-
-    default:
-      throw new Error(device)
-  }
-}
-
-function getRunnerLabel(device: Device): RunnerLabel {
-  switch (device) {
-    case 'cpu':
-      return 'cpu'
-    case 'cuda':
-      return 'gpu'
-    case 'cuda-xla':
-      return 'gpu'
 
     default:
       throw new Error(device)
@@ -115,9 +100,7 @@ async function getTests(): Promise<EntryInclude[]> {
           'is-single-client': false,
           'compute-platform': getComputePlatform(device),
           'cache-hit': cacheHit,
-          'runs-on': cacheHit
-            ? 'ubuntu-latest'
-            : getRunsOn(test, getRunnerLabel(device)),
+          'runs-on': cacheHit ? 'ubuntu-latest' : getRunsOn(test, device),
           'is-distributed': isDistributed,
           'test-type': test,
           'is-xla': false,
