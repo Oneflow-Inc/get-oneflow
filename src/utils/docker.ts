@@ -248,7 +248,7 @@ export async function buildOneFlow(tag: string): Promise<void> {
   const buildDir = path.join(manylinuxCacheDir, `build`)
   let nightlyEnv: ConcatArray<string> = []
   if (isNightly && !!nightlyDate && nightlyDate.length > 0) {
-    nightlyEnv = ['ONEFLOW_NIGHTLY_DATE=${nightlyDate}']
+    nightlyEnv = [`ONEFLOW_NIGHTLY_DATE=${nightlyDate}`]
   }
   const runLit = core.getBooleanInput('run-lit')
     ? ['ONEFLOW_CI_BUILD_RUN_LIT=1']
