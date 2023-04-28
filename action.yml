@@ -1,115 +1,119 @@
-name: 'Build/Get OneFlow'
-description: ''
+name: "Build/Get OneFlow"
+description: ""
 inputs:
   action-type:
-    description: ''
+    description: ""
     required: false
-    default: 'build-oneflow'
+    default: "build-oneflow"
   # OneFlow args
   oneflow-build-env:
-    description: 'environment to build OneFlow: conda, manylinux, llvm'
+    description: "environment to build OneFlow: conda, manylinux, llvm"
     required: true
   oneflow-src:
-    description: 'path to OneFlow source code'
+    description: "path to OneFlow source code"
     required: true
   oneflow-build-key:
-    description: 'the key to check if two builds are equivalent to each other, usually is hash value of non-test cpp and python files'
+    description: "the key to check if two builds are equivalent to each other, usually is hash value of non-test cpp and python files"
     required: true
-    default: 'none'
+    default: "none"
   # TODO: make it optional, build-script can include a cmake-init-cache there is no reuse needed
   # CMake args
   cmake-init-cache:
-    description: 'path to CMake initial cache file to build OneFlow'
+    description: "path to CMake initial cache file to build OneFlow"
     required: true
   # Cuda args
   cuda-version:
-    description: 'default is none, format: 10.2, 11.2'
+    description: "default is none, format: 10.2, 11.2"
     required: false
   compute-platform:
-    description: 'default is none, format: cpu, cu112, cu102'
+    description: "default is none, format: cpu, cu112, cu102"
     required: false
   # Conda args
   conda-env-file:
-    description: 'can be a url or a path'
+    description: "can be a url or a path"
     required: false
   conda-env-name:
-    description: ''
+    description: ""
     required: false
   conda-prefix:
     description: "Miniconda prefix, if it fails to run 'conda --version', will install one there"
     required: false
   conda-installer-url:
-    description: 'If conda not installed, use this url to download installer'
+    description: "If conda not installed, use this url to download installer"
     required: false
-    default: 'https://repo.anaconda.com/miniconda/Miniconda3-py39_4.10.3-Linux-x86_64.sh'
+    default: "https://repo.anaconda.com/miniconda/Miniconda3-py39_4.10.3-Linux-x86_64.sh"
   manylinux-cache-dir:
-    description: 'path to store cache produced by manylinux build, cmake build dir, .ccache dir, python .local'
+    description: "path to store cache produced by manylinux build, cmake build dir, .ccache dir, python .local"
     required: true
   # Other args
   force-rebuild:
-    description: 'rebuild even package with same key found'
+    description: "rebuild even package with same key found"
     required: false
     default: "false"
   dry-run:
-    description: ''
+    description: ""
     required: false
     default: "false"
   self-hosted:
-    description: ''
+    description: ""
     required: false
     default: "false"
   python-versions:
-    description: ''
+    description: ""
     required: true
   wheelhouse-dir:
-    description: 'where to put the produced .whl files'
+    description: "where to put the produced .whl files"
     required: false
   clear-wheelhouse-dir:
-    description: 'clear wheelhouse-dir'
+    description: "clear wheelhouse-dir"
     required: false
     default: "false" # boolean identification
   wheel-audit:
-    description: 'clear wheelhouse-dir'
+    description: "clear wheelhouse-dir"
     required: false
     default: "true"
   build-script:
-    description: 'a bash script to build oneflow'
+    description: "a bash script to build oneflow"
     required: true
   retry-failed-build:
-    description: 'Retry a failed build oneflow or not'
+    description: "Retry a failed build oneflow or not"
     required: false
     default: "false"
   clean-ccache:
-    description: ''
+    description: ""
     required: false
     default: "false"
   docker-run-use-system-http-proxy:
-    description: ''
+    description: ""
     required: false
     default: "false"
   docker-run-use-lld:
-    description: ''
+    description: ""
     required: false
     default: "false"
   parallel:
-    description: 'make/ninja -j {parallel}, default will be $(nproc)'
+    description: "make/ninja -j {parallel}, default will be $(nproc)"
     required: false
   nightly:
-    description: 'is nightly build'
+    description: "is nightly build"
     required: false
     default: "false"
+  nightly-date:
+    description: "nightly date"
+    required: false
+    default: ""
   run-lit:
-    description: 'build ninja c1'
+    description: "build ninja c1"
     required: false
     default: "false"
   use-nvidia-wheels:
-    description: 'use nvidia for wheels cudnn, cublas'
+    description: "use nvidia for wheels cudnn, cublas"
     required: false
     default: "true"
 
 outputs:
   pip-index-url:
-    description: 'pip index url could be use to install oneflow'
+    description: "pip index url could be use to install oneflow"
 runs:
-  using: 'node12'
-  main: 'dist/index.js'
+  using: "node12"
+  main: "dist/index.js"
