@@ -45,6 +45,9 @@ export async function runExec(
     WorkingDir: options?.cwd,
     Env: options?.env
   })
+  if (options?.env) {
+    core.info(options?.env.join(' '))
+  }
   core.info(cmd.join(' '))
   const stream = await exec_.start({Tty: false, Detach: false})
   await container.modem.demuxStream(stream, process.stdout, process.stderr)
@@ -114,6 +117,7 @@ async function buildAndMakeWheel(
   opts: BuildAndMakeWheelOptions
 ): Promise<void> {
   const shouldSymbolicLinkLld = core.getBooleanInput('docker-run-use-lld')
+  const useNVWheels = core.getBooleanInput('use-nvidia-wheels')
   if (shouldSymbolicLinkLld) {
     core.warning('docker-run-use-lld not supported for now')
   }
@@ -165,12 +169,36 @@ async function buildAndMakeWheel(
   }
   // TODO: copy from dist
   let postProcessCmds = [runCPack(container, buildDir)]
+  let nvLibs: string[] = []
+  if (useNVWheels) {
+    nvLibs = [
+      'libcudnn_cnn_infer.so.8',
+      'libcudnn_cnn_train.so.8',
+      'libcudnn_ops_infer.so.8',
+      'libcudnn_ops_train.so.8',
+      'libcublas.so.11',
+      'libcublasLt.so.11'
+    ]
+  }
+  const nvLibsExcludes = Array.prototype.concat.apply(
+    [],
+    nvLibs.map((nvLib: string) => ['--exclude', nvLib])
+  )
   if (shouldAuditWheel) {
     postProcessCmds = postProcessCmds.concat(
       whlFiles.map(async (whl: string) =>
         runExec(
           container,
-          ['auditwheel', 'repair', whl, '--wheel-dir', wheelhouseDir],
+          [
+            getPythonExe(pythonVersions[0]),
+            '-m',
+            'auditwheel',
+            '--verbose',
+            'repair',
+            whl,
+            '--wheel-dir',
+            wheelhouseDir
+          ].concat(nvLibsExcludes),
           {cwd: distDir}
         )
       )
@@ -192,6 +220,9 @@ async function runCPack(
 export async function buildOneFlow(tag: string): Promise<void> {
   const oneflowSrc: string = getPathInput('oneflow-src', {required: true})
   const isNightly = core.getBooleanInput('nightly', {required: false})
+  const nightlyDate = core.getInput('nightly-date', {
+    required: false
+  })
   const wheelhouseDir: string = getPathInput('wheelhouse-dir', {required: true})
   const docker = new Docker({socketPath: '/var/run/docker.sock'})
   const containerName = 'oneflow-manylinux-'.concat(os.userInfo().username)
@@ -215,7 +246,10 @@ export async function buildOneFlow(tag: string): Promise<void> {
   }
   const mounts: MountSettings[] = []
   const buildDir = path.join(manylinuxCacheDir, `build`)
-  const nightlyEnv = isNightly ? ['ONEFLOW_RELEASE_NIGHTLY=1'] : []
+  let nightlyEnv: ConcatArray<string> = []
+  if (isNightly && !!nightlyDate && nightlyDate.length > 0) {
+    nightlyEnv = [`ONEFLOW_NIGHTLY_DATE=${nightlyDate}`]
+  }
   const runLit = core.getBooleanInput('run-lit')
     ? ['ONEFLOW_CI_BUILD_RUN_LIT=1']
     : []

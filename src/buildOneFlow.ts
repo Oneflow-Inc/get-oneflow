@@ -10,8 +10,8 @@ import {ensureConda} from './utils/conda'
 import {BuildEnv, buildOneFlow} from './utils/docker'
 import {getParallel, isSelfHosted} from './utils/util'
 
-const LLVM13DevContainerTag =
-  'registry.cn-beijing.aliyuncs.com/oneflow/llvm13_cuda10.1:6df2a5216c9bd6312cd08bc5e29a233b09c0d78a'
+const LLVM15DevContainerTag =
+  'registry.cn-beijing.aliyuncs.com/oneflow/llvm15_cuda11.2:deab2a2cfcad44955e50b1e2ec2d1e3e1b71c4b9'
 const openVINOContainerTag =
   'registry.cn-beijing.aliyuncs.com/oneflow/openvino_ubuntu20_dev_no_samples_2021.4.2:9997f67975c7f8780f09ef2222da8f2546c12f46'
 async function condaRun(
@@ -89,13 +89,15 @@ async function buildWithConda(): Promise<void> {
   }
 }
 
-const ProductionCommit = '4fd9cc268bbe59c6245ca3941b8264fd256a8670'
-const CUDA_116_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.6:4a90cc5d561a1f167b0ea87530b3c425fd1085af`
-const CUDA_115_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.5:6aa1da7b70bb3383cb0aa07c613e0bc783fc7418`
+const ProductionCommit = '60785746d8a0c1c3b16e094ad653d1a18c519c7f'
+const CUDA_118_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.8:${ProductionCommit}`
+const CUDA_116_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.6:${ProductionCommit}`
+const CUDA_117_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.7:${ProductionCommit}`
+const CUDA_115_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.5:${ProductionCommit}`
 const CUDA_114_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.4:${ProductionCommit}`
 const CUDA_113_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.3:${ProductionCommit}`
-const CUDA_112_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.2:6aa1da7b70bb3383cb0aa07c613e0bc783fc7418`
-const CUDA_110_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.0:78e5485bc983684cf6b1234d4d0175d361c8f66a`
+const CUDA_112_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.2:${ProductionCommit}`
+const CUDA_110_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.0:${ProductionCommit}`
 const CUDA_102_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda10.2:${ProductionCommit}`
 const CUDA_CPU_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cpu:${ProductionCommit}`
 
@@ -107,6 +109,8 @@ type CudaVersion =
   | '11.4'
   | '11.5'
   | '11.6'
+  | '11.7'
+  | '11.8'
   | 'none'
   | ''
 
@@ -130,6 +134,10 @@ function getCUDAImageByVersion(cudaVersion: CudaVersion): string {
       return CUDA_115_IMG_TAG
     case '11.6':
       return CUDA_116_IMG_TAG
+    case '11.7':
+      return CUDA_117_IMG_TAG
+    case '11.8':
+      return CUDA_118_IMG_TAG
     default:
       throw new Error(`cudaVersion not supported: ${cudaVersion}`)
   }
@@ -144,6 +152,8 @@ type ComputePlatform =
   | 'cu114'
   | 'cu115'
   | 'cu116'
+  | 'cu117'
+  | 'cu118'
   | ''
 
 function getCUDAVersionByComputePlatform(
@@ -166,6 +176,10 @@ function getCUDAVersionByComputePlatform(
       return '11.5'
     case 'cu116':
       return '11.6'
+    case 'cu117':
+      return '11.7'
+    case 'cu118':
+      return '11.8'
     default:
       throw new Error(`computePlatform not supported: ${computePlatform}`)
   }
@@ -202,7 +216,7 @@ export async function buildWithCondaOrManyLinux(): Promise<void> {
       break
     case 'llvm':
       if (isSelfHosted()) {
-        const tag = LLVM13DevContainerTag
+        const tag = LLVM15DevContainerTag
         await exec.exec('docker', ['pull', tag])
         await buildOneFlow(tag)
       } else {
