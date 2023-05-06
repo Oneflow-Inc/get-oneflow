@@ -88,8 +88,10 @@ export async function collectWorkflowRunStatus(): Promise<void> {
             crlfDelay: Infinity
           })
           for await (const line of rl) {
-            if (line.includes('misaligned address')) {
-              core.warning(`[misaligned][${file}] ${wr.html_url}`)
+            if (line.includes('Error: CUDA out of memory')) {
+              core.warning(
+                `[Error: CUDA out of memory][${file}] ${wr.html_url}`
+              )
             }
             const isFailure =
               line.includes('FAILURE') ||

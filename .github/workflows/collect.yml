@@ -3,12 +3,13 @@ name: Collect PR Status
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 */6 * * *"
+    - cron: '0 */6 * * *'
   push:
     branches:
-      - "auto-collect"
-      - "parse-log"
-      - "collect-misaligned"
+      - 'auto-collect'
+      - 'parse-log'
+      - 'collect-misaligned'
+      - 'collect-oom'
 concurrency:
   group: collect-${{ github.ref }}
   cancel-in-progress: true
@@ -21,7 +22,7 @@ env:
 
 jobs:
   revive-prs:
-    name: "Collect PR Status"
+    name: 'Collect PR Status'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
