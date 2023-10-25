@@ -90,6 +90,12 @@ async function buildWithConda(): Promise<void> {
 }
 
 const ProductionCommit = '60785746d8a0c1c3b16e094ad653d1a18c519c7f'
+const CUDA12ProductionCommit = 'fb0693807a10ee5a6ac5c3b2802860655158264e'
+
+const CUDA_120_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda12.0:${CUDA12ProductionCommit}`
+const CUDA_121_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda12.1:${CUDA12ProductionCommit}`
+const CUDA_122_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda12.2:${CUDA12ProductionCommit}`
+
 const CUDA_118_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.8:${ProductionCommit}`
 const CUDA_116_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.6:${ProductionCommit}`
 const CUDA_117_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.7:${ProductionCommit}`
@@ -99,6 +105,7 @@ const CUDA_113_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014
 const CUDA_112_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.2:${ProductionCommit}`
 const CUDA_110_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.0:${ProductionCommit}`
 const CUDA_102_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda10.2:${ProductionCommit}`
+
 const CUDA_CPU_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cpu:${ProductionCommit}`
 
 type CudaVersion =
@@ -111,6 +118,9 @@ type CudaVersion =
   | '11.6'
   | '11.7'
   | '11.8'
+  | '12.0'
+  | '12.1'
+  | '12.2'
   | 'none'
   | ''
 
@@ -138,6 +148,12 @@ function getCUDAImageByVersion(cudaVersion: CudaVersion): string {
       return CUDA_117_IMG_TAG
     case '11.8':
       return CUDA_118_IMG_TAG
+    case '12.0':
+      return CUDA_120_IMG_TAG
+    case '12.1':
+      return CUDA_121_IMG_TAG
+    case '12.2':
+      return CUDA_122_IMG_TAG
     default:
       throw new Error(`cudaVersion not supported: ${cudaVersion}`)
   }
@@ -154,6 +170,9 @@ type ComputePlatform =
   | 'cu116'
   | 'cu117'
   | 'cu118'
+  | 'cu120'
+  | 'cu121'
+  | 'cu122'
   | ''
 
 function getCUDAVersionByComputePlatform(
@@ -180,6 +199,12 @@ function getCUDAVersionByComputePlatform(
       return '11.7'
     case 'cu118':
       return '11.8'
+    case 'cu120':
+      return '12.0'
+    case 'cu121':
+      return '12.1'
+    case 'cu122':
+      return '12.2'
     default:
       throw new Error(`computePlatform not supported: ${computePlatform}`)
   }
