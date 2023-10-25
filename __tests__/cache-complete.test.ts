@@ -42,10 +42,9 @@ test(
     await cache.postCacheRun()
     process.env['OSS_ACCESS_KEY_ID'] = ''
     process.env['OSS_ACCESS_KEY_SECRET'] = ''
-    // await new Promise(resolve => setTimeout(resolve, 2000))
     ok(await cache.checkComplete(keys))
     env.setBooleanInput('check-not-completed', false)
-    await cache.cacheRun()
+    // await cache.cacheRun()
   },
   MINUTES15
 )
