@@ -704,12 +704,8 @@ function PrintRes(
 }
 
 export async function benchmarkWithPytest(): Promise<void> {
-  const {
-    collectPath,
-    containerName,
-    unknownThreshold,
-    errorThreshold
-  } = getPytestArgs()
+  const {collectPath, containerName, unknownThreshold, errorThreshold} =
+    getPytestArgs()
 
   core.info(`[task] collect pytest functions in ${collectPath}`)
   const collectOutputJSONs = await collectPytest(collectPath, containerName)
