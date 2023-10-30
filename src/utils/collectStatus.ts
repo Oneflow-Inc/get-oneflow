@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 import * as glob from '@actions/glob'
 import * as core from '@actions/core'
 import * as io from '@actions/io'
@@ -7,6 +8,7 @@ import {Octokit} from '@octokit/core'
 import * as fs from 'fs'
 import * as tc from '@actions/tool-cache'
 import path from 'path'
+
 import {components} from '@octokit/openapi-types/types'
 
 const token = core.getInput('token')

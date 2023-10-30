@@ -53,8 +53,12 @@ export async function cacheComplete(keys: string[]): Promise<void> {
 
 // NOTE: This is no a typo, exception name in oss lib is UnknowError
 interface UnknowError {
-  name: 'UnknowError'
+  name: 'UnknowError' | 'UnknownError'
   status: Number
+}
+
+function isUnknownError(error: UnknowError): boolean {
+  return error.name === 'UnknowError' || error.name === 'UnknownError'
 }
 
 interface DownloadError {
@@ -74,7 +78,7 @@ export async function pullWithoutSecret(
     if ((error as Error).name === 'NoSuchKeyError') {
       return null
     } else if (
-      (error as UnknowError).name === 'UnknowError' &&
+      isUnknownError(error as UnknowError) &&
       (error as UnknowError).status === 403
     ) {
       // authentication failed, try download with HTTP anyway
@@ -114,7 +118,7 @@ export async function checkComplete(keys: string[]): Promise<string | null> {
       if ((error as Error).name === 'NoSuchKeyError') {
         core.info(`[absent] ${objectKey}`)
       } else if (
-        (error as UnknowError).name === 'UnknowError' &&
+        isUnknownError(error as UnknowError) &&
         (error as UnknowError).status === 403
       ) {
         const url = `https://oneflow-ci-cache.oss-cn-beijing.aliyuncs.com/${objectKey}`
@@ -130,6 +134,7 @@ export async function checkComplete(keys: string[]): Promise<string | null> {
           }
         }
       } else {
+        core.error(`[error] ${JSON.stringify(error)}`)
         throw error
       }
     }

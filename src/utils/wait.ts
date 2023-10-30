@@ -1,9 +1,12 @@
+/* eslint-disable import/no-unresolved */
+/* eslint-disable prettier/prettier */
 import * as core from '@actions/core'
 import * as util from 'util'
 import Table from 'cli-table3'
 import {Octokit} from '@octokit/core'
 import {components} from '@octokit/openapi-types/types'
 import {Endpoints} from '@octokit/types/dist-types/generated/Endpoints'
+type Status = Endpoints['GET /repos/{owner}/{repo}/actions/runs']['parameters']['status']
 
 const token = core.getInput('token')
 const octokit = new Octokit({auth: token})
@@ -85,8 +88,6 @@ async function is_occupying_gpu(
 }
 
 // TODO: refactor into in_progress_runs_larger_that(1)
-type Status = Endpoints['GET /repos/{owner}/{repo}/actions/runs']['parameters']['status']
-
 async function num_in_progress_runs(
   statuses: Status[],
   nth_try: number

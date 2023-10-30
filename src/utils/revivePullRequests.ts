@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unresolved */
 import {components} from '@octokit/openapi-types/types'
 import * as core from '@actions/core'
 import {Octokit} from '@octokit/core'

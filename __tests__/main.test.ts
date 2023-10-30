@@ -26,12 +26,7 @@ test('test runs', () => {
   const options: cp.ExecFileSyncOptions = {
     env: process.env
   }
-  try {
-    cp.execFileSync(np, [ip], options).toString()
-  } catch (error) {
-    console.log(error.output.toString())
-    throw error
-  }
+  cp.execFileSync(np, [ip], options).toString()
 })
 
 test(
@@ -60,12 +55,7 @@ test(
     const options: cp.ExecFileSyncOptions = {
       env: process.env
     }
-    try {
-      cp.execFileSync(np, [ip], options).toString()
-    } catch (error) {
-      console.log(error.output.toString())
-      throw error
-    }
+    cp.execFileSync(np, [ip], options).toString()
   },
   MINUTES15
 )
