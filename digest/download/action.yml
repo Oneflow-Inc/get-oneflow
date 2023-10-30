@@ -1,35 +1,35 @@
-name: 'Download by digest'
-description: ''
+name: "Download by digest"
+description: ""
 inputs:
   action-type:
-    description: ''
+    description: ""
     required: false
-    default: 'digest/download'
+    default: "digest/download"
   entry:
-    description: ''
+    description: ""
     required: true
   digest:
-    description: ''
+    description: ""
     required: true
   ssh-tank-host:
-    description: ''
+    description: ""
     required: false
   ssh-tank-path:
-    description: ''
+    description: ""
     required: false
-    default: '/tank'
+    default: "/tank"
   digest-cache-dir:
-    description: ''
+    description: ""
     required: false
-    default: './digest-cache'
+    default: "./digest-cache"
 
 outputs:
   entry-dir:
-    description: ''
+    description: ""
 
 runs:
-  using: 'node12'
-  main: '../../dist/index.js'
+  using: "node20"
+  main: "../../dist/index.js"
 branding:
-  icon: 'archive'
-  color: 'gray-dark'
+  icon: "archive"
+  color: "gray-dark"

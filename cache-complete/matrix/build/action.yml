@@ -1,30 +1,30 @@
-name: 'Build/Get OneFlow'
-description: ''
+name: "Build/Get OneFlow"
+description: ""
 inputs:
   action-type:
-    description: ''
+    description: ""
     required: false
-    default: 'cache-complete/matrix/build'
+    default: "cache-complete/matrix/build"
   oneflow-src:
-    description: 'path to OneFlow source code'
+    description: "path to OneFlow source code"
     required: true
   runner-labels:
     required: true
-    description: 'runner labels to output if cache not found'
+    description: "runner labels to output if cache not found"
   entries:
     required: true
-    description: 'matrix keys to generate matrix output'
+    description: "matrix keys to generate matrix output"
   delete-cache:
     required: false
-    description: ''
-    default: 'false'
+    description: ""
+    default: "false"
 outputs:
   matrix:
-    description: 'if cache found, will generate a [ubuntu-latest], in JSON'
+    description: "if cache found, will generate a [ubuntu-latest], in JSON"
 
 runs:
-  using: 'node12'
-  main: '../../../dist/index.js'
+  using: "node20"
+  main: "../../../dist/index.js"
 branding:
-  icon: 'archive'
-  color: 'gray-dark'
+  icon: "archive"
+  color: "gray-dark"
