@@ -1,43 +1,43 @@
-name: 'Build/Get OneFlow'
-description: ''
+name: "Build/Get OneFlow"
+description: ""
 inputs:
   action-type:
-    description: ''
+    description: ""
     required: false
-    default: 'cache-complete'
+    default: "cache-complete"
   oneflow-src:
-    description: 'path to OneFlow source code'
+    description: "path to OneFlow source code"
     required: true
   entry:
-    description: 'entry to cache completion status'
+    description: "entry to cache completion status"
     required: true
   runner-labels:
     required: false
-    description: 'runner labels to output if cache not found'
+    description: "runner labels to output if cache not found"
   mark-as-completed:
     required: false
-    description: 'if true, will mark keys as completed when this job is success'
+    description: "if true, will mark keys as completed when this job is success"
     default: false
   digest-type:
     required: true
-    description: 'build|test'
+    description: "build|test"
 outputs:
   runs-on:
-    description: 'if cache found, will generate a [ubuntu-latest], in JSON'
+    description: "if cache found, will generate a [ubuntu-latest], in JSON"
   build-cache-hit:
-    description: ''
+    description: ""
   test-cache-hit:
-    description: ''
+    description: ""
   build-digest:
-    description: ''
+    description: ""
   test-digest:
-    description: ''
+    description: ""
 
 runs:
-  using: 'node12'
-  main: '../dist/index.js'
-  post: '../dist/index.js'
+  using: "node20"
+  main: "../dist/index.js"
+  post: "../dist/index.js"
   post-if: success()
 branding:
-  icon: 'archive'
-  color: 'gray-dark'
+  icon: "archive"
+  color: "gray-dark"

@@ -1,20 +1,20 @@
-name: 'Find oneflow wheel in oss'
-description: ''
+name: "Find oneflow wheel in oss"
+description: ""
 inputs:
   action-type:
-    description: ''
+    description: ""
     required: false
-    default: 'master-address'
+    default: "master-address"
   rank:
     required: true
-    description: ''
+    description: ""
 outputs:
   master-address:
-    description: ''
+    description: ""
 
 runs:
-  using: 'node12'
-  main: '../dist/index.js'
+  using: "node20"
+  main: "../dist/index.js"
 branding:
-  icon: 'archive'
-  color: 'gray-dark'
+  icon: "archive"
+  color: "gray-dark"

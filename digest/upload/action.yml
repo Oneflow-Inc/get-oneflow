@@ -1,33 +1,33 @@
-name: 'Upload by digest'
-description: ''
+name: "Upload by digest"
+description: ""
 inputs:
   action-type:
-    description: ''
+    description: ""
     required: false
-    default: 'digest/upload'
+    default: "digest/upload"
   src-dir:
-    description: 'path to OneFlow source code'
+    description: "path to OneFlow source code"
     required: true
   dst-dir:
-    description: 'path to OneFlow source code'
+    description: "path to OneFlow source code"
     required: true
   entry:
-    description: ''
+    description: ""
     required: true
   digest:
-    description: ''
+    description: ""
     required: true
   ssh-tank-host:
-    description: ''
+    description: ""
     required: false
   ssh-tank-path:
-    description: ''
+    description: ""
     required: false
-    default: '/tank'
+    default: "/tank"
 
 runs:
-  using: 'node12'
-  main: '../../dist/index.js'
+  using: "node20"
+  main: "../../dist/index.js"
 branding:
-  icon: 'archive'
-  color: 'gray-dark'
+  icon: "archive"
+  color: "gray-dark"
