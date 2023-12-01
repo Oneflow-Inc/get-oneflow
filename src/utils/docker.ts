@@ -172,12 +172,12 @@ async function buildAndMakeWheel(
   let nvLibs: string[] = []
   if (useNVWheels) {
     nvLibs = [
-      'libcudnn_cnn_infer.so.8',
-      'libcudnn_cnn_train.so.8',
-      'libcudnn_ops_infer.so.8',
-      'libcudnn_ops_train.so.8',
-      'libcublas.so.11',
-      'libcublasLt.so.11'
+      'libcudnn_cnn_infer.so',
+      'libcudnn_cnn_train.so',
+      'libcudnn_ops_infer.so',
+      'libcudnn_ops_train.so',
+      'libcublas.so',
+      'libcublasLt.so'
     ]
   }
   const nvLibsExcludes = Array.prototype.concat.apply(
