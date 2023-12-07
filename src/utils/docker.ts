@@ -177,7 +177,9 @@ async function buildAndMakeWheel(
       'libcudnn_ops_infer.so.8',
       'libcudnn_ops_train.so.8',
       'libcublas.so.11',
-      'libcublasLt.so.11'
+      'libcublasLt.so.11',
+      'libcublas.so.12',
+      'libcublasLt.so.12'
     ]
   }
   const nvLibsExcludes = Array.prototype.concat.apply(
