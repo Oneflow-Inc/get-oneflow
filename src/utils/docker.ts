@@ -98,12 +98,21 @@ const PythonExeMap = new Map([
   ['3.12', '/opt/python/cp312-cp312/bin/python3']
 ])
 
+function getPyExe(pythonVersion: string): string {
+  let exe = PythonExeMap.get(pythonVersion)
+  if (exe === undefined) {
+    const v = pythonVersion.replace('.', '')
+    exe = `/opt/python/cp${v}-cp${v}/bin/python3`
+  }
+  return exe
+}
+
 function getPythonExe(pythonVersion: string): string {
   const buildEnv: BuildEnv = core.getInput('oneflow-build-env') as BuildEnv
   if (buildEnv !== 'manylinux') {
     return 'python3'
   }
-  const exe = PythonExeMap.get(pythonVersion)
+  const exe = getPyExe(pythonVersion)
   ok(exe, `python3 version not supported: ${pythonVersion}`)
   return exe
 }
