@@ -91,12 +91,13 @@ async function buildWithConda(): Promise<void> {
 
 const ProductionCommit = '60785746d8a0c1c3b16e094ad653d1a18c519c7f'
 const CUDA12ProductionCommit = 'bba403da5da597c3f7905dfc52b24989ee21ffb1'
+const V2ProductionCommit = '6455f9b8154333333e6285fde3747aaac4a92929'
 
 const CUDA_120_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda12.0:${CUDA12ProductionCommit}`
-const CUDA_121_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda12.1:${CUDA12ProductionCommit}`
-const CUDA_122_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda12.2:${CUDA12ProductionCommit}`
+const CUDA_121_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda12.1:${V2ProductionCommit}`
+const CUDA_122_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda12.2:${V2ProductionCommit}`
 
-const CUDA_118_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.8:${ProductionCommit}`
+const CUDA_118_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.8:${V2ProductionCommit}`
 const CUDA_116_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.6:${ProductionCommit}`
 const CUDA_117_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.7:${ProductionCommit}`
 const CUDA_115_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.5:${ProductionCommit}`
@@ -106,7 +107,7 @@ const CUDA_112_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014
 const CUDA_110_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda11.0:${ProductionCommit}`
 const CUDA_102_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cuda10.2:${ProductionCommit}`
 
-const CUDA_CPU_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cpu:${ProductionCommit}`
+const CUDA_CPU_IMG_TAG = `registry.cn-beijing.aliyuncs.com/oneflow/manylinux2014_x86_64_cpu:${V2ProductionCommit}`
 
 type CudaVersion =
   | '10.2'
