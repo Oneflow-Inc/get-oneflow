@@ -52,13 +52,13 @@ function getRunsOn(test: Test, deviceLabel: Device): string[] {
   return runnerLabels.concat([`${deviceLabel}-${suffix}`])
 }
 
-export type ComputePlatform = 'cpu' | 'cu116' | 'cu110_xla' | 'cu101_xla'
+export type ComputePlatform = 'cpu' | 'cu118' | 'cu110_xla' | 'cu101_xla'
 function getComputePlatform(device: Device): ComputePlatform {
   switch (device) {
     case 'cpu':
       return 'cpu'
     case 'cuda':
-      return 'cu116'
+      return 'cu118'
 
     default:
       throw new Error(device)
