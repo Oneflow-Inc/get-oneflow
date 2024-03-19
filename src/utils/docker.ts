@@ -190,7 +190,12 @@ async function buildAndMakeWheel(
       'libcublas.so.11',
       'libcublasLt.so.11',
       'libcublas.so.12',
-      'libcublasLt.so.12'
+      'libcublasLt.so.12',
+      'libnccl.so.2',
+      'libcufft.so.11',
+      'libcufft.so.12',
+      'libcusparse.so.11',
+      'libcusparse.so.12'
     ]
   }
   const nvLibsExcludes = Array.prototype.concat.apply(
