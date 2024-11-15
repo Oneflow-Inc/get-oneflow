@@ -182,21 +182,21 @@ async function buildAndMakeWheel(
   let postProcessCmds = [runCPack(container, buildDir)]
   let nvLibs: string[] = []
   if (useNVWheels) {
-    nvLibs = [
-      'libcudnn_cnn_infer.so.8',
-      'libcudnn_cnn_train.so.8',
-      'libcudnn_ops_infer.so.8',
-      'libcudnn_ops_train.so.8',
-      'libcublas.so.11',
-      'libcublasLt.so.11',
-      'libcublas.so.12',
-      'libcublasLt.so.12',
-      'libnccl.so.2',
-      'libcufft.so.11',
-      'libcufft.so.12',
-      'libcusparse.so.11',
-      'libcusparse.so.12'
-    ]
+    for (let suffix = 0; suffix <= 20; suffix++) {
+      nvLibs = nvLibs.concat([
+        `libcudnn_cnn_infer.so.${suffix}`,
+        `libcudnn_ops_infer.so.${suffix}`,
+        `libcublas.so.${suffix}`,
+        `libcublasLt.so.${suffix}`,
+        `libnccl.so.${suffix}`,
+        `libcufft.so.${suffix}`,
+        `libcusparse.so.${suffix}`,
+        `libcupti.so.${suffix}`,
+        `libcurand.so.${suffix}`,
+        `libcusolver.so.${suffix}`,
+        `libnvJitLink.so.${suffix}`
+      ])
+    }
   }
   const nvLibsExcludes = Array.prototype.concat.apply(
     [],
